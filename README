@@ -1,0 +1,8 @@
+This work is a collaboration between Dan Friedman and Chris Frisz to
+hopefully make Clojure super awesome by implementing tail call
+optimization. 
+
+Herein lies a lot of musings by me, Chris, working through first
+principles to get to a point where arbitrary Clojure programs can be
+CPSed and trampolined for accommodating tail recursive programs in a
+hostile environment.

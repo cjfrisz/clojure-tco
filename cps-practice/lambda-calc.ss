@@ -17,39 +17,41 @@
 ;; This should be a pretty straight-forward pmatch-style transformation
 (load "pmatch.scm")
 
-(define var-num (make-parameter 0))
-
 (define dumb-cps
   (lambda (e)
+    (define var-num (make-parameter 0))
     (define new-var
       (lambda (sym)
 	(let ([new-var (string->symbol 
-			(string-append (symbol->string sym) 
-				       "."
-				       (number->string (var-num))))])
+                         (string-append (symbol->string sym) 
+                           "."
+                           (number->string (var-num))))])
 	  (begin
 	    (var-num (add1 (var-num)))
 	    new-var))))
-    (pmatch e
-      [,v 
-       (guard (symbol? v)) 
-       (let ([k (new-var 'k)])
-	 `(lambda (,k) (,k ,v)))]
-      [(lambda (,x) ,body)
-       (let ([k (new-var 'k)])
-	 `(lambda (,k) (,k (lambda (,x) ,(dumb-cps body)))))]
-      [(,rator ,rand)
-       (let ([k (new-var 'k)]
-	     [v1 (new-var 'v)]
-	     [v2 (new-var 'v)])
-	 `(lambda (,k) 
-	    (,(dumb-cps rator) 
-	     (lambda (,v1) 
-	       (,(dumb-cps rand) 
-		(lambda (,v2) 
-		  ((,v1 ,v2) ,k)))))))]
-      [else (error 'dumb-cps "Invalid lambda calculus expression ~s."
-		   e)])))
+    (define cps
+      (lambda (e)
+        (pmatch e
+          [,v 
+            (guard (symbol? v)) 
+            (let ([k (new-var 'k)])
+              `(lambda (,k) (,k ,v)))]
+          [(lambda (,x) ,body)
+           (let ([k (new-var 'k)])
+             `(lambda (,k) (,k (lambda (,x) ,(cps body)))))]
+          [(,rator ,rand)
+           (let ([k (new-var 'k)]
+                 [v1 (new-var 'v)]
+                 [v2 (new-var 'v)])
+             `(lambda (,k) 
+                (,(cps rator) 
+                 (lambda (,v1) 
+                   (,(cps rand) 
+                    (lambda (,v2) 
+                      ((,v1 ,v2) ,k)))))))]
+          [else (error 'dumb-cps "Invalid lambda calculus expression ~s."
+                  e)])))
+    (cps e)))
 
 ;; As you might tell from the naming above, this isn't a great solution
 ;; for real CPS. The problem is that it introduces a whole bunch of

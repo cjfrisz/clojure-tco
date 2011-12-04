@@ -116,28 +116,35 @@
     (define trivial?
       (lambda (t)
 	(pmatch t
-	  [,t (guard (symbol? t)) #t]
+          [,t (guard (symbol? t)) #t]
 	  [(lambda (,x) ,body) #t]
 	  [else #f])))
     (define E
       (lambda (e k)
-	(S e k)))
+	(if (trivial? e)
+            `(,k ,(T e))
+            (S e k))))
     (define S
       (lambda (e k)
-	(pmatch e
-	  [,t (guard (trivial? t)) `(,k ,(T t k))]
-	  [(,t0 ,t1) 
-	   (guard (and (trivial? t0) (trivial? t1))) 
-	   `((,(T t0 k) ,(T t1 k)) ,k)]
-	  [(,t0 ,s1) 
-	   (guard (trivial? t0))
-	   (let ([x1 (new-var 'x)])
-	     `(,(S s1 k) ((lambda (,x1) ,(S `(,t0 ,x1) k)) ,k)))]
-	  [(,s0 ,e1)
-	   (let ([x0 (new-var 'x)])
-	     `(,(S s0 k) ((lambda (,x0) ,(S `(,x0 ,e1) k)) ,k)))])))
+	(pmatch e 
+	  [(,t.0 ,t.1) 
+	   (guard (and (trivial? t.0) (trivial? t.1))) 
+	   `((,(T t.0) ,(T t.1)) ,k)]
+	  [(,t.0 ,s.1) 
+	   (guard (trivial? t.0))
+	   (let ([x.1 (new-var 'x)])
+	     (S s.1 `(lambda (,x.1) ((,(T t.0) ,x.1) ,k))))]
+          [(,s.0 ,t.1)
+           (guard (trivial? t.1))
+           (let ([x.0 (new-var 'x)])
+             (S s.0 `(lambda (,x.0) ((,x.0 ,(T t.1)) ,k))))]
+          [(,s.0 ,s.1)
+           (let ([x.0 (new-var 'x)] [x.1 (new-var 'x)])
+             (S s.0 `(lambda (,x.0)
+                       ,(S s.1 `(lambda (,x.1)
+                                  ((,x.0 ,x.1) ,k))))))])))
     (define T
-      (lambda (e k)
+      (lambda (e)
 	(pmatch e
 	  [,x (guard (symbol? x)) x]
 	  [(lambda (,x) ,body)
@@ -145,3 +152,6 @@
 	     `(lambda (,x) (lambda (,k) ,(E body k))))])))
     (let ([k (new-var 'k)])
       `(lambda (,k) ,(E e k)))))
+
+;; It's just nice to have the empty continuation handy for testing
+(define empty-k (lambda (x) x))

@@ -1,0 +1,49 @@
+For my first trick, I need to CPS the untyped lambda calculus. So
+let's start with the grammar:
+
+	Expr := constant
+	      | variable
+	      | (lambda (variable) Expr)
+	      | (Expr Expr)
+
+Well, that doesn't look too bad. We've only got 4 cases to deal
+with. So let's take them case-by-case:
+
+How do we CPS a constant? By doing nothing...and everything! Er...a
+constant value is already in its CPSed form.
+
+Ok, that was easy. How about CPSing a variable? Oooh, we get another
+slow pitch. You can't CPS a variable because it's already done!
+
+And for the next trick we CPS lambda. That's another easy one! We
+apply the current continuation to the lambda and CPS the body
+expression.
+
+That leaves the last case: application. As Dan points out, application
+is actually loaded with four separate cases:
+	(simple simple)
+	(simple non-simple)
+	(non-simple simple)
+	(non-simple non-simple)
+
+This of course brings up another question: what's a simple and what's
+a non-simple? We've already gone through all the simples: constants,
+variables, and lambdas! And so that leaves one thing as a non-simple:
+function application. That means that if we have a constant, variable,
+or lambda expression in the operator or operand position of a function
+application, we can leave them alone.
+
+Before we dig in on algorithmically CPSing lambda calculus
+expressions, let's do a little practice:
+
+(lambda (x) x) => (k1 (lambda (k2) (lambda (x) (k2 x))))
+
+((lambda (x) x) 5) => (lambda (k1) ((k1 (lambda (k2) (lambda (x) (k2
+x))) 5))	
+
+((k1 (lambda (k2) (lambda (x) (k2 x)))) (lambda (f) ((lambda (k3) 5)
+(lambda (v) ((f k1) v)))))
+
+(((lambda (x) x) (lambda (x) x)) 5)
+
+((lambda (x) x) ((lambda (x) x) 5))

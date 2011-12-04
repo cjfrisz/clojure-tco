@@ -200,3 +200,99 @@
 		       (+ m 1)
 		       a))]))])
       ((pascal pascal k) 1 0))))
+
+
+(define empty-s
+  (lambda ()
+    '()))
+
+(define extend-s
+  (lambda (x v s)
+    (cons `(,x . ,v) s)))
+
+(define unify
+  (lambda (v w s)
+    (let ([v (walk v s)])
+      (let ([w (walk w s)])
+	(cond
+	 [(eq? v w) s]
+	 [(symbol? v) (extend-s v w s)]
+	 [(symbol? w) (extend-s w v s)]
+	 [(and (pair? v) (pair? w))
+	  (let ([s (unify (car v) (car w) s)])
+	    (cond
+	     [s (unify (cdr v) (cdr w) s)]
+	     [else #f]))]
+	 [(equal? v w) s]
+	 [else #f])))))
+
+(define unify-cps
+  (lambda (v w s k)
+    (let ([v (walk-cps v s k)])
+      (let ([w (walk-cps w s k)])
+	(cond
+	 [(eq? v w) (k s)]
+	 [(symbol? v) (k (extend-s v w s))]
+	 [(symbol? w) (k (extend-s w v s))]
+	 [(and (pair? v) (pair? w))
+	  (let ([s (unify-cps (car v) (car w) s k)])
+	    (cond
+	     [s (unify (cdr v) (cdr w) s k)]
+	     [else (k #f)]))]
+	 [(equal? v w) (k s)]
+	 [else (k #f)])))))
+
+(define rember*1
+  (lambda (ls)
+    (cond
+     [(null? ls) '()]
+     [(pair? (car ls))
+      (cond
+       [(equal? (car ls) (rember*1 (car ls)))
+	(cons (car ls) (rember*1 (cdr ls)))]
+       [else (cons (rember*1 (car ls)) (cdr ls))])]
+     [(eq? (car ls) '?) (cdr ls)]
+     [else (cons (car ls) (rember*1 (cdr ls)))])))
+
+(define rember*1-cps
+  (lambda (ls k)
+    (cond
+     [(null? ls) (k '())]
+     [(pair? (car ls))
+      (cond
+       [(equal? (car ls) (rember*1-cps (car ls)))
+	(rember*1-cps (cdr ls) (lambda (v) (k (con (car ls) v))))]
+       [else (rember*1-cps (car ls) (lambda (v) (k (cons v (cdr ls)))))])]
+     [(eq? (car ls) '?) (cdr ls)]
+     [else (rember*1-cps (cdr ls) (lambda (v) (k (cons (car ls) v))))])))
+
+
+(define map
+  (lambda (f ls)
+    (if (null? ls)
+	'()
+	(cons (f (car ls)) (map f (cdr ls))))))
+
+(define M
+  (lambda (f)
+    (lambda (ls)
+      (cond
+       [(null? ls) '()]
+       [else (cons (f (car ls)) ((M f) (cdr ls)))]))))
+
+(define M-cps
+  (lambda (f)
+    (lambda (ls)
+      (lambda (k)
+	(cond
+	 [(null? ls) (k '())]
+	 [else (((M f) 
+		 (cdr ls)) 
+		(lambda (v1)
+		  (f (car ls) (lambda (v2)
+				(k (cons v1 v2))))))])))))
+
+(define M-test
+  (((M-cps (lambda (n k) (k (+ n 1))) '(1 2 3 4 5))) (lambda (x) x)))
+
+

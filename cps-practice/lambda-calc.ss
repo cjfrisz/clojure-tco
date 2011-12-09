@@ -53,15 +53,17 @@
                   e)])))
     (cps e)))
 
-;; As you might tell from the naming above, this isn't a great solution
-;; for real CPS. The problem is that it introduces a whole bunch of
-;; unnecessary continuations. This can increase the amount of memory
-;; necessary for the program thanks to the additional closures and
-;; decrease performance because of additional function
-;; invocations. Rather, we can use a smarter CPS transform via Olivier
-;; Danvy (who seemingly picked it up from Sabry and Wadler) to reduce the
-;; number of continuations by converting an expression e to (lambda
-;; (k) E[[e]]) and the following transformations:
+;; As you might tell from the naming above, this isn't a great
+;; solution for real CPS. The problem is that it introduces a whole
+;; bunch of unnecessary continuations, popularly known in the
+;; literature as "administrative redexes." This can increase the
+;; amount of memory necessary for the program thanks to the additional
+;; closures and decrease performance because of additional function
+;; invocations. Of course, more theory-minded people argue that "this
+;; just looks bad." Rather, we can use a smarter CPS transform via
+;; Olivier Danvy (who seemingly picked it up from Sabry and Wadler) to
+;; reduce the number of continuations by converting an expression e to
+;; (lambda (k) E[[e]]) and the following transformations:
 ;; 	
 ;; 	E[[e]]			=	S[[e]] k
 ;; 				
@@ -152,6 +154,39 @@
 	     `(lambda (,x) (lambda (,k) ,(E body k))))])))
     (let ([k (new-var 'k)])
       `(lambda (,k) ,(E e k)))))
+;; P.S. The above notes are actually based off of looking at the
+;; *wrong* section of Olivier's paper, though the code provided is
+;; correct. The notes should be amended to reflect the transformation
+;; that's *actually* used.
 
-;; It's just nice to have the empty continuation handy for testing
+;; Well, sweet, we have a 50-line Scheme program that will take an
+;; arbitrary lambda calculus expression and turn it into an equivalent
+;; *CPSed* lambda calculus expression. So where do we go from here? As
+;; cool as this is, the lambda calculus is kinda restrictive (we don't
+;; even have constant, for glob's sake!), so it would be nice if we
+;; could expand out a little bit. In fact, it would be super cool if
+;; we could CPS arbitrary *Scheme* programs. But that takes quite a
+;; bit of rote extension to defining what's simple and what's trivial,
+;; and we don't want to worry with that just yet.
+;;
+;; Rather, one of the more interesting and practically useful
+;; capabilities of Scheme (as well as Lisp and its various dialects)
+;; is the ability to create arbitrary arity procedures. This isn't too
+;; bad to implement, but it's not completely trivial, though. It
+;; mostly reuses the machinery that we created for cps-olivier. The
+;; only thing that really has significant change is the "S"
+;; sub-procedure. Rather than assuming that applications occur in two
+;; pieces, rator and rand, we assume that there can be any number of
+;; elements in an application.
+;;
+;; Though this sounds complicated, it actually reduces the number of
+;; cases that we need to observe. Instead of the 2! = 4 enumeration of
+;; rator and rand either being trivial or serious, we assume that
+;; there may have been some number of rator + (m - (k - 1)) operands before
+;; the current rator/rand being observed and k operands after the one
+;; being observed. For the ones prior to the current, it's assumed
+;; that they've been taken care of; that is, trivials have been
+;; ignored, while serious operands have been properly CPSed.
+
+;;It's just nice to have the empty continuation handy for testing
 (define empty-k (lambda (x) x))

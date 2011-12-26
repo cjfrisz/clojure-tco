@@ -290,7 +290,7 @@
                               ((,x.0 ,x.1) ,k))))))]))
 
   ;; T is the trivial expression CPSer which takes a trivial lambda
-  ;; calculus expression and returns the PSed equivalent. It accepts
+  ;; calculus expression and returns the CPSed equivalent. It accepts
   ;; the following grammar and performs the associated
   ;; transformations:
   ;;
@@ -359,7 +359,7 @@
 ;; => ((a b) (lambda (s.0) (s.0 c k)))
 ;;
 ;; (a (b c) (d e))
-[1;5A;; => ((b c) (lambda (s.0) ((d e) (lambda (s.1) ((a s.0 s.1) k)))))
+;; => ((b c) (lambda (s.0) ((d e) (lambda (s.1) ((a s.0 s.1) k)))))
 ;;
 ;; So we see from these few examples that for each serious item in the
 ;; procedure call list (either in the operator position or one of the
@@ -461,7 +461,8 @@
   ;;
   ;; Note that this is functionally the same as the T helper used in
   ;; the olivier-cps module, since nothing actually needs to be done
-  ;; with the list of formals in the lambda case.
+  ;; with the list of formals in the lambda case and trivial
+  ;; expressions are otherwise exactly the same as before.
   (define (T e)
     (pmatch e
       [,x (guard (symbol? x)) x]

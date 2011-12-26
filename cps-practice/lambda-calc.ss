@@ -1,3 +1,51 @@
+;;----------------------------------------------------------------------
+;; File lambda-calc.ss
+;; Written by Chris Frisz
+;; 
+;; Created 3 Dec 2011
+;; Last modified 25 Dec 2011
+;; 
+;; The file lambda-calc.ss contains several modules for CPSing lambda
+;; calculus expressions. They are as follows:
+;;      dumb-cps:
+;;              Performs a general CPS transformation on a standard
+;;              lambda calculus expression. This is a "dumb"
+;;              transformation because it introduces unnecessary
+;;              administrative redexes that are eliminated in more
+;;              sophisticated CPS methods.
+;;      olivier-cps:
+;;              Performs a first-order one-pass CPS transformation on
+;;              a standard lambda calculus expression as shown in
+;;              Olivier Danvy's (appropriately-named) "A First-Order
+;;              One-Pass CPS Transformation."
+;;      n-arity-cps:
+;;              Performs a CPS transformation in the style of the
+;;              Olivier transformation used in the olivier-cps
+;;              module, with a twist. Rather than only operating on
+;;              standard lambda calculus expressions, which may either
+;;              be symbols, lambda expressions, or two-part, operator
+;;              and operand function applications, it transforms
+;;              expressions with procedures of arbitrary arity.
+;;----------------------------------------------------------------------
+
+;; This is gonna need pmatch
+(load "pmatch.scm")
+
+;; Just some stuff to make writing CPSers easier
+(module cps-helpers (new-var)
+
+  (define var-num (make-parameter 0))
+  
+  (define new-var
+    (lambda (sym)
+      (let ([new-var (string->symbol 
+                       (string-append (symbol->string sym) 
+                         "."
+                         (number->string (var-num))))])
+        (begin
+          (var-num (add1 (var-num)))
+          new-var)))))
+
 ;; Ok, let's tackle CPSing the lambda calculus.
 ;; We start with this grammar:
 ;;	E := v			-- variables
@@ -15,42 +63,32 @@
 ;;							     ((v1 v2) k))))))
 ;;
 ;; This should be a pretty straight-forward pmatch-style transformation
-(load "pmatch.scm")
+(module dumb-cps (cps)
+  (import cps-helpers)
 
-(define dumb-cps
-  (lambda (e)
-    (define var-num (make-parameter 0))
-    (define new-var
-      (lambda (sym)
-	(let ([new-var (string->symbol 
-                         (string-append (symbol->string sym) 
-                           "."
-                           (number->string (var-num))))])
-	  (begin
-	    (var-num (add1 (var-num)))
-	    new-var))))
-    (define cps
-      (lambda (e)
-        (pmatch e
-          [,v (guard (symbol? v)) (let ([k (new-var 'k)])
-                                    `(lambda (,k) (,k ,v)))]
-          [(lambda (,x) ,body) (let ([k (new-var 'k)])
-                                 `(lambda (,k)
-                                    (,k (lambda (,x)
-                                          ,(cps body)))))]
-          [(,rator ,rand)
-           (let ([k (new-var 'k)]
-                 [v1 (new-var 'v)]
-                 [v2 (new-var 'v)])
-             `(lambda (,k) 
-                (,(cps rator) 
-                 (lambda (,v1) 
-                   (,(cps rand) 
-                    (lambda (,v2) 
-                      ((,v1 ,v2) ,k)))))))]
-          [else (error 'dumb-cps "Invalid lambda calculus expression ~s."
-                  e)])))
-    (cps e)))
+  (define cps
+    (lambda (e)
+      (pmatch e
+        [,v (guard (symbol? v)) (let ([k (new-var 'k)])
+                                  `(lambda (,k) (,k ,v)))]
+        [(lambda (,x) ,body) (let ([k (new-var 'k)])
+                               `(lambda (,k)
+                                  (,k (lambda (,x)
+                                        ,(cps body)))))]
+        [(,rator ,rand)
+         (let ([k (new-var 'k)]
+               [v1 (new-var 'v)]
+               [v2 (new-var 'v)])
+           `(lambda (,k) 
+              (,(cps rator) 
+               (lambda (,v1) 
+                 (,(cps rand) 
+                  (lambda (,v2) 
+                    ((,v1 ,v2) ,k)))))))]
+        [else (error 'dumb-cps
+                     "Invalid lambda calculus expression ~s."
+                     e)]))))
+
 
 ;; As you might tell from the naming above, this isn't a great
 ;; solution for real CPS. The problem is that it introduces a whole
@@ -110,29 +148,23 @@
 ;; useful to have pmatch-using predicates for determining if a given
 ;; expression is simple or serious. Well, with all that explanation
 ;; behind us, let's forge ahead:
-(define cps-olivier
-  (lambda (e)
-    (define var-num (make-parameter 0))
-    (define new-var
-      (lambda (sym)
-	(let ([new-var
-                (string->symbol (string-append (symbol->string sym) "."
-                                  (number->string (var-num))))])
-	  (begin
-	    (var-num (add1 (var-num)))
-	    new-var))))
-    (define trivial?
-      (lambda (t)
+(module olivier-cps (cps)
+  (import cps-helpers)
+
+  (define trivial?
+    (lambda (t)
 	(pmatch t
           [,t (guard (symbol? t)) #t]
 	  [(lambda (,x) ,body) #t]
 	  [else #f])))
-    (define E
+
+  (define E
       (lambda (e k)
 	(if (trivial? e)
             `(,k ,(T e))
             (S e k))))
-    (define S
+
+  (define S
       (lambda (e k)
 	(pmatch e 
 	  [(,t.0 ,t.1) 
@@ -151,14 +183,17 @@
              (S s.0 `(lambda (,x.0)
                        ,(S s.1 `(lambda (,x.1)
                                   ((,x.0 ,x.1) ,k))))))])))
-    (define T
+
+  (define T
       (lambda (e)
 	(pmatch e
 	  [,x (guard (symbol? x)) x]
 	  [(lambda (,x) ,body)
 	   (let ([k (new-var 'k)])
 	     `(lambda (,x) (lambda (,k) ,(E body k))))])))
-    (let ([k (new-var 'k)])
+
+  (define (cps e)
+      (let ([k (new-var 'k)])
       `(lambda (,k) ,(E e k)))))
 
 ;; Well, sweet, we have a 50-line Scheme program that will take an
@@ -229,26 +264,21 @@
 ;;                           x.
 ;;                      iii. The serious expression in the original
 ;;                           application is replaced by x in the
-;;                           continuation. 
-(define (n-arity-cps e)
-  (define var-num (make-parameter 0))
-  (define (new-var sym)
-    (let ([new-var (string->symbol 
-                     (string-append (symbol->string sym) 
-                       "."
-                       (number->string (var-num))))])
-      (begin
-        (var-num (add1 (var-num)))
-        new-var)))
+;;                           continuation.
+(module n-arity-cps (cps)
+  (import cps-helpers)
+
   (define (trivial? t)    
     (pmatch t
       [,t (guard (symbol? t)) #t]
       [(lambda (,fst . ,rst) ,body) #t]
       [else #f]))
+  
   (define (E e k)
     (if (trivial? e)
         `(,k ,(T e))
         (S e (lambda (call) `(,call ,k)))))
+
   (define (S e k)
     (let ([fst (or (null? e) (car e))] [rest (or (null? e) (cdr e))])
       (cond
@@ -258,17 +288,20 @@
         [else (let ([s (new-var 's)])
                 (S fst (lambda (n)
                          `(,n (lambda (,s)
-                                  ,(k (S rest
-                                        (lambda (r)
-                                          (cons s r)))))))))])))
+                                ,(k (S rest
+                                      (lambda (r)
+                                        (cons s r)))))))))])))
+
   (define (T e)
     (pmatch e
       [,x (guard (symbol? x)) x]
       [(lambda (,fst . ,rst) ,body)
        (let ([k (new-var 'k)])
          `(lambda (,fst . ,rst) (lambda (,k) ,(E body k))))]))
-  (let ([k (new-var 'k)])
-    `(lambda (,k) ,(E e k))))
+
+  (define (cps e)
+    (let ([k (new-var 'k)])
+      `(lambda (,k) ,(E e k)))))
 
 ;;It's just nice to have the empty continuation handy for testing
 (define empty-k (lambda (x) x))

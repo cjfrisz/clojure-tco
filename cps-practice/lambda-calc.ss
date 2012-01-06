@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 3 Dec 2011
-;; Last modified 26 Dec 2011
+;; Last modified  6 Jan 2012
 ;; 
 ;; The file lambda-calc.ss contains several modules for CPSing lambda
 ;; calculus expressions. They are as follows:
@@ -391,6 +391,38 @@
 ;;                           continuation.
 (module n-arity-cps (cps)
   (import cps-helpers (only lambda-calc-verify verify-lambda-calc-na))
+
+  ;; The most elegant way to do this (at least that I've found) is
+  ;; using the continuation monad. We include the standard definitions
+  ;; of unit (for which we use the Haskell "return" convention) and
+  ;; bind.
+  (define (returnK e)
+    (lambda (k)
+      (k e)))
+
+  (define (bindK ma next)
+    (lambda (k)
+      (let ([k^ (lambda (a)
+                  (let ([mb (next a)])
+                    (mb k)))])
+        (ma k^))))
+
+  ;; We make things even a little better with the letMK and letMK*
+  ;; macros (though we mostly include letMK to implement letMK* in
+  ;; terms of it). This cleans up the bindKs and makes things look
+  ;; akin to Haskells 'do' notation.
+  (define-syntax letMK
+    (syntax-rules ()
+      [(_ ((name init)) expr)
+       (bindK init (lambda (name) expr))]))
+
+  (define-syntax letMK*
+    (syntax-rules ()
+      [(_ ((name init)) expr) 
+       (letM ((name init)) expr)]
+      [(_ ((name1 init1) (name2 init2) ...) expr)
+       (letM ([name1 init1]) 
+         (letM* ([name2 init2] ...) expr))]))
   
   ;; E is the general expression CPSer which takes a standard lambda
   ;; calculus expression, e, and a continuation, k, and returns the
@@ -407,7 +439,7 @@
   (define (E e k)
     (if (trivial? e)
         `(,k ,(T e))
-        (S e (lambda (s) `(,s ,k)))))
+        ((S e) (lambda (s) `(,s ,k)))))
 
   ;; S is the serious expression CPSer which takes a serious
   ;; expression (i.e. a function application) and a continuation and
@@ -434,17 +466,19 @@
   ;; arbitrary arity CPS transformation, we pass continuations as
   ;; procedures for building the continuation that appears in the
   ;; final output.
-  (define (S e k)
+  (define (S e)
     (let ([fst (or (null? e) (car e))] [rest (or (null? e) (cdr e))])
       (cond
-        [(null? e) (k '())]
-        [(trivial? fst) (S rest (lambda (n) (k (cons (T fst) n))))]
-        [else (let ([s (new-var 's)])
-                (S fst (lambda (n)
-                         `(,n (lambda (,s)
-                                ,(k (S rest
-                                      (lambda (r)
-                                        (cons s r)))))))))])))
+        [(null? e) (returnK '())]
+        [(trivial? fst)
+         (let ([fst (T fst)])
+           (letMK ([restMK (S rest)])
+             (returnK (cons (T fst) n))))]
+        [else
+          (let ([s (new-var 's)])
+            (letMK* ([fstMK (S fst)]
+                     [restMK (bindK (S rest) (lambda (r) (cons s r)))])
+              `(,fstMK (lambda (,s) ,restMK))))])))
 
 
   ;; T is the trivial expression CPSer which takes a trivial lambda
@@ -477,4 +511,5 @@
     (begin
       (verify-lambda-calc-na e)
       (let ([k (new-var 'k)])
-        `(lambda (,k) ,(E e k))))))
+        `(lambda (,k) ,(E e k)))))
+)

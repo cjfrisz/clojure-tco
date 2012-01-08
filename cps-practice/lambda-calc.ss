@@ -118,6 +118,42 @@
 )
 
 
+(module monadK (returnK bindK letMK letMK*)
+  
+  ;; The most elegant way to do CPS the lambda calculus with
+  ;; arbitrary-arity procedures (at least that I've found) is using
+  ;; the continuation monad. We include the standard definitions of
+  ;; unit (for which we use the Haskell "return" convention) and bind.
+  (define (returnK e)
+    (lambda (k)
+      (k e)))
+
+  (define (bindK ma next)
+    (lambda (k)
+      (let ([k^ (lambda (a)
+                  (let ([mb (next a)])
+                    (mb k)))])
+        (ma k^))))
+
+  ;; We make things even a little better with the letMK and letMK*
+  ;; macros (though we mostly include letMK to implement letMK* in
+  ;; terms of it). This cleans up the bindKs and makes things look
+  ;; akin to Haskells 'do' notation.
+  (define-syntax letMK
+    (syntax-rules ()
+      [(_ ((name init)) expr)
+       (bindK init (lambda (name) expr))]))
+
+  (define-syntax letMK*
+    (syntax-rules ()
+      [(_ ((name init)) expr) 
+       (letMK ((name init)) expr)]
+      [(_ ((name1 init1) (name2 init2) ...) expr)
+       (letMK ([name1 init1]) 
+         (letMK* ([name2 init2] ...) expr))]))
+)
+
+
 ;; Ok, let's tackle CPSing the lambda calculus.
 ;; We start with this grammar:
 ;;	E := v			-- variables
@@ -389,39 +425,8 @@
 ;;                           application is replaced by x in the
 ;;                           continuation.
 (module n-arity-cps (cps)
-  (import cps-helpers (only lambda-calc-verify verify-lambda-calc-na))
-
-  ;; The most elegant way to do this (at least that I've found) is
-  ;; using the continuation monad. We include the standard definitions
-  ;; of unit (for which we use the Haskell "return" convention) and
-  ;; bind.
-  (define (returnK e)
-    (lambda (k)
-      (k e)))
-
-  (define (bindK ma next)
-    (lambda (k)
-      (let ([k^ (lambda (a)
-                  (let ([mb (next a)])
-                    (mb k)))])
-        (ma k^))))
-
-  ;; We make things even a little better with the letMK and letMK*
-  ;; macros (though we mostly include letMK to implement letMK* in
-  ;; terms of it). This cleans up the bindKs and makes things look
-  ;; akin to Haskells 'do' notation.
-  (define-syntax letMK
-    (syntax-rules ()
-      [(_ ((name init)) expr)
-       (bindK init (lambda (name) expr))]))
-
-  (define-syntax letMK*
-    (syntax-rules ()
-      [(_ ((name init)) expr) 
-       (letMK ((name init)) expr)]
-      [(_ ((name1 init1) (name2 init2) ...) expr)
-       (letMK ([name1 init1]) 
-         (letMK* ([name2 init2] ...) expr))]))
+  (import cps-helpers (only lambda-calc-verify verify-lambda-calc-na)
+          monadK)
   
   ;; E is the general expression CPSer which takes a standard lambda
   ;; calculus expression, e, and a continuation, k, and returns the

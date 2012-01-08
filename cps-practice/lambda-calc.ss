@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 3 Dec 2011
-;; Last modified  6 Jan 2012
+;; Last modified  8 Jan 2012
 ;; 
 ;; The file lambda-calc.ss contains several modules for CPSing lambda
 ;; calculus expressions. They are as follows:
@@ -419,10 +419,10 @@
   (define-syntax letMK*
     (syntax-rules ()
       [(_ ((name init)) expr) 
-       (letM ((name init)) expr)]
+       (letMK ((name init)) expr)]
       [(_ ((name1 init1) (name2 init2) ...) expr)
-       (letM ([name1 init1]) 
-         (letM* ([name2 init2] ...) expr))]))
+       (letMK ([name1 init1]) 
+         (letMK* ([name2 init2] ...) expr))]))
   
   ;; E is the general expression CPSer which takes a standard lambda
   ;; calculus expression, e, and a continuation, k, and returns the
@@ -467,18 +467,19 @@
   ;; procedures for building the continuation that appears in the
   ;; final output.
   (define (S e)
-    (let ([fst (or (null? e) (car e))] [rest (or (null? e) (cdr e))])
+    (let ([first (or (null? e) (car e))] [rest (or (null? e) (cdr e))])
       (cond
         [(null? e) (returnK '())]
-        [(trivial? fst)
-         (let ([fst (T fst)])
+        [(trivial? first)
+         (let ([fst (T first)])
            (letMK ([restMK (S rest)])
-             (returnK (cons (T fst) n))))]
+             (returnK (cons fst restMK))))]
         [else
           (let ([s (new-var 's)])
-            (letMK* ([fstMK (S fst)]
-                     [restMK (bindK (S rest) (lambda (r) (cons s r)))])
-              `(,fstMK (lambda (,s) ,restMK))))])))
+            (letMK* ([fstMK (S first)]
+                     [restMK (S rest)]
+                     [inner-call (cons s restMK)])
+              (returnK `(,fstMK (lambda (,s) ,inner-call)))))])))
 
 
   ;; T is the trivial expression CPSer which takes a trivial lambda

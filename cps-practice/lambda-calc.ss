@@ -327,8 +327,8 @@
 ;; even have constants, for glob's sake!), so it would be nice if we
 ;; could expand out a little bit. In fact, it would be super cool if
 ;; we could CPS arbitrary *Scheme* programs. But that takes quite a
-;; bit of rote extension to defining what's simple and what's trivial,
-;; and we don't want to worry with that just yet.
+;; bit of rote extension to defining what's "trivial" and what's
+;; "serious," and we don't want to worry with that just yet.
 ;;
 ;; Rather, one of the more interesting and practically useful
 ;; capabilities of Scheme (as well as Lisp and its various dialects)
@@ -346,8 +346,7 @@
 ;; there may have been some number of rator + (m - (k - 1)) operands
 ;; before the current rator/rand being observed and k operands after
 ;; the one being observed. For the ones prior to the current, it's
-;; assumed that they've been taken care of; that is, trivials have
-;; been ignored, while serious operands have been properly CPSed.
+;; assumed that they've been properly CPSed.
 ;;
 ;; So let's run through a few examples of this before we dig in with
 ;; the code. Let's start with something pretty simple:
@@ -435,37 +434,49 @@
   ;;
   ;;    E((lambda (x) body) k)  => (k (T (lambda (x) body)))
   ;;
-  ;;    E((e0 e1) k)            => (S (e0 e1) (lambda (s) `(,s ,k)))
+  ;;    E((e0 e1) k)            => ((S e) (lambda (s) `(,s ,k)))
+  ;;
+  ;; Note that the S procedure returns a continuation monad which
+  ;; takes an initial continuation and returns a CPSed expression. So
+  ;; if the 'e' argument is a serious expression (i.e. function
+  ;; application), we pass it to S and apply the resulting monad to a
+  ;; continuation that constructs the inner-most application
+  ;; expression.
   (define (E e k)
     (if (trivial? e)
         `(,k ,(T e))
         ((S e) (lambda (s) `(,s ,k)))))
 
   ;; S is the serious expression CPSer which takes a serious
-  ;; expression (i.e. a function application) and a continuation and
-  ;; returns the CPSed equivalent of the expressions.
+  ;; expression (i.e. a function application) and returns a
+  ;; continuation monad.
   ;;
   ;; To properly handle applications for arbitrary arity functions, S
   ;; is recursive and accepts the following grammar with associated
   ;; transformations:
   ;;
-  ;; (S '() k)             => (k '())
+  ;; (S '())             => (returnK '())
   ;;
-  ;; (S '(t0 r* ...) k)    => (S r* (lambda (n) (k (cons (T t0) n))))
+  ;; (S '(t0 r* ...))    => (returnK (cons (T t0) (S r* ...)))
   ;;    where t0 is a trivial expression
   ;;
-  ;; (S '(s0 r* ...) k)    => (S s0 (lambda (n)
-  ;;                            `(,n (lambda (,s)
-  ;;                                   ,(k (S r* (lambda (r)
-  ;;                                               (cons s r))))))))
+  ;; (S '(s0 r* ...))    => (bindK (S s0)
+  ;;                               (lambda (f)
+  ;;                                 (bindK (S r* ...)
+  ;;                                        (lambda (r)
+  ;;                                          (returnK
+  ;;                                            `(,f
+  ;;                                               (lambda (s)
+  ;;                                                 (cons s r))))))))
   ;;    where s0 is a serious expression and s is a unique variable
   ;;
   ;; Note that with the standard lambda calculus, the continuations we
   ;; passed along to the CPS helpers were the fully-built
-  ;; continuations that would appear in the output. In the case of the
-  ;; arbitrary arity CPS transformation, we pass continuations as
-  ;; procedures for building the continuation that appears in the
-  ;; final output.
+  ;; continuations that would appear in the output and returned a
+  ;; complete expression. In the case of the arbitrary arity CPS
+  ;; transformation, we build the continuation monadically and return
+  ;; a monad that takes a continuation for building the innermost
+  ;; application expression
   (define (S e)
     (let ([first (or (null? e) (car e))] [rest (or (null? e) (cdr e))])
       (cond

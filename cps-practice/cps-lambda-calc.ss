@@ -1,12 +1,13 @@
 ;;----------------------------------------------------------------------
-;; File lambda-calc.ss
+;; File cps-lambda-calc.ss
 ;; Written by Chris Frisz
 ;; 
 ;; Created 3 Dec 2011
-;; Last modified  8 Jan 2012
+;; Last modified 13 Jan 2012
 ;; 
-;; The file lambda-calc.ss contains several modules for CPSing lambda
-;; calculus expressions. They are as follows:
+;; The file cps-lambda-calc.ss defines the cps-lambda-calc library
+;; which contains several modules for CPSing lambda calculus
+;; expressions. They are as follows:
 ;;      dumb-cps:
 ;;              Performs a general CPS transformation on a standard
 ;;              lambda calculus expression. This is a "dumb"
@@ -36,7 +37,13 @@
 ;;----------------------------------------------------------------------
 
 ;; This is gonna need pmatch
-(load "pmatch.scm")
+(include "pmatch.scm")
+
+(library (cps-lambda-calc)
+
+  (export dumb-cps olivier-cps n-arity-cps)
+
+  (import (chezscheme))
 
 ;; Just some stuff to make writing CPSers easier This includes a
 ;; procedure, new-var, for generating a unique variable with the input
@@ -120,7 +127,7 @@
 
 (module monadK (returnK bindK letMK letMK*)
   
-  ;; The most elegant way to do CPS the lambda calculus with
+  ;; The most elegant way to do CPS on the lambda calculus with
   ;; arbitrary-arity procedures (at least that I've found) is using
   ;; the continuation monad. We include the standard definitions of
   ;; unit (for which we use the Haskell "return" convention) and bind.
@@ -151,6 +158,7 @@
       [(_ ((name1 init1) (name2 init2) ...) expr)
        (letMK ([name1 init1]) 
          (letMK* ([name2 init2] ...) expr))]))
+
 )
 
 
@@ -425,6 +433,7 @@
 ;;                           application is replaced by x in the
 ;;                           continuation.
 (module n-arity-cps (cps)
+
   (import cps-helpers (only lambda-calc-verify verify-lambda-calc-na)
           monadK)
   
@@ -451,6 +460,7 @@
     (if (trivial? e)
         `(,k ,(T e))
         ((S e) (lambda (s) `(,s ,k)))))
+
 
   ;; S is the serious expression CPSer which takes a serious
   ;; expression (i.e. a function application) and returns a
@@ -529,4 +539,7 @@
       (verify-lambda-calc-na e)
       (let ([k (new-var 'k)])
         `(lambda (,k) ,(E e k)))))
+
+)
+
 )

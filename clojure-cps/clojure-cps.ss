@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  6 Jan 2012
-;; Last modified 15 Jan 2012
+;; Last modified 16 Jan 2012
 ;; 
 ;; The file clojure-cps.ss provides utilities for CPSing Clojure
 ;; programs.
@@ -11,7 +11,7 @@
 
 (library (clojure-cps)
 
-  (export clo-cps)
+  (export clj-cps)
 
   ;; Library import
   (import

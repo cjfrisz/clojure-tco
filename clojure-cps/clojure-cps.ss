@@ -34,9 +34,9 @@
 (define (E e k)
   (if (trivial? e)
       `(,k ,(T e))
-      ((S e) (lambda (s) `(,s ,k)))))
+      ((S e k) (lambda (s) `(,s ,k)))))
 
-(define (S e)
+(define (S e k)
   (if (null? e)
       (returnK '())
       (let ([fst (car e)] [rst (cdr e)])
@@ -44,13 +44,13 @@
           [,t
             (guard (trivial? t))
            (let ([fst (T fst)])
-             (letMK ([rstMK (S rst)])
+             (letMK ([rstMK (S rst k)])
                (returnK (cons fst rstMK))))]
-          [(,rator ,rand)
+          [(,rator ,rand* ...)
             (let ([s (new-var 's)])
-              (letMK* ([fstMK (S fst)] [rstMK (S rst)]
-                       [inner-call (cons s rstMK)])
-                (returnK `(,fstMK (fn [,s] ,inner-call)))))]))))
+              (letMK* ([fstMK (S fst k)]
+                       [rstMK (S rst k)])
+                (returnK `((,fstMK ,k) (fn [,s] ,(cons s rstMK))))))]))))
 
 (define (T e)
   (match e

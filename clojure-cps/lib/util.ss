@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 15 Jan 2012
-;; Last modified 15 Jan 2012
+;; Last modified 16 Jan 2012
 ;; 
 ;; Provides basic utilities helpful for writing CPSed programs.
 ;;----------------------------------------------------------------------
@@ -27,7 +27,7 @@
   (lambda (sym)
     (let ([new-var (string->symbol 
                      (string-append (symbol->string sym) 
-                       "."
+                       "$"
                        (number->string (var-num))))])
       (begin
         (var-num (add1 (var-num)))

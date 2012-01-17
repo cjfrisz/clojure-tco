@@ -58,7 +58,7 @@
      (let ([k (new-var 'k)])
        `(fn ,fmls (fn [,k] ,(E body k))))]))
 
-(define (clo-cps e)
+(define (clj-cps e)
   (let ([k (new-var 'k)])
     `(fn [,k] ,(E e k))))
 

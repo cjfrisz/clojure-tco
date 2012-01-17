@@ -39,18 +39,20 @@
       ((S e) (lambda (s) `(,s ,k)))))
 
 (define (S e)
-  (let ([fst (or (null? e) (car e))] [rst (or (null? e) (cdr e))])
-    (cond
-      [(null? e) (returnK '())]
-      [(trivial? fst)
-       (let ([fst (T fst)])
-         (letMK ([rstMK (S rst)])
-           (returnK (cons fst rstMK))))]
-      [else
-        (let ([s (new-var 's)])
-          (letMK* ([fstMK (S fst)] [rstMK (S rst)]
-                   [inner-call (cons s rstMK)])
-            (returnK `(,fstMK (fn [,s] ,inner-call)))))])))
+  (if (null? e)
+      (returnK '())
+      (let ([fst (car e)] [rst (cdr e)])
+        (match fst
+          [,t
+            (guard (trivial? t))
+           (let ([fst (T fst)])
+             (letMK ([rstMK (S rst)])
+               (returnK (cons fst rstMK))))]
+          [(,rator ,rand)
+            (let ([s (new-var 's)])
+              (letMK* ([fstMK (S fst)] [rstMK (S rst)]
+                       [inner-call (cons s rstMK)])
+                (returnK `(,fstMK (fn [,s] ,inner-call)))))]))))
 
 (define (T e)
   (match e

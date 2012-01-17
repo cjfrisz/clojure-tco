@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 3 Dec 2011
-;; Last modified 13 Jan 2012
+;; Last modified 17 Jan 2012
 ;; 
 ;; The file cps-lambda-calc.ss defines the cps-lambda-calc library
 ;; which contains several modules for CPSing lambda calculus
@@ -36,14 +36,14 @@
 ;; macro.
 ;;----------------------------------------------------------------------
 
-;; This is gonna need pmatch
-(include "pmatch.scm")
-
 (library (cps-lambda-calc)
 
   (export dumb-cps olivier-cps n-arity-cps)
 
   (import (chezscheme))
+
+  ;; This is gonna need pmatch
+  (include "pmatch.scm")
 
 ;; Just some stuff to make writing CPSers easier This includes a
 ;; procedure, new-var, for generating a unique variable with the input

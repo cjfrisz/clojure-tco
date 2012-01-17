@@ -28,6 +28,7 @@
   (match t
     [true #t]
     [false #t]
+    [,s (guard (symbol? s)) #t]
     [,n (guard (number? n)) #t]
     [(fn ,fmls* ,body) #t]
     [,else #f]))

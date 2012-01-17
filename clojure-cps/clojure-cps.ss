@@ -63,5 +63,7 @@
   (let ([k (new-var 'k)])
     `(fn [,k] ,(E e k))))
 
+(pretty-format 'fn '(fn [bracket var x 0 ...] e))
+
 )
 

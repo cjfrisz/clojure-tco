@@ -29,7 +29,7 @@
     [true #t]
     [false #t]
     [,n (guard (number? n)) #t]
-    [(fn ,fmls ,body) #t]
+    [(fn ,fmls* ,body) #t]
     [,else #f]))
 
 (define (E e k)
@@ -54,9 +54,9 @@
 (define (T e)
   (match e
     [,x (guard (or (number? x) (symbol? x))) x]
-    [(fn ,fmls ,body)
+    [(fn ,fmls* ,body)
      (let ([k (new-var 'k)])
-       `(fn ,fmls (fn [,k] ,(E body k))))]))
+       `(fn ,fmls* (fn [,k] ,(E body k))))]))
 
 (define (clj-cps e)
   (let ([k (new-var 'k)])

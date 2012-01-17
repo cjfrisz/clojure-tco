@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  6 Jan 2012
-;; Last modified 16 Jan 2012
+;; Last modified 17 Jan 2012
 ;; 
 ;; The file clojure-cps.ss provides utilities for CPSing Clojure
 ;; programs.
@@ -14,15 +14,13 @@
   (export clj-cps)
 
   ;; Library import
-  (import
-    (chezscheme)
-    (match)
-    (lib util)
-    (lib monad))
+  (import (chezscheme)
+          (match)
+          (lib util)
+          (lib monad))
 
   ;; Module import
-  (import
-    monadK)
+  (import monadK)
 
 (define (trivial? t)
   (match t
@@ -62,8 +60,10 @@
        `(fn ,fmls* (fn [,k] ,(E body k))))]))
 
 (define (clj-cps e)
-  (let ([k (new-var 'k)])
-    `(fn [,k] ,(E e k))))
+  (begin
+    (reset-var-num)
+    (let ([k (new-var 'k)])
+      `(fn [,k] ,(E e k)))))
 
 (pretty-format 'fn '(fn [bracket var x 0 ...] e))
 

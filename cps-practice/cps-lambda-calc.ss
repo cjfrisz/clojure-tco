@@ -50,11 +50,14 @@
 ;; symbol as a base, a predicate, trivial?, for determining whether an
 ;; input lambda calculus expression is trivial, and the empty
 ;; continuation, empty-k.
-(module cps-helpers (new-var trivial? empty-k)
+(module cps-helpers (new-var reset-var-num trivial? empty-k)
 
   ;; Use an essentially global counter to ensure that each variable is
   ;; unique.
   (define var-num (make-parameter 0))
+
+  (define (reset-var-num)
+    (var-num 0))
 
   ;; The new-var procedure does the actual work of generating the
   ;; unique variables. It takes a symbol and appends the current value
@@ -189,6 +192,7 @@
   (define (cps e)
     (begin
       (verify-lambda-calc e)
+      (reset-var-num)
       (pmatch e
         [,v (guard (symbol? v)) (let ([k (new-var 'k)])
                                   `(lambda (,k) (,k ,v)))]
@@ -360,6 +364,7 @@
   (define (cps e)
     (begin
       (verify-lambda-calc e)
+      (reset-var-num)
       (let ([k (new-var 'k)])
         `(lambda (,k) ,(E e k)))))
 )
@@ -537,6 +542,7 @@
   (define (cps e)
     (begin
       (verify-lambda-calc-na e)
+      (reset-var-num)
       (let ([k (new-var 'k)])
         `(lambda (,k) ,(E e k)))))
 

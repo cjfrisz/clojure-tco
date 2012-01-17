@@ -10,13 +10,16 @@
 
 (library (lib util)
 
-  (export new-var)
+  (export new-var reset-var-num)
 
   (import (chezscheme))
 
 ;; Use an essentially global counter to ensure that each variable is
 ;; unique.
 (define var-num (make-parameter 0))
+
+(define (reset-var-num)
+  (var-num 0))
 
 ;; The new-var procedure does the actual work of generating the
 ;; unique variables. It takes a symbol and appends the current value

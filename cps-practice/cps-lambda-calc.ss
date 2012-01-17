@@ -532,9 +532,10 @@
   (define (T e)
     (pmatch e
       [,x (guard (symbol? x)) x]
-      [(lambda ,fmls ,body) (let ([k (new-var 'k)])
-                              `(lambda ,fmls
-                                 (lambda (,k) ,(E body k))))]))
+      [(lambda ,fmls ,body)
+       (let ([k (new-var 'k)])
+         `(lambda ,fmls
+            (lambda (,k) ,(E body k))))]))
 
   ;; The cps procedure is the driver for the Olivier-style CPS
   ;; tranformer for lambda calculus expressions with procedures of

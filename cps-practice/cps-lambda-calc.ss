@@ -464,7 +464,7 @@
   (define (E e k)
     (if (trivial? e)
         `(,k ,(T e))
-        ((S e) (lambda (s) `(,s ,k)))))
+        ((S e k) (lambda (s) `(,s ,k)))))
 
 
   ;; S is the serious expression CPSer which takes a serious
@@ -497,20 +497,20 @@
   ;; transformation, we build the continuation monadically and return
   ;; a monad that takes a continuation for building the innermost
   ;; application expression
-  (define (S e)
-    (let ([first (or (null? e) (car e))] [rest (or (null? e) (cdr e))])
+  (define (S e k)
+    (if (null? e)
+        (returnK '())
+        (let ([first (car e)] [rest (cdr e)])
       (cond
-        [(null? e) (returnK '())]
         [(trivial? first)
          (let ([fst (T first)])
-           (letMK ([restMK (S rest)])
+           (letMK ([restMK (S rest k)])
              (returnK (cons fst restMK))))]
         [else
           (let ([s (new-var 's)])
-            (letMK* ([fstMK (S first)]
-                     [restMK (S rest)]
-                     [inner-call (cons s restMK)])
-              (returnK `(,fstMK (lambda (,s) ,inner-call)))))])))
+            (letMK* ([fstMK (S first k)]
+                     [restMK (S rest k)])
+              (returnK `((,fstMK ,k) (lambda (,s) ,(cons s restMK))))))]))))
 
 
   ;; T is the trivial expression CPSer which takes a trivial lambda

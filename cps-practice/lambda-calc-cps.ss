@@ -1,11 +1,11 @@
 ;;----------------------------------------------------------------------
-;; File cps-lambda-calc.ss
+;; File lambda-calc-cps.ss
 ;; Written by Chris Frisz
 ;; 
 ;; Created 3 Dec 2011
-;; Last modified 17 Jan 2012
+;; Last modified 21 Jan 2012
 ;; 
-;; The file cps-lambda-calc.ss defines the cps-lambda-calc library
+;; The file lambda-calc-cps.ss defines the lambda-calc-cps library
 ;; which contains several modules for CPSing lambda calculus
 ;; expressions. They are as follows:
 ;;      dumb-cps:
@@ -36,7 +36,7 @@
 ;; macro.
 ;;----------------------------------------------------------------------
 
-(library (cps-lambda-calc)
+(library (lambda-calc-cps)
 
   (export dumb-cps olivier-cps n-arity-cps)
 
@@ -86,7 +86,9 @@
   
   ;;It's just nice to have the empty continuation handy for testing
   (define empty-k (lambda (x) x))
-)
+  
+)  ;; End of cps-helpers
+
 
 (module lambda-calc-verify (verify-lambda-calc verify-lambda-calc-na)
 
@@ -125,7 +127,8 @@
       [else (errorf 'verify-lambda-calc-na
                    "Invalid lambda calculus expression ~s"
                    e)]))
-)
+  
+)  ;; End of lambda-calc-verify
 
 
 (module monadK (returnK bindK letMK letMK*)
@@ -162,7 +165,7 @@
        (letMK ([name1 init1]) 
          (letMK* ([name2 init2] ...) expr))]))
 
-)
+)  ;; End of monadK
 
 
 ;; Ok, let's tackle CPSing the lambda calculus.
@@ -213,7 +216,8 @@
         [else (errorf 'dumb-cps
                 "Invalid lambda calculus expression ~s."
                 e)])))
-)
+  
+)  ;; End of dumb-cps
 
 
 ;; As you might tell from the naming above, this isn't a great
@@ -367,7 +371,9 @@
       (reset-var-num)
       (let ([k (new-var 'k)])
         `(lambda (,k) ,(E e k)))))
-)
+  
+)  ;; End of olivier-cps
+
 
 ;; Well, sweet, we have a 50-line Scheme program that will take an
 ;; arbitrary lambda calculus expression and turn it into an equivalent
@@ -547,6 +553,6 @@
       (let ([k (new-var 'k)])
         `(lambda (,k) ,(E e k)))))
 
-)
+)  ;; End of n-arity-cps
 
-)
+)  ;; End of library lambda-calc-cps

@@ -470,7 +470,7 @@
   (define (E e k)
     (if (trivial? e)
         `(,k ,(T e))
-        ((S e k) (lambda (s) `(,s ,k)))))
+        ((S e k) (lambda (s) (append s `(,k)))))) 
 
 
   ;; S is the serious expression CPSer which takes a serious
@@ -540,8 +540,8 @@
       [,x (guard (symbol? x)) x]
       [(lambda ,fmls ,body)
        (let ([k (new-var 'k)])
-         `(lambda ,fmls
-            (lambda (,k) ,(E body k))))]))
+         (let ([fmls^ (append fmls `(,k))])
+         `(lambda ,fmls^ ,(E body k))))]))
 
   ;; The cps procedure is the driver for the Olivier-style CPS
   ;; tranformer for lambda calculus expressions with procedures of

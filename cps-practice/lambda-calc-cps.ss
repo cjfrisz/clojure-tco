@@ -507,16 +507,16 @@
     (if (null? e)
         (returnK '())
         (let ([first (car e)] [rest (cdr e)])
-      (cond
-        [(trivial? first)
-         (let ([fst (T first)])
-           (letMK ([restMK (S rest k)])
-             (returnK (cons fst restMK))))]
-        [else
-          (let ([s (new-var 's)])
-            (letMK* ([fstMK (S first k)]
-                     [restMK (S rest k)])
-              (returnK `((,fstMK ,k) (lambda (,s) ,(cons s restMK))))))]))))
+          (cond
+            [(trivial? first)
+             (let ([fst (T first)])
+               (letMK ([restMK (S rest k)])
+                 (returnK (cons fst restMK))))]
+            [else
+              (let ([s (new-var 's)])
+                (letMK* ([fstMK (S first k)]
+                         [restMK (S rest k)])
+                  (returnK `(,(append fstMK `(,k)) (lambda (,s) ,(cons s restMK))))))]))))
 
 
   ;; T is the trivial expression CPSer which takes a trivial lambda

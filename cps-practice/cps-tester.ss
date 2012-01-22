@@ -54,13 +54,6 @@
 (define (clear-failed-tests)
   (failed-tests '()))
 
-(define (cps-eval expr)
-  (with-exception-handler
-    (lambda (x)
-      (begin
-        (printf "Failed!~%")
-        (add-failed-test )))))
-
 (cps-test 'id '(lambda (x) x))
 
 (cps-test 'simple-app '((lambda (x) x) y) [y 5])

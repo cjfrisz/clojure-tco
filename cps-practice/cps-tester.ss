@@ -5,7 +5,7 @@
 ;; Created 20 Jan 2012
 ;; Last modified 21 Jan 2012
 ;; 
-;; Defines a set of tests and a simple test macro for the 
+;; Defines a set of tests and a simple test macro for the lambda calculus CPSer.
 ;;----------------------------------------------------------------------
 
 (import (lambda-calc-cps))
@@ -19,21 +19,47 @@
      (let ([expr (cps e)]
            [bind* `([var init] ...)])
        (let ([expr^ `(let ([var init] ...) ,expr)])
-         (printf "Testing ~s -- " name)
-         (let ([evaluated-expr (eval `(,expr^ ,k-init))])
-           (printf "Passed!~%")
+         (begin
+           (printf "Testing ~s~%" name)
            (printf "  Original expression: ~s~%" e)
            (printf "  CPSed expression: ~s~%~%" expr)
-           (when (not (null? bind*))
-             (printf "  Bindings used:~%")
-             (for-each (lambda (b)
-                         (printf "    ~s: ~s~%" (car b) (cadr b)))
-                       bind*)
-             (printf "~%"))
-           (printf "  Initial continuation: ~s~%~%" k-init)
-           (printf "  Output: ~s~%~%" evaluated-expr))))]
+           (printf " Test...")
+           (let ([evaluated-expr
+                   (with-exception-handler
+                     (lambda (x)
+                       (begin
+                         (printf "Failed!~%")
+                         (printf "  Reason:~%")
+                         (display-condition x)
+                         (add-failed-test e)))
+                     (lambda () (eval `(,expr^ ,k-init))))])
+             (printf "Passed!~%")
+             (when (not (null? bind*))
+               (printf "  Bindings used:~%")
+               (for-each (lambda (b)
+                           (printf "    ~s: ~s~%" (car b) (cadr b)))
+                         bind*)
+               (printf "~%"))
+             (printf "  Initial continuation: ~s~%~%" k-init)
+             (printf "  Output: ~s~%~%" evaluated-expr)))))]
     [(_ name e [var init] ...)
      (cps-test name e (k '(lambda (x) x)) [var init] ...)]))
+
+(define failed-tests
+  (make-parameter '()))
+
+(define (add-failed-test t)
+  (failed-tests (append (failed-tests) `(,t))))
+
+(define (clear-failed-tests)
+  (failed-tests '()))
+
+(define (cps-eval expr)
+  (with-exception-handler
+    (lambda (x)
+      (begin
+        (printf "Failed!~%")
+        (add-failed-test )))))
 
 (cps-test 'id '(lambda (x) x))
 

@@ -3,9 +3,10 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 20 Jan 2012
-;; Last modified 21 Jan 2012
+;; Last modified 24 Jan 2012
 ;; 
-;; Defines a set of tests and a simple test macro for the lambda calculus CPSer.
+;; Defines a set of tests and a simple test macro for the lambda calculus
+;; CPSer.
 ;;----------------------------------------------------------------------
 
 (import (lambda-calc-cps))

@@ -514,9 +514,11 @@
                  (returnK `(,fst^ ,@rst^))))]
             [else
               (let ([s (new-var 's)])
-                (letMK* ([rst (S rst k)])
-                  (let ([k^ `(lambda (,s) (,s ,@rst))])
-                    (S fst k^))))]))))
+                (letMK* ([fst^ (S fst k)]
+                         [rst^ (S rst k)])
+                  (let ([rst^^ (rst^ (lambda (s) `(,s ,k)))])
+                    (let ([k^ `(lambda (,s) ,rst^^)])
+                      (returnK `(,fst ,rst^^))))))]))))
 
 
   ;; T is the trivial expression CPSer which takes a trivial lambda

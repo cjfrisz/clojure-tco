@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 3 Dec 2011
-;; Last modified 24 Jan 2012
+;; Last modified 25 Jan 2012
 ;; 
 ;; The file lambda-calc-cps.ss defines the lambda-calc-cps library
 ;; which contains several modules for CPSing lambda calculus
@@ -506,19 +506,17 @@
   (define (S e k)
     (if (null? e)
         (returnK '())
-        (let ([first (car e)] [rest (cdr e)])
+        (let ([fst (car e)] [rst (cdr e)])
           (cond
-            [(trivial? first)
-             (let ([fst (T first)])
-               (letMK ([restMK (S rest k)])
-                 (returnK (cons fst restMK))))]
+            [(trivial? fst)
+             (let ([fst (T fst)])
+               (letMK ([rstMK (S rst k)])
+                 (returnK (cons fst rstMK))))]
             [else
               (let ([s (new-var 's)])
-                (letMK* ([fstMK (S first k)]
-                         [restMK (S rest k)])
-                  (let ([fst (append fstMK `(,k))]
-                        [rst (append (cons s restMK) `(,k))])
-                    (returnK `(,fst (lambda (,s) ,rst))))))]))))
+                (letMK ([rstMK (S rst k)])
+                  (let ([new-k (lambda (f) `(,f (lambda (,s) (append `(,s) rstMK `(,k)))))])
+                    (S fst new-k))))]))))
 
 
   ;; T is the trivial expression CPSer which takes a trivial lambda

@@ -329,14 +329,14 @@
        `((,(T t.0) ,(T t.1)) ,k)]
       [(,t.0 ,s.1) 
        (guard (trivial? t.0))
-       (let ([x.1 (new-var 'x)])
+       (let ([x.1 (new-var 's)])
          (S s.1 `(lambda (,x.1) ((,(T t.0) ,x.1) ,k))))]
       [(,s.0 ,t.1)
        (guard (trivial? t.1))
-       (let ([x.0 (new-var 'x)])
+       (let ([x.0 (new-var 's)])
          (S s.0 `(lambda (,x.0) ((,x.0 ,(T t.1)) ,k))))]
       [(,s.0 ,s.1)
-       (let ([x.0 (new-var 'x)] [x.1 (new-var 'x)])
+       (let ([x.0 (new-var 's)] [x.1 (new-var 's)])
          (S s.0 `(lambda (,x.0)
                    ,(S s.1 `(lambda (,x.1)
                               ((,x.0 ,x.1) ,k))))))]))
@@ -445,7 +445,8 @@
 ;;                           continuation.
 (module n-arity-cps (cps)
 
-  (import cps-helpers (only lambda-calc-verify verify-lambda-calc-na))
+  (import cps-helpers (only lambda-calc-verify verify-lambda-calc-na)
+    monadK)
   
   ;; E is the general expression CPSer which takes a standard lambda
   ;; calculus expression, e, and a continuation, k, and returns the
@@ -469,7 +470,7 @@
   (define (E e k)
     (if (trivial? e)
         `(,k ,(T e))
-        (S e k))) 
+        ((S e k) (lambda (x) x)))) 
 
 
   ;; S is the serious expression CPSer which takes a serious
@@ -504,16 +505,16 @@
   ;; application expression
   (define (S e k)
     (if (null? e)
-        `(,k)
+        (returnK `(,k))
         (let ([fst (car e)] [rst (cdr e)])
           (cond
             [(trivial? fst)
-             (let ([fst^ (T fst)]
-                   [rst^ (S rst k)])
-               (cons fst^ rst^))]
+             (let ([fst^ (T fst)])
+               (letMK ([rst^ (S rst k)])
+                 (returnK `(,fst^ ,@rst^))))]
             [else
               (let ([s (new-var 's)])
-                (let ([rst (S rst k)])
+                (letMK* ([rst (S rst k)])
                   (let ([k^ `(lambda (,s) (,s ,@rst))])
                     (S fst k^))))]))))
 

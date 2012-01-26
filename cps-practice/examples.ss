@@ -30,15 +30,7 @@
            a
            (lambda (s.3) (s.3 b (lambda (s.2) (s.2 k.0))))))))
 
-;; Ideally...wait, s.1 doesn't get used in outer-most continuation
-;; (lambda (k.0)
-;;   ((lambda (x k.1) (k.1 x))
-;;    (lambda (y k.2) (k.2 y))
-;;    (lambda (s.1)
-;;      ((lambda (u k.3) (k.3 (lambda (v k.4) (k.4 u))))
-;;       a
-;;       (lambda (s.2) (s.2 b k.0))))))
-
+;; Ideally
 (lambda (k.0)
   ((lambda (x k.1) (k.1 x))
    (lambda (y k.2) (k.2 y))

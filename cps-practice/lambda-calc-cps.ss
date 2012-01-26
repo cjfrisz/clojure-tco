@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 3 Dec 2011
-;; Last modified 25 Jan 2012
+;; Last modified 26 Jan 2012
 ;; 
 ;; The file lambda-calc-cps.ss defines the lambda-calc-cps library
 ;; which contains several modules for CPSing lambda calculus
@@ -80,9 +80,9 @@
   (define trivial?
     (lambda (t)
       (pmatch t
-          [,t (guard (symbol? t)) #t]
-	  [(lambda ,fmls ,body) #t]
-	  [else #f])))
+        [,t (guard (symbol? t)) #t]
+        [(lambda ,fmls ,body) #t]
+        [else #f])))
   
   ;;It's just nice to have the empty continuation handy for testing
   (define empty-k (lambda (x) x))
@@ -470,7 +470,7 @@
   (define (E e k)
     (if (trivial? e)
         `(,k ,(T e))
-        ((S e k) (lambda (s) (append s `(,k)))))) 
+        (S e k))) 
 
 
   ;; S is the serious expression CPSer which takes a serious
@@ -505,18 +505,18 @@
   ;; application expression
   (define (S e k)
     (if (null? e)
-        (returnK '())
+        `(,k)
         (let ([fst (car e)] [rst (cdr e)])
           (cond
             [(trivial? fst)
-             (let ([fst (T fst)])
-               (letMK ([rstMK (S rst k)])
-                 (returnK (cons fst rstMK))))]
+             (let ([fst^ (T fst)]
+                   [rst^ (S rst k)])
+               (cons fst^ rst^))]
             [else
               (let ([s (new-var 's)])
-                (letMK ([rstMK (S rst k)])
-                  (let ([new-k (lambda (f) `(,f (lambda (,s) (append `(,s) rstMK `(,k)))))])
-                    (S fst new-k))))]))))
+                (let ([rst (S rst k)])
+                  (let ([k^ `(lambda (,s) (,s ,@rst))])
+                    (S fst k^))))]))))
 
 
   ;; T is the trivial expression CPSer which takes a trivial lambda

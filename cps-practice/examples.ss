@@ -1,3 +1,6 @@
+;; Originally
+(((lambda (x) (lambda (y) x)) a) b)
+
 ;; Currently
 (let ([a 3])
     ((lambda (k.0)

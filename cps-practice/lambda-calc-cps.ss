@@ -445,8 +445,7 @@
 ;;                           continuation.
 (module n-arity-cps (cps)
 
-  (import cps-helpers (only lambda-calc-verify verify-lambda-calc-na)
-          monadK)
+  (import cps-helpers (only lambda-calc-verify verify-lambda-calc-na))
   
   ;; E is the general expression CPSer which takes a standard lambda
   ;; calculus expression, e, and a continuation, k, and returns the

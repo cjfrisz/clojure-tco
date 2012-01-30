@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 3 Dec 2011
-;; Last modified 26 Jan 2012
+;; Last modified 27 Jan 2012
 ;; 
 ;; The file lambda-calc-cps.ss defines the lambda-calc-cps library
 ;; which contains several modules for CPSing lambda calculus
@@ -470,7 +470,7 @@
   (define (E e k)
     (if (trivial? e)
         `(,k ,(T e))
-        ((S e k) (lambda (x) x)))) 
+        (S e k))) 
 
 
   ;; S is the serious expression CPSer which takes a serious
@@ -503,22 +503,20 @@
   ;; transformation, we build the continuation monadically and return
   ;; a monad that takes a continuation for building the innermost
   ;; application expression
-  (define (S e k)
+  (trace-define (S e k)
     (if (null? e)
-        (returnK `(,k))
+        `(,k)
         (let ([fst (car e)] [rst (cdr e)])
           (cond
             [(trivial? fst)
              (let ([fst^ (T fst)])
-               (letMK ([rst^ (S rst k)])
-                 (returnK `(,fst^ ,@rst^))))]
+               (let ([rst^ (S rst k)])
+                 (cons fst^ rst^)))]
             [else
-              (let ([s (new-var 's)])
-                (letMK* ([fst^ (S fst k)]
-                         [rst^ (S rst k)])
-                  (let ([rst^^ (rst^ (lambda (s) `(,s ,k)))])
-                    (let ([k^ `(lambda (,s) ,rst^^)])
-                      (returnK `(,fst ,rst^^))))))]))))
+              (let ([s (new-var 's)]
+                    [fst^ (S fst k)]
+                    [rst^ (S rst k)])
+                (cons fst^ rst^))]))))
 
 
   ;; T is the trivial expression CPSer which takes a trivial lambda

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  6 Jan 2012
-;; Last modified 17 Jan 2012
+;; Last modified  3 Feb 2012
 ;; 
 ;; The file clojure-cps.ss provides utilities for CPSing Clojure
 ;; programs.
@@ -19,9 +19,6 @@
           (lib util)
           (lib monad))
 
-  ;; Module import
-  (import monadK)
-
 (define (trivial? t)
   (match t
     [true #t]
@@ -34,23 +31,20 @@
 (define (E e k)
   (if (trivial? e)
       `(,k ,(T e))
-      ((S e k) (lambda (s) `(,s ,k)))))
+      (S e k)))
 
 (define (S e k)
-  (if (null? e)
-      (returnK '())
-      (let ([fst (car e)] [rst (cdr e)])
-        (match fst
-          [,t
-            (guard (trivial? t))
-           (let ([fst (T fst)])
-             (letMK ([rstMK (S rst k)])
-               (returnK (cons fst rstMK))))]
-          [(,rator ,rand* ...)
-            (let ([s (new-var 's)])
-              (letMK* ([fstMK (S fst k)]
-                       [rstMK (S rst k)])
-                (returnK `((,fstMK ,k) (fn [,s] ,(cons s rstMK))))))]))))
+ (let loop ([e e] [k k] [call '()])
+   (if (null? e)
+       `(,@call ,k)
+       (let ([fst (car e)] [rst (cdr e)])
+         (if (trivial? fst)
+             (let ([fst^ (T fst)])
+               (loop rst k `(,@call ,fst^)))
+             (let ([s (new-var 's)])
+               (let ([rst^ (loop rst k `(,@call ,s))])
+                 (let ([k^ `(fn [,s] ,rst^)])
+                   (S fst k^)))))))))
 
 (define (T e)
   (match e

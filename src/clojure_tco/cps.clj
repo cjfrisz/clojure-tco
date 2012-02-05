@@ -29,21 +29,21 @@
       (S expr k)))
 
 (defn S [expr k]
-  (loop [expr expr
-         k k
-         call nil]
+  (defn S-helper [expr k call]
     (if (nil? (seq expr))
         `(~@call ~k)
-        (let [[fst rst] [(first expr) (rest expr)]]
+        (let [fst (first expr)
+              rst (rest expr)]
           (if (trivial? fst)
-              (let [FST (T fst)]
-                (let [CALL `(~@call ~FST)]
-                  (recur rst k CALL)))
-              (let [s (util/new-var 's)]
-                (let [CALL `(~@call ~s)]
-                  (let [RST (recur rst k CALL)]
-                    (let [K `(fn [~s] ~RST)]
-                      (S fst K))))))))))
+              (let [FST (T fst)
+                    CALL `(~@call ~FST)]
+                (recur rst k CALL))
+              (let [s (new-var 's)
+                    CALL `(~@call ~s)
+                    RST (S-helper rst k CALL)
+                    K `(~'fn [~s] ~RST)]
+                (S fst K))))))
+  (S-helper expr k '()))
 
 (defn T [expr]
   (match [expr]

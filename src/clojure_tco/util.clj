@@ -12,13 +12,13 @@
 
 (def sep "!")
 
-(ref var-num 0)
+(def var-num (atom 0))
 
 (defn reset-var-num []
-  (def var-num 0))
+  (swap! var-num (fn [x] 0)))
 
 (defn new-var [sym]
-  (let [new-var (symbol (str sym sep (deref var-num)))]
+  (let [new-var (symbol (str sym sep @var-num))]
     (do
-      (ref-set var-num (+ (deref var-num) 1))
+      (swap! var-num inc)
       new-var)))

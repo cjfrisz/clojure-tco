@@ -10,7 +10,7 @@
 
 (ns clojure-tco.cps
   (:use [clojure.core.match :only [match]])
-  (:require [clojure-tco.util :as util]))
+  (:use [clojure-tco.util :only [reset-var-num new-var]]))
 
 (declare trivial? E S T)
 

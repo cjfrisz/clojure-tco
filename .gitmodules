@@ -1,3 +1,0 @@
-[submodule "clojure"]
-	path = clojure
-	url = git@github.com:clojure/clojure.git

@@ -1,4 +1,0 @@
-http://blogs.oracle.com/jrose/entry/tail_calls_in_the_vm
-http://lambda-the-ultimate.org/node/2547
-http://blogs.oracle.com/jrose/entry/a_day_with_pypy
-http://stackoverflow.com/questions/2181852/tail-call-elimination-in-clojure

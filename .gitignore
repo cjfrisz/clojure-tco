@@ -1,1 +1,7 @@
 *~
+
+# Ignore Leiningen files
+.lein-deps-sum
+
+# Ignore dependencies
+lib/

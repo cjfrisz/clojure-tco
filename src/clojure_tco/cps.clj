@@ -55,3 +55,10 @@
           `(~'fn [~@id-ls ~k] ~BODY)))
     :else (throw
            (Exception. (str "Invalid trivial expression: " expr)))))
+
+(defn cps [expr]
+  (do
+    (reset-var-num)
+    (let [k (new-var 'k)
+          EXPR (E expr k)]
+      `(~'fn [~k] ~EXPR))))

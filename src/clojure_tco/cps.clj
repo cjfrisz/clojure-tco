@@ -53,3 +53,5 @@
       (let [k (new-var 'k)]
         (let [BODY (E body k)]
           `(~'fn [~@id-ls ~k] ~BODY)))
+    :else (throw
+           (Exception. (str "Invalid trivial expression: " expr)))))

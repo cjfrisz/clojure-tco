@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Feb 2012
-;; Last modified  4 Feb 2012
+;; Last modified  5 Feb 2012
 ;; 
 ;; Miscellaneous utilities for Clojure TCO.
 ;;----------------------------------------------------------------------

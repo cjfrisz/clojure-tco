@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Feb 2012
-;; Last modified  4 Feb 2012
+;; Last modified  5 Feb 2012
 ;; 
 ;; A CPSer for Clojure in Clojure.
 ;;----------------------------------------------------------------------
@@ -19,7 +19,7 @@
     [(b :when [true? false?])] true
     [(s :when symbol?)]        true
     [(n :when number?)]        true
-    [([fn id-ls body] :seq)]   true
+    [(['fn id-ls body] :seq)]  true
     :else                      false))
 
 (defn E [expr k]
@@ -47,8 +47,9 @@
 
 (defn T [expr]
   (match [expr]
-    [(x :when [number? symbol?])] x
-    [([fn id-ls body] :seq)]
-      (let [k (util/new-var 'k)]
+    [(s :when symbol?)] s
+    [(n :when number?)] n
+    [(['fn id-ls body] :seq)]
+      (let [k (new-var 'k)]
         (let [BODY (E body k)]
-          `(fn [~@id-ls ~k] ~BODY)))))
+          `(~'fn [~@id-ls ~k] ~BODY)))

@@ -3,12 +3,6 @@ Clojure TCO project, a collaboration between Dan Friedman and Chris
 Frisz for implementing tail-call optimization (some call it "proper
 tail calls") in the Clojure language. The contents are as follows:
 
-clojure-cps/
-	Description:
- 	  Archival Scheme code for performing the CPS transformation
-	  on a small subset of Clojure. Currently it exists to help in
-	  the process of porting to Clojure.
-
 project.clj
 	Description:
 	  A Leiningen- or Cake-compatible project file for building

@@ -1,7 +1,10 @@
 *~
 
-# Ignore Leiningen files
+# Leiningen files
 .lein-deps-sum
 
-# Ignore dependencies
+# Dependencies
 lib/
+
+# Compiled files
+classes/

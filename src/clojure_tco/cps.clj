@@ -3,14 +3,16 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Feb 2012
-;; Last modified  5 Feb 2012
+;; Last modified  6 Feb 2012
 ;; 
 ;; A CPSer for Clojure in Clojure.
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.cps
-  (:use [clojure.core.match :only [match]])
-  (:use [clojure-tco.util :only [reset-var-num new-var]]))
+  (:use [clojure.core.match
+         :only (match)])
+  (:use [clojure-tco.util
+         :only (reset-var-num new-var)]))
 
 (declare trivial? E S T)
 

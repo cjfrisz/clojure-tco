@@ -9,4 +9,5 @@
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.tramp
-  (:use [clojure.algo.monads :only [call/cc]]))
+  (:use [clojure.algo.monads
+         :only (call-cc)]))

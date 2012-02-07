@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Feb 2012
-;; Last modified  6 Feb 2012
+;; Last modified  7 Feb 2012
 ;; 
 ;; Project declaration for clojure-tco. 
 ;;----------------------------------------------------------------------
@@ -17,4 +17,5 @@
                   "0.2.0-alpha9"]
                  [com.id8/algo.monads
                   "0.1.2"]]
+  :source-path "src/main"
   :repl-init clojure-tco.cps)

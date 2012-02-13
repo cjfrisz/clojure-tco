@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Feb 2012
-;; Last modified  9 Feb 2012
+;; Last modified 13 Feb 2012
 ;; 
 ;; Defines CPS algorithm for Clojure expressions. The "cps" function
 ;; takes a sequence representing a Clojure expression and returns
@@ -65,15 +65,17 @@
         `(~@call ~k)
         (let [fst (first expr)
               rst (rest expr)]
-          (if (trivial? fst)
-              (let [FST (T fst)
-                    CALL `(~@call ~FST)]
-                (recur rst k CALL))
-              (let [s (new-var 's)
-                    CALL `(~@call ~s)
-                    RST (S-helper rst k CALL)
-                    K `(~'fn [~s] ~RST)]
-                (S fst K))))))
+          (match [fst]
+            [(t :when trivial?)]
+             (let [FST (T fst)
+                   CALL `(~@call ~FST)]
+               (recur rst k CALL))
+            [([ffst & frst] :seq)]
+             (let [s (new-var 's)
+                   CALL `(~@call ~s)
+                   RST (S-helper rst k CALL)
+                   K `(~'fn [~s] ~RST)]
+               (S fst K))))))
   (S-helper expr k '()))
 
 (defn T

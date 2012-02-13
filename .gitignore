@@ -8,3 +8,6 @@ lib/
 
 # Compiled files
 classes/
+
+# I don't know what a .lein-failures is
+.lein-failures

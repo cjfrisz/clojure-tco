@@ -75,6 +75,11 @@
                     K `(~'fn [~s] ~RST)]
                 (S fst K))))))
   (match [expr]
+    ;; If
+    [(['if test conseq alt] :seq)]
+    (let [s (new-var 's)
+          TEST (E test k)])
+    ;; Application
     [([fst & rst] :seq)] (S-app expr k '())
     :else (throw
            (Exception. (str "Invalid serious express: " expr)))))

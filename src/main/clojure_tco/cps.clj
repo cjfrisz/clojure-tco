@@ -66,10 +66,17 @@
         (let [fst (first expr)
               rst (rest expr)]
           (match [fst]
+            ;; Trivial
             [(t :when trivial?)]
              (let [FST (T fst)
                    CALL `(~@call ~FST)]
                (recur rst k CALL))
+            ;; If
+            [(['if test conseq alt] :seq)]
+            (let [s-call (new-var 's)
+                  CALL `(~@call ~s-call)
+                  ]) 
+            ;; Application
             [([ffst & frst] :seq)]
              (let [s (new-var 's)
                    CALL `(~@call ~s)

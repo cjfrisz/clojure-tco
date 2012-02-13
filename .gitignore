@@ -8,3 +8,6 @@ lib/
 
 # Compiled files
 classes/
+
+# Ignore .lein-failures
+.lein-failures

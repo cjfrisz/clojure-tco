@@ -60,31 +60,24 @@
   "CPS function for serious Clojure expressions with respect to the
   Olivier-style CPS algorithm."
   [expr k]
-  (defn S-helper [expr k call]
+  (defn S-app [expr k call]
     (if (nil? (seq expr))
         `(~@call ~k)
         (let [fst (first expr)
               rst (rest expr)]
-          (match [fst]
-            ;; Trivial
-            [(t :when trivial?)]
-             (let [FST (T fst)
-                   CALL `(~@call ~FST)]
-               (recur rst k CALL))
-            ;; If
-            [(['if test conseq alt] :seq)]
-            (let [s-call (new-var 's)
-                  CALL `(~@call ~s-call)
-                  ]) 
-            ;; Application
-            [([ffst & frst] :seq)]
-             (let [s (new-var 's)
-                   CALL `(~@call ~s)
-                   RST (S-helper rst k CALL)
-                   K `(~'fn [~s] ~RST)]
-               (S fst K))))))
-  (S-helper expr k '()))
-
+          (if (trivial? fst)
+              (let [FST (T fst)
+                    CALL `(~@call ~FST)]
+                (recur rst k CALL))
+              (let [s (new-var 's)
+                    CALL `(~@call ~s)
+                    RST (S-app rst k CALL)
+                    K `(~'fn [~s] ~RST)]
+                (S fst K))))))
+  (match [expr]
+    [([fst & rst] :seq)] (S-app expr k '())
+    :else (throw
+           (Exception. (str "Invalid serious express: " expr)))))
 (defn T
   "CPS function for trivial Clojure expressions with respect to the
   Olivier-style CPS algorithm."

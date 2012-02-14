@@ -83,8 +83,13 @@
   (match [expr]
     ;; If
     [(['if test conseq alt] :seq)]
-    (let [s (new-var 's)
-          TEST (E test k)])
+     (let [CONSEQ (E conseq k)
+           ALT (E alt k)]
+       (if (trivial? test)
+           `(if ~test ~CONSEQ ~ALT)
+           (let [s (new-var 's)
+                 K `(~'fn [~s] (~'if ~s ~CONSEQ ~ALT))]
+             (S test K))))
     ;; Application
     [([fst & rst] :seq)] (S-app expr k '())
     :else (throw

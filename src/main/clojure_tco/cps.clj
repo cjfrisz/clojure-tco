@@ -49,6 +49,7 @@
     [(n :when number?)] true
     ;; Functions
     [(['fn id-ls body] :seq)] true
+    ;; If
     [(['if test conseq alt] :seq)]
      (every? trivial? (list test conseq alt))
     :else                      false))
@@ -99,12 +100,15 @@
   Olivier-style CPS algorithm."
   [expr]
   (match [expr]
+    ;; Symbols
     [(s :when symbol?)] s
+    ;; Numbers
     [(n :when number?)] n
+    ;; Functions
     [(['fn id-ls body] :seq)]
-      (let [k (new-var 'k)]
-        (let [BODY (E body k)]
-          `(~'fn [~@id-ls ~k] ~BODY)))
+     (let [k (new-var 'k)]
+       (let [BODY (E body k)]
+         `(~'fn [~@id-ls ~k] ~BODY)))
     :else (throw
            (Exception. (str "Invalid trivial expression: " expr)))))
 

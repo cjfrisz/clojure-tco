@@ -41,3 +41,22 @@
          5))
   "Check evaluation for non-trivial function application including
   functions with higher arity.")
+
+(deftest simple-if
+  (is (= (cps-eval '(if 3 4 5)) 4)))
+
+(deftest harder-if-1
+  (is (= (cps-eval '(if ((fn [x] x) 3) 4 5)))) 4)
+
+(deftest harder-if-2
+  (is (= (cps-eval '(if 3 ((fn [x] x) 4) 5)) 4)))
+
+(deftest harder-if-3
+  (is (= (cps-eval '(if 3 4 ((fn [x] x) 5))) 4)))
+
+(deftest really-hard-if
+  (is (= (cps-eval
+          '(if ((fn [x y] x) true false)
+               (((fn [x] x) (fn [y] y)) 5)
+               (((fn [x y] (x y)) (fn [y] y) (fn [z] z)) 12)))
+         5)))

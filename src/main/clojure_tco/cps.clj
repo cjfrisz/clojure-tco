@@ -41,10 +41,16 @@
   trivial with respect to the Olivier-style CPS algorithm."
   [t]
   (match [t]
-    [(b :when [true? false?])] true
-    [(s :when symbol?)]        true
-    [(n :when number?)]        true
-    [(['fn id-ls body] :seq)]  true
+    ;; Booleans
+    [(:or true false)] true
+    ;; Symbols
+    [(s :when symbol?)] true
+    ;; Numbers
+    [(n :when number?)] true
+    ;; Functions
+    [(['fn id-ls body] :seq)] true
+    [(['if test conseq alt] :seq)]
+     (every? trivial? (list test conseq alt))
     :else                      false))
 
 (defn E

@@ -100,6 +100,8 @@
   Olivier-style CPS algorithm."
   [expr]
   (match [expr]
+    ;; Booleans
+    [(:or true false)] expr
     ;; Symbols
     [(s :when symbol?)] s
     ;; Numbers
@@ -109,6 +111,13 @@
      (let [k (new-var 'k)]
        (let [BODY (E body k)]
          `(~'fn [~@id-ls ~k] ~BODY)))
+    [(['if (test :when trivial?)
+           (conseq :when trivial?)
+           (alt :when trivial?)] :seq)]
+     (let [TEST (T test)
+           CONSEQ (T conseq)
+           ALT (T alt)]
+       `(~'if ~TEST ~CONSEQ ~ALT))
     :else (throw
            (Exception. (str "Invalid trivial expression: " expr)))))
 

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Feb 2012
-;; Last modified 13 Feb 2012
+;; Last modified 15 Feb 2012
 ;; 
 ;; Defines CPS algorithm for Clojure expressions. The "cps" function
 ;; takes a sequence representing a Clojure expression and returns
@@ -36,6 +36,14 @@
 
 (declare trivial? E S T)
 
+;; Simple operators we support
+(def simple-ops '(+ - * / < <= = >= >))
+
+(defn simple-op?
+  "Returns a boolean whether s is a simple-op"
+  [s]
+  (some #{s} simple-ops))
+
 (defn trivial?
   "Predicate that returns whether a given Clojure expression is
   trivial with respect to the Olivier-style CPS algorithm."
@@ -52,6 +60,9 @@
     ;; If
     [(['if test conseq alt] :seq)]
      (every? trivial? (list test conseq alt))
+    ;; Simple ops
+    [([(op :when simple-op?) & opnd*] :seq)]
+     (every? trivial? opnd*)
     :else                      false))
 
 (defn E
@@ -91,8 +102,10 @@
            (let [s (new-var 's)
                  K `(~'fn [~s] (~'if ~s ~CONSEQ ~ALT))]
              (S test K))))
+    ;; Simple ops (piggy-back off of S-app) 
+    [([(op :when simple-op?) & rand*] :seq)] (S-app rand* k `(~op))
     ;; Application
-    [([fst & rst] :seq)] (S-app expr k '())
+    [([rator & rand*] :seq)] (S-app expr k '())
     :else (throw
            (Exception. (str "Invalid serious express: " expr)))))
 (defn T
@@ -111,6 +124,7 @@
      (let [k (new-var 'k)]
        (let [BODY (E body k)]
          `(~'fn [~@id-ls ~k] ~BODY)))
+    ;; If
     [(['if (test :when trivial?)
            (conseq :when trivial?)
            (alt :when trivial?)] :seq)]
@@ -118,6 +132,14 @@
            CONSEQ (T conseq)
            ALT (T alt)]
        `(~'if ~TEST ~CONSEQ ~ALT))
+    ;; Simple ops
+    [([(op :when simple-op?) & opnd*] :seq)]
+     (if (every? trivial? opnd*)
+         (let [OPND* (map T opnd*)]
+           `(~op ~@OPND*))
+         (throw
+          (Exception.
+           (str "Non-trivial simple-op expression in T: " expr))))
     :else (throw
            (Exception. (str "Invalid trivial expression: " expr)))))
 

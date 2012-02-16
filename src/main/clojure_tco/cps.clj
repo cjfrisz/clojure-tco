@@ -20,6 +20,9 @@
 ;;      Functions using the "fn" form
 ;;      Function applications involving aforementioned supported
 ;;            functions.
+;;      "If" expressions
+;;      Simple arithmetic and relational operators:
+;;              +, -, *, /, <, <=, =, >=, >, zero, inc, dec
 ;;
 ;; This implementation is intended for use as part of the Clojure TCO
 ;; project for implementing tail-call optimization in Clojure.
@@ -37,7 +40,7 @@
 (declare trivial? E S T)
 
 ;; Simple operators we support
-(def simple-ops '(+ - * / < <= = >= >))
+(def simple-ops '(+ - * / < <= = >= > zero? inc dec))
 
 (defn simple-op?
   "Returns a boolean whether s is a simple-op"
@@ -92,6 +95,20 @@
                     RST (S-app rst k CALL)
                     K `(~'fn [~s] ~RST)]
                 (S fst K))))))
+  (defn S-op [op rand* k call]
+    (if (nil? (seq rand*))
+        `(~k (~op ~@call))
+        (let [fst (first rand*)
+              rst (rest rand*)]
+          (if (trivial? fst)
+              (let [FST (T fst)
+                    CALL `(~@call ~FST)]
+                (recur op rst k CALL))
+              (let [s (new-var 's)
+                    CALL `(~@call ~s)
+                    RST (S-op op rst k CALL)
+                    K `(~'fn [~s] ~RST)]
+                (S fst K))))))
   (match [expr]
     ;; If
     [(['if test conseq alt] :seq)]
@@ -103,11 +120,12 @@
                  K `(~'fn [~s] (~'if ~s ~CONSEQ ~ALT))]
              (S test K))))
     ;; Simple ops (piggy-back off of S-app) 
-    [([(op :when simple-op?) & rand*] :seq)] (S-app rand* k `(~op))
+    [([(op :when simple-op?) & rand*] :seq)] (S-op op rand* k '())
     ;; Application
     [([rator & rand*] :seq)] (S-app expr k '())
     :else (throw
            (Exception. (str "Invalid serious express: " expr)))))
+
 (defn T
   "CPS function for trivial Clojure expressions with respect to the
   Olivier-style CPS algorithm."

@@ -64,7 +64,10 @@
     ;; Simple ops
     [([(op :when simple-op?) & opnd*] :seq)]
      (every? trivial? opnd*)
-    :else                      false))
+    ;; defn
+    [([(:or 'defn 'defn-) name doc fml* body] :seq)] true
+    [([(:or 'defn 'defn-) name fml* body] :seq)] true
+    :else false))
 
 (defn- E
   "CPS function for an arbitrary Clojure expression with respect to
@@ -144,6 +147,17 @@
          (throw
           (Exception.
            (str "Non-trivial simple-op expression in T: " expr))))
+    ;; Defn
+    [([(:or 'defn 'defn-) name doc fml* body] :seq)]
+     (let [deftype (first expr)
+           k (new-var 'k)
+           BODY (E body k)]
+       `(~deftype ~name ~(str doc) [~@fml* ~k] ~BODY))
+    [([(:or 'defn 'defn-) name fml* body] :seq)] ;; Without the docstring
+     (let [deftype (first expr)
+           k (new-var 'k)
+           BODY (E body k)]
+       `(~deftype ~name [~@fml* ~k] ~BODY))     
     :else (throw
            (Exception. (str "Invalid trivial expression: " expr)))))
 

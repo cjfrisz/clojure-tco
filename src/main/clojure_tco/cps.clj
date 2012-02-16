@@ -81,32 +81,18 @@
   "CPS function for serious Clojure expressions with respect to the
   Olivier-style CPS algorithm."
   [expr k]
-  (defn S-app [expr k call]
+  (defn S-helper [expr k call* final]
     (if (nil? (seq expr))
-        `(~@call ~k)
+        (final call* k)
         (let [fst (first expr)
               rst (rest expr)]
           (if (trivial? fst)
               (let [FST (T fst)
-                    CALL `(~@call ~FST)]
-                (recur rst k CALL))
+                    CALL* `(~@call* ~FST)]
+                (recur rst k CALL* final))
               (let [s (new-var 's)
-                    CALL `(~@call ~s)
-                    RST (S-app rst k CALL)
-                    K `(~'fn [~s] ~RST)]
-                (S fst K))))))
-  (defn S-op [op rand* k call]
-    (if (nil? (seq rand*))
-        `(~k (~op ~@call))
-        (let [fst (first rand*)
-              rst (rest rand*)]
-          (if (trivial? fst)
-              (let [FST (T fst)
-                    CALL `(~@call ~FST)]
-                (recur op rst k CALL))
-              (let [s (new-var 's)
-                    CALL `(~@call ~s)
-                    RST (S-op op rst k CALL)
+                    CALL* `(~@call* ~s)
+                    RST (S-helper rst k CALL* final)
                     K `(~'fn [~s] ~RST)]
                 (S fst K))))))
   (match [expr]
@@ -120,9 +106,11 @@
                  K `(~'fn [~s] (~'if ~s ~CONSEQ ~ALT))]
              (S test K))))
     ;; Simple ops (piggy-back off of S-app) 
-    [([(op :when simple-op?) & rand*] :seq)] (S-op op rand* k '())
+    [([(op :when simple-op?) & rand*] :seq)]
+     (S-helper rand* k '() (fn [call* k] `(~k (~op ~@call*))))
     ;; Application
-    [([rator & rand*] :seq)] (S-app expr k '())
+    [([rator & rand*] :seq)] 
+     (S-helper expr k '() (fn [call* k] `(~@call* ~k))) 
     :else (throw
            (Exception. (str "Invalid serious express: " expr)))))
 

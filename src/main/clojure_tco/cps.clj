@@ -39,15 +39,13 @@
 
 (declare trivial? E S T)
 
-;; Simple operators we support
-(def simple-ops '(+ - * / < <= = >= > zero? inc dec))
-
-(defn simple-op?
+(defn- simple-op?
   "Returns a boolean whether s is a simple-op"
   [s]
-  (some #{s} simple-ops))
+  (let [simple-ops '(+ - * / < <= = >= > zero? inc dec)]
+    (some #{s} simple-ops)))
 
-(defn trivial?
+(defn- trivial?
   "Predicate that returns whether a given Clojure expression is
   trivial with respect to the Olivier-style CPS algorithm."
   [t]
@@ -68,7 +66,7 @@
      (every? trivial? opnd*)
     :else                      false))
 
-(defn E
+(defn- E
   "CPS function for an arbitrary Clojure expression with respect to
   the Olivier-style CPS algorithm."
   [expr k]
@@ -77,44 +75,44 @@
         `(~k ~EXPR))
       (S expr k)))
 
-(defn S
+(defn- S
   "CPS function for serious Clojure expressions with respect to the
   Olivier-style CPS algorithm."
   [expr k]
-  (defn S-helper [expr k call* final]
-    (if (nil? (seq expr))
-        (final call* k)
-        (let [fst (first expr)
-              rst (rest expr)]
-          (if (trivial? fst)
-              (let [FST (T fst)
-                    CALL* `(~@call* ~FST)]
-                (recur rst k CALL* final))
-              (let [s (new-var 's)
-                    CALL* `(~@call* ~s)
-                    RST (S-helper rst k CALL* final)
-                    K `(~'fn [~s] ~RST)]
-                (S fst K))))))
-  (match [expr]
-    ;; If
-    [(['if test conseq alt] :seq)]
-     (let [CONSEQ (E conseq k)
-           ALT (E alt k)]
-       (if (trivial? test)
-           `(if ~test ~CONSEQ ~ALT)
-           (let [s (new-var 's)
-                 K `(~'fn [~s] (~'if ~s ~CONSEQ ~ALT))]
-             (S test K))))
-    ;; Simple ops (piggy-back off of S-app) 
-    [([(op :when simple-op?) & rand*] :seq)]
-     (S-helper rand* k '() (fn [call* k] `(~k (~op ~@call*))))
-    ;; Application
-    [([rator & rand*] :seq)] 
-     (S-helper expr k '() (fn [call* k] `(~@call* ~k))) 
-    :else (throw
-           (Exception. (str "Invalid serious express: " expr)))))
+  (let [S-helper [expr k call* final]
+        (if (nil? (seq expr))
+            (final call* k)
+            (let [fst (first expr)
+                  rst (rest expr)]
+              (if (trivial? fst)
+                  (let [FST (T fst)
+                        CALL* `(~@call* ~FST)]
+                    (recur rst k CALL* final))
+                  (let [s (new-var 's)
+                        CALL* `(~@call* ~s)
+                        RST (S-helper rst k CALL* final)
+                        K `(~'fn [~s] ~RST)]
+                    (S fst K)))))]
+    (match [expr]
+      ;; If
+      [(['if test conseq alt] :seq)]
+      (let [CONSEQ (E conseq k)
+            ALT (E alt k)]
+        (if (trivial? test)
+            `(if ~test ~CONSEQ ~ALT)
+            (let [s (new-var 's)
+                  K `(~'fn [~s] (~'if ~s ~CONSEQ ~ALT))]
+              (S test K))))
+      ;; Simple ops 
+      [([(op :when simple-op?) & rand*] :seq)]
+      (S-helper rand* k '() (fn [call* k] `(~k (~op ~@call*))))
+      ;; Application
+      [([rator & rand*] :seq)] 
+      (S-helper expr k '() (fn [call* k] `(~@call* ~k))) 
+      :else (throw
+             (Exception. (str "Invalid serious express: " expr))))))
 
-(defn T
+(defn- T
   "CPS function for trivial Clojure expressions with respect to the
   Olivier-style CPS algorithm."
   [expr]

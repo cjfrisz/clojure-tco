@@ -96,19 +96,19 @@
     (match [expr]
       ;; If
       [(['if test conseq alt] :seq)]
-      (let [CONSEQ (E conseq k)
-            ALT (E alt k)]
-        (if (trivial? test)
-            `(if ~test ~CONSEQ ~ALT)
-            (let [s (new-var 's)
-                  K `(~'fn [~s] (~'if ~s ~CONSEQ ~ALT))]
-              (S test K))))
+       (let [CONSEQ (E conseq k)
+             ALT (E alt k)]
+         (if (trivial? test)
+             `(if ~test ~CONSEQ ~ALT)
+             (let [s (new-var 's)
+                   K `(~'fn [~s] (~'if ~s ~CONSEQ ~ALT))]
+               (S test K))))
       ;; Simple ops 
       [([(op :when simple-op?) & rand*] :seq)]
-      (S-helper rand* k '() (fn [call* k] `(~k (~op ~@call*))))
+       (S-helper rand* k '() (fn [call* k] `(~k (~op ~@call*))))
       ;; Application
       [([rator & rand*] :seq)] 
-      (S-helper expr k '() (fn [call* k] `(~@call* ~k))) 
+       (S-helper expr k '() (fn [call* k] `(~@call* ~k))) 
       :else (throw
              (Exception. (str "Invalid serious express: " expr))))))
 

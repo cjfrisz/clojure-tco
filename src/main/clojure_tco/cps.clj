@@ -57,7 +57,7 @@
     ;; Numbers
     [(n :when number?)] true
     ;; Functions
-    [(['fn id-ls body] :seq)] true
+    [(['fn fml* body] :seq)] true
     ;; If
     [(['if test conseq alt] :seq)]
      (every? trivial? (list test conseq alt))
@@ -124,10 +124,10 @@
     ;; Numbers
     [(n :when number?)] n
     ;; Functions
-    [(['fn id-ls body] :seq)]
-     (let [k (new-var 'k)]
-       (let [BODY (E body k)]
-         `(~'fn [~@id-ls ~k] ~BODY)))
+    [(['fn fml* body] :seq)]
+     (let [k (new-var 'k)
+           BODY (E body k)]
+       `(~'fn [~@fml* ~k] ~BODY))
     ;; If
     [(['if (test :when trivial?)
            (conseq :when trivial?)

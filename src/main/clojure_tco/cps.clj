@@ -148,10 +148,10 @@
            (Exception. (str "Invalid trivial expression: " expr)))))
 
 (defn cps
-  "Entry-point function for the Olivier-style CPS algorithm. Returns
-  an function which takes a Clojure function representing a
-  continuation and evaluates the original expression with respect to
-  that continuation."
+  "Entry-point function for the Olivier-style CPS algorithm. Returns a
+  sequence representatin a function which takes a Clojure function
+  representing a continuation and evaluates the original expression
+  with respect to that continuation."
   [expr]
   (do
     (reset-var-num)

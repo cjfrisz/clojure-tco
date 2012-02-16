@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Feb 2012
-;; Last modified 15 Feb 2012
+;; Last modified 16 Feb 2012
 ;; 
 ;; Defines CPS algorithm for Clojure expressions. The "cps" function
 ;; takes a sequence representing a Clojure expression and returns
@@ -37,7 +37,7 @@
   (:use [clojure-tco.util
          :only (reset-var-num new-var)]))
 
-(declare trivial? E S T)
+(declare simple-op? trivial? E S T)
 
 (defn- simple-op?
   "Returns a boolean whether s is a simple-op"

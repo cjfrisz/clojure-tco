@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  6 Feb 2012
-;; Last modified 21 Feb 2012
+;; Last modified  1 Mar 2012
 ;; 
 ;; Defines utilities for trampolining Clojure code.
 ;;----------------------------------------------------------------------
@@ -18,7 +18,43 @@
   "Returns a boolean whether s is a simple-op"
   [s]
   (let [simple-ops '(+ - * / < <= = >= > zero? inc dec)]
-        (some #{s} simple-ops)))
+    (some #{s} simple-ops)))
+
+(defn- simple?
+  "Returns a boolean as to whether the given expression is simple"
+  [s]
+  (loop [pred* [true? false? symbol? number?]]
+    (and (seq? pred*) (or ((first pred*) s) (recur (rest pred*))))))
+
+(defn tramp
+  "Takes a sequence representing a Clojure expression (assumed to be
+  CPSed) and returns the trampolined version of the expression. That
+  is, it returns the expression such that it executes one step at a
+  time."
+  [expr]
+  (let [tramp-helper
+        (fn [expr done]
+          (match [expr]
+            [(:or true false)] `(do (set! ~done true) ~expr)
+            [(s :when symbol?)] `(do (set! ~done true) ~s)
+            [(n :when number?)] `(do (set! ~done true) ~n)
+            [(['fn fml* body] :seq)]
+            ;; We assume that the whole body of code will undergo
+            ;; this tranformation, so we also trampoline the body of
+            ;; the anonymous fn
+            (let [BODY (tramp body)]
+              `(do (set! ~done true) `(~'fn ~fml* ~BODY)))
+            [(['if test conseq alt] :seq)]
+            ;; The test isn't a value-producing context, so we *shouldn't
+            ;; have to traverse it further. 
+            (let [CONSEQ (tramp-helper conseq done)
+                  ALT (tramp-helper alt done)]
+              `(if ~test ~CONSEQ ~ALT))
+            [([(op :when simple-op?) & opnd*] :seq)]
+            ))])
+  (match [expr]
+    [(s :when simple?)] s
+    [(['fn fml* body] :seq)]))
 
 (defn thunkify
   "Returns the expression in which functions return thunks"

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Feb 2012
-;; Last modified 16 Feb 2012
+;; Last modified  2 Mar 2012
 ;; 
 ;; Defines CPS algorithm for Clojure expressions. The "cps" function
 ;; takes a sequence representing a Clojure expression and returns
@@ -113,7 +113,8 @@
       [([rator & rand*] :seq)] 
       (S-helper expr k '() (fn [call* k] `(~@call* ~k))) 
       :else (throw
-             (Exception. (str "Invalid serious express: " expr))))))
+             (Exception.
+              (str "Invalid serious expression in S: " expr))))))
 
 (defn- T
   "CPS function for trivial Clojure expressions with respect to the
@@ -148,16 +149,16 @@
           (Exception.
            (str "Non-trivial simple-op expression in T: " expr))))
     ;; Defn
-    [([(:or 'defn 'defn-) name doc fml* body] :seq)]
-     (let [deftype (first expr)
-           k (new-var 'k)
-           BODY (E body k)]
-       `(~deftype ~name ~(str doc) [~@fml* ~k] ~BODY))
     [([(:or 'defn 'defn-) name fml* body] :seq)] ;; Without the docstring
      (let [deftype (first expr)
            k (new-var 'k)
            BODY (E body k)]
        `(~deftype ~name [~@fml* ~k] ~BODY))     
+    [([(:or 'defn 'defn-) name doc fml* body] :seq)]
+     (let [deftype (first expr)
+           k (new-var 'k)
+           BODY (E body k)]
+       `(~deftype ~name ~(str doc) [~@fml* ~k] ~BODY))
     :else (throw
            (Exception. (str "Invalid trivial expression: " expr)))))
 

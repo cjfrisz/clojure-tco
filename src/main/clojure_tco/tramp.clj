@@ -33,28 +33,29 @@
   time."
   [expr]
   (let [tramp-helper
-        (fn [expr done]
+        (fn [expr k]
           (match [expr]
-            [(:or true false)] `(do (set! ~done true) ~expr)
-            [(s :when symbol?)] `(do (set! ~done true) ~s)
-            [(n :when number?)] `(do (set! ~done true) ~n)
+            [(s :when simple?)] (k s)
             [(['fn fml* body] :seq)]
             ;; We assume that the whole body of code will undergo
             ;; this tranformation, so we also trampoline the body of
             ;; the anonymous fn
             (let [BODY (tramp body)]
-              `(do (set! ~done true) `(~'fn ~fml* ~BODY)))
+              (k `(~'fn ~fml* ~BODY)))
             [(['if test conseq alt] :seq)]
             ;; The test isn't a value-producing context, so we *shouldn't
             ;; have to traverse it further. 
-            (let [CONSEQ (tramp-helper conseq done)
-                  ALT (tramp-helper alt done)]
+            (let [CONSEQ (tramp-helper conseq k)
+                  ALT (tramp-helper alt k)]
               `(if ~test ~CONSEQ ~ALT))
+            ;; Operands to a simple operation are not value producing
             [([(op :when simple-op?) & opnd*] :seq)]
-            ))])
-  (match [expr]
-    [(s :when simple?)] s
-    [(['fn fml* body] :seq)]))
+            (let [OPND* (map
+                         (fn [opnd] (tramp-helper opnd (fn [x] x)))
+                         opnd*)]
+              (k `(~op ~OPND*)))
+            [([(:or 'defn 'defn-) name fml* body] :seq)]
+            ))]))
 
 (defn thunkify
   "Returns the expression in which functions return thunks"

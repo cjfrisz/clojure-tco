@@ -26,38 +26,56 @@
   (loop [pred* [true? false? symbol? number?]]
     (and (seq? pred*) (or ((first pred*) s) (recur (rest pred*))))))
 
-;; (defn tramp
-;;   "Takes a sequence representing a Clojure expression (assumed to be
-;;   CPSed) and returns the trampolined version of the expression. That
-;;   is, it returns the expression such that it executes one step at a
-;;   time."
-;;   [expr]
-;;   (let [tramp-helper
-;;         (fn [expr k]
-;;           (match [expr]
-;;             [(s :when simple?)] (k s)
-;;             [(['fn fml* body] :seq)]
-;;             ;; We assume that the whole body of code will undergo
-;;             ;; this tranformation, so we also trampoline the body of
-;;             ;; the anonymous fn
-;;             (let [BODY (tramp body)]
-;;               (k `(~'fn ~fml* ~BODY)))
-;;             (let [done (new-var 'done)]
-;;               )
-;;             [(['if test conseq alt] :seq)]
-;;             ;; The test isn't a value-producing context, so we *shouldn't
-;;             ;; have to traverse it further. 
-;;             (let [CONSEQ (tramp-helper conseq k)
-;;                   ALT (tramp-helper alt k)]
-;;               (k `(if ~test ~CONSEQ ~ALT)))
-;;             ;; Operands to a simple operation are not value producing
-;;             [([(op :when simple-op?) & opnd*] :seq)]
-;;             (let [OPND* (map
-;;                          (fn [opnd] (tramp-helper opnd (fn [x] x)))
-;;                          opnd*)]
-;;               (k `(~op ~OPND*)))
-;;             [([(:or 'defn 'defn-) name fml* body] :seq)]
-;;             ))]))
+(defn tramp
+  "Takes a sequence representing a Clojure expression (assumed to be
+  CPSed) and returns the trampolined version of the expression. That
+  is, it returns the expression such that it executes one step at a
+  time."
+  [expr]
+  (letfn [(tramp-helper [expr k]
+            (match [expr]
+              [(s :when simple?)] (k s)
+              [(['fn fml* body] :seq)]
+              (let [done (new-var 'done)
+                    K (fn [v] `(do (var-set ~done true) ~(k v)))
+                    fnv (new-var 'fnv)
+                    thunk (new-var 'th)
+                    BODY (tramp-helper body K)] 
+                `(~'fn ~fml*
+                   (with-local-vars [~done false]
+                     (let [~fnv (~'fn [fml*] ~BODY)]
+                       (loop [~thunk (~fnv ~@fml*)]
+                         (if (true? @~done)
+                             ~thunk
+                             (recur (~thunk))))))))
+              [(['if test conseq alt] :seq)]
+              ;; The test isn't a value-producing context, so we *shouldn't
+              ;; have to traverse it further. 
+              (let [CONSEQ (tramp-helper conseq k)
+                    ALT (tramp-helper alt k)]
+                (k `(if ~test ~CONSEQ ~ALT)))
+              ;; Operands to a simple operation are not value producing
+              [([(op :when simple-op?) & opnd*] :seq)]
+              (let [OPND* (map
+                           (fn [opnd] (tramp-helper opnd (fn [x] x)))
+                           opnd*)]
+                (k `(~op ~OPND*)))
+              [([(:or 'defn 'defn-) name fml* body] :seq)]
+              (let [deftype (first expr)
+                    done (new-var 'done)
+                    K (fn [v] `(do (var-set ~done true) ~(k v)))
+                    fnv (new-var name)
+                    thunk (new-var 'th)
+                    BODY (tramp-helper body K)]
+                `(~deftype ~name
+                     ~fml*
+                   (with-local-vars [~done false]
+                     (letfn [(~fnv fml* ~BODY)]
+                       (loop [~thunk (~fnv ~@fml*)]
+                         (if (true? ~done)
+                             ~thunk
+                             (return (~thunk))))))))
+              [([rator rand] :seq)]))]))
 
 (defn thunkify
   "Returns the expression in which functions return thunks"

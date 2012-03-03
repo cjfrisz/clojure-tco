@@ -26,6 +26,28 @@
   (loop [pred* [true? false? symbol? number?]]
     (and (seq? pred*) (or ((first pred*) s) (recur (rest pred*))))))
 
+(defn- alpha-rename
+  "Performs alpha-renaming from old to new in expr. The expr argument
+  is expected to be a sequence representing a Clojure expression.
+  Returns expr with the proper renaming done."
+  [old new expr]
+  (match [expr]
+    [(s :when symbol?)] (if (= s old) new s)
+    [(a :when (or true? false? number?))] a
+    [(['fn fml* body] :seq)]
+    (if (some #{old} fml*)
+        `(~'fn ~fml* ~body)
+        (let [BODY (alpha-rename old new body)]
+          `(~'fn ~fml* ~BODY)))
+    [(['if test conseq alt] :seq)]
+    (let [TEST (alpha-rename old new test)
+          CONSEQ (alpha-rename old new conseq)
+          ALT (alpha-rename old new alt)]
+      `(if ~TEST ~CONSEQ ~ALT))
+    [([(op :when simple-op?) & opnd*] :seq)]
+    (let [OPND* (map (fn [n] (alpha-renam old new n)) opnd*)]
+      `(~op ~@OPND*))))
+
 (defn tramp
   "Takes a sequence representing a Clojure expression (assumed to be
   CPSed) and returns the trampolined version of the expression. That

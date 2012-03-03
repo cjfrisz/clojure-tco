@@ -139,9 +139,18 @@
       (let [deftype (first expr)
             BODY (thunkify body)]
         `(~deftype ~name ~fml* (~'fn [] ~BODY)))
-    [([rator rand] :seq)]
-      (let [RATOR (thunkify rator)
-            RAND (thunkify rand)]
-        `(~RATOR ~RAND))
+    [([rator & rand*] :seq)]
+    ;; Assuming that the expression is in CPS, the rator will either
+    ;; be a variable bound to a procedure that has been or will be
+    ;; thunkified or an anonymous fn.
+    ;; The rand will only be simple values (boolean, number, symbol)
+    ;; or an anonymous fn. These also need to be thunkified.
+    ;; The final argument should be the continuation argument, and
+    ;; we don't actually need to thunkify that, so we skip it.
+    (let [rand-bl* (butlast rand*)
+          k (last rand)
+          RATOR (thunkify rator)
+          RAND-BL* (map thunkify rand-bl*)]
+      `(~RATOR ~@RAND-BL* ~k))
     :else (throw
            (Exception. (str "Invalid expression: " expr)))))

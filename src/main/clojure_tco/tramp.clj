@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  6 Feb 2012
-;; Last modified  2 Mar 2012
+;; Last modified  3 Mar 2012
 ;; 
 ;; Defines utilities for trampolining Clojure code.
 ;;----------------------------------------------------------------------
@@ -35,18 +35,28 @@
     [(s :when symbol?)] (if (= s old) new s)
     [(a :when (or true? false? number?))] a
     [(['fn fml* body] :seq)]
-    (if (some #{old} fml*)
-        `(~'fn ~fml* ~body)
-        (let [BODY (alpha-rename old new body)]
-          `(~'fn ~fml* ~BODY)))
+    (cond
+      (some #{old} fml*) `(~'fn ~fml* ~body)
+      (some #{new} fml*)
+      (let [alt (new-var new)
+            FML* (replace {new alt} fml*)
+            body-alt (alpha-rename new alt body)
+            BODY-ALT (alpha-rename old new body)]
+        `(~'fn ~FML* ~BODY-ALT))
+      :else
+      (let [BODY (alpha-rename new old body)]
+        `(~'fn ~fml* ~BODY)))
     [(['if test conseq alt] :seq)]
     (let [TEST (alpha-rename old new test)
           CONSEQ (alpha-rename old new conseq)
           ALT (alpha-rename old new alt)]
       `(if ~TEST ~CONSEQ ~ALT))
     [([(op :when simple-op?) & opnd*] :seq)]
-    (let [OPND* (map (fn [n] (alpha-renam old new n)) opnd*)]
-      `(~op ~@OPND*))))
+    (let [OPND* (map (fn [n] (alpha-rename old new n)) opnd*)]
+      `(~op ~@OPND*))
+    :else (throw
+           (Exception.
+            (str "Invalid expression in alpha-rename: " expr)))))
 
 (defn tramp
   "Takes a sequence representing a Clojure expression (assumed to be

@@ -75,7 +75,20 @@
                          (if (true? ~done)
                              ~thunk
                              (return (~thunk))))))))
-              [([rator rand] :seq)]))]))
+              ;; Operators and operands to a function application are
+              ;; not value-producing. 
+              [([rator & rand*] :seq)]
+              (let [RATOR (tramp-helper rator (fn [x] x))
+                    RAND (map
+                          (fn [n] (tramp-helper n (fn [x] x)))
+                          rand*)]
+                (k `(~RATOR ~@RAND)))
+              :else (throw
+                     (Exception.
+                      (str
+                       "Invalid expression in tramp: "
+                       expr)))))]
+    (tramp-helper expr (fn [x] x))))
 
 (defn thunkify
   "Returns the expression in which functions return thunks"

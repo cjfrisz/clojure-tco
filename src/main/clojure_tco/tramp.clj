@@ -14,26 +14,21 @@
   (:use [clojure-tco.util
          :only (reset-var-num new-var)]))
 
-(defn- simple-op?
+(defn simple-op?
   "Returns a boolean whether s is a simple-op"
   [s]
   (let [simple-ops '(+ - * / < <= = >= > zero? inc dec)]
     (some #{s} simple-ops)))
 
-(defn- simple?
-  "Returns a boolean as to whether the given expression is simple"
-  [s]
-  (loop [pred* [true? false? symbol? number?]]
-    (and (seq? pred*) (or ((first pred*) s) (recur (rest pred*))))))
-
-(defn- alpha-rename
+(defn alpha-rename
   "Performs alpha-renaming from old to new in expr. The expr argument
   is expected to be a sequence representing a Clojure expression.
   Returns expr with the proper renaming done."
   [old new expr]
   (match [expr]
     [(s :when symbol?)] (if (= s old) new s)
-    [(a :when (or true? false? number?))] a
+    [(:or true false)] expr
+    [(n :when number?)] n
     [(['fn fml* body] :seq)]
     (cond
       (some #{old} fml*) `(~'fn ~fml* ~body)
@@ -54,6 +49,10 @@
     [([(op :when simple-op?) & opnd*] :seq)]
     (let [OPND* (map (fn [n] (alpha-rename old new n)) opnd*)]
       `(~op ~@OPND*))
+    [([rator & rand*] :seq)]
+    (let [RATOR (alpha-rename old new rator)
+          RAND* (map (fn [n] (alpha-rename old new n)) rand*)]
+      `(~RATOR ~@RAND*))
     :else (throw
            (Exception.
             (str "Invalid expression in alpha-rename: " expr)))))
@@ -66,20 +65,22 @@
   [expr]
   (letfn [(tramp-helper [expr k]
             (match [expr]
-              [(s :when simple?)] (k s)
+              [(:or true false)] (k expr)
+              [(n :when number?)] (k n)
+              [(s :when symbol?)] (k s)
               [(['fn fml* body] :seq)]
               (let [done (new-var 'done)
-                    K (fn [v] `(do (var-set ~done true) ~(k v)))
+                    K (fn [v] `(do (~'var-set ~done true) ~(k v)))
                     fnv (new-var 'fnv)
                     thunk (new-var 'th)
                     BODY (tramp-helper body K)] 
                 `(~'fn ~fml*
-                   (with-local-vars [~done false]
-                     (let [~fnv (~'fn [fml*] ~BODY)]
-                       (loop [~thunk (~fnv ~@fml*)]
-                         (if (true? @~done)
+                   (~'with-local-vars [~done false]
+                     (~'let [~fnv (~'fn [fml*] ~BODY)]
+                       (~'loop [~thunk (~fnv ~@fml*)]
+                         (if (~'true? @~done)
                              ~thunk
-                             (recur (~thunk))))))))
+                             (~'recur (~thunk))))))))
               [(['if test conseq alt] :seq)]
               ;; The test isn't a value-producing context, so we *shouldn't
               ;; have to traverse it further. 
@@ -95,26 +96,29 @@
               [([(:or 'defn 'defn-) name fml* body] :seq)]
               (let [deftype (first expr)
                     done (new-var 'done)
-                    K (fn [v] `(do (var-set ~done true) ~(k v)))
+                    K (fn [v] `(do (~'var-set ~done true) ~(k v)))
                     fnv (new-var name)
                     thunk (new-var 'th)
-                    BODY (tramp-helper body K)]
+                    body-rn (alpha-rename name fnv body)
+                    BODY-RN (tramp-helper body-rn K)]
                 `(~deftype ~name
                      ~fml*
-                   (with-local-vars [~done false]
-                     (letfn [(~fnv fml* ~BODY)]
-                       (loop [~thunk (~fnv ~@fml*)]
-                         (if (true? ~done)
+                   (~'with-local-vars [~done false]
+                     (~'letfn [(~fnv ~fml* ~BODY-RN)]
+                       (~'loop [~thunk (~fnv ~@fml*)]
+                         (if (~'true? ~done)
                              ~thunk
-                             (return (~thunk))))))))
+                             (~'recur (~thunk))))))))
               ;; Operators and operands to a function application are
               ;; not value-producing. 
               [([rator & rand*] :seq)]
               (let [RATOR (tramp-helper rator (fn [x] x))
-                    RAND (map
+                    app-k (last rand*)
+                    rand-bl* (butlast rand*)
+                    RAND-BL* (map
                           (fn [n] (tramp-helper n (fn [x] x)))
-                          rand*)]
-                (k `(~RATOR ~@RAND)))
+                          rand-bl*)]
+                (k `(~RATOR ~@RAND-BL* ~app-k)))
               :else (throw
                      (Exception.
                       (str
@@ -133,7 +137,9 @@
   with trampolining."
   [expr]
   (match [expr]
-    [(s :when simple?)] s
+    [(:or true false)] expr
+    [(n :when number?)] n
+    [(s :when symbol?)] s
     [(['fn fml* body] :seq)]
       (let [BODY (thunkify body)]
         `(~'fn ~fml* (~'fn [] ~BODY)))
@@ -158,7 +164,7 @@
     ;; The final argument should be the continuation argument, and
     ;; we don't actually need to thunkify that, so we skip it.
     (let [rand-bl* (butlast rand*)
-          k (last rand)
+          k (last rand*)
           RATOR (thunkify rator)
           RAND-BL* (map thunkify rand-bl*)]
       `(~RATOR ~@RAND-BL* ~k))

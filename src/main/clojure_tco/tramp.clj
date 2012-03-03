@@ -91,12 +91,17 @@
     (tramp-helper expr (fn [x] x))))
 
 (defn thunkify
-  "Returns the expression in which functions return thunks"
+  "Takes a sequence representing a Clojure expression, assumed to be
+  in CPS, and returns the expression such that any function returns a
+  function of no arguments (called a thunk). Invoking the thunk
+  either returns the value as it would have been produced by the
+  original expression or another thunk. Any returned thunks can be
+  invoked in turn until a value is produced. This can be seen as
+  performing the computation in steps and is useful in conjunction
+  with trampolining."
   [expr]
   (match [expr]
-    [(:or true false)] expr
-    [(s :when symbol?)] s
-    [(n :when number?)] n
+    [(s :when simple?)] s
     [(['fn fml* body] :seq)]
       (let [BODY (thunkify body)]
         `(~'fn ~fml* (~'fn [] ~BODY)))

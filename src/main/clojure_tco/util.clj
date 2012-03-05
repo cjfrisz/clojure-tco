@@ -35,7 +35,7 @@
       (swap! var-num inc)
       new-var)))
 
-(defn- simple-op?
+(defn simple-op?
   "Returns a boolean whether s is a simple-op"
   [s]
   (let [simple-ops '(+ - * / < <= = >= > zero? inc dec)]

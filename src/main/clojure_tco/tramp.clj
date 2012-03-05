@@ -12,13 +12,7 @@
   (:use [clojure.core.match
          :only (match)])
   (:use [clojure-tco.util
-         :only (reset-var-num new-var)]))
-
-(defn simple-op?
-  "Returns a boolean whether s is a simple-op"
-  [s]
-  (let [simple-ops '(+ - * / < <= = >= > zero? inc dec)]
-    (some #{s} simple-ops)))
+         :only (reset-var-num new-var simple-op?)]))
 
 (defn alpha-rename
   "Performs alpha-renaming from old to new in expr. The expr argument

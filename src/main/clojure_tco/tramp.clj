@@ -51,7 +51,10 @@
            (Exception.
             (str "Invalid expression in alpha-rename: " expr)))))
 
-(defn- tramp-fn
+(defn tramp-fn
+  "A simple trampoline function that takes a thunk and a done
+  variable and executes the trampoline until 'done' is true. This is a
+  temporary function used for testing."
   [th done]
   (loop [th th]
     (if @done th (recur (th)))))

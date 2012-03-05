@@ -59,9 +59,8 @@
 
 (defn tramp-fn
   [th done]
-  (if @done
-      th
-      (recur (th) done)))
+  (loop [th th]
+    (if @done th (recur (th)))))
 
 (defn tramp
   "Takes a sequence representing a Clojure expression (assumed to be

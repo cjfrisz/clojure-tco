@@ -5,7 +5,19 @@
 ;; Created  6 Feb 2012
 ;; Last modified  5 Mar 2012
 ;; 
-;; Defines utilities for trampolining Clojure code.
+;; Defines utilities for trampolining Clojure code. Primarily, this
+;; consists of two functions:
+;;
+;;      1) thunkify, which takes a sequence representing a Clojure
+;;	   expression (assumed to be CPSed) and returns it such that
+;;	   functions return a function of no arguments (a thunk) whose
+;;	   body performs the computation of the original expression
+;;
+;;	2) tramp, which takes a sequence representing a Clojure
+;;         expression (assumed to be CPSed and thunkified and the
+;;         symbolic name of the trampoline function and returns the
+;;         expression rigged to execute one step at a time via the
+;;         named trampoline function.
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.tramp

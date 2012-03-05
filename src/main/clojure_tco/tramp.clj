@@ -39,7 +39,7 @@
             BODY-ALT (alpha-rename old new body)]
         `(~'fn ~FML* ~BODY-ALT))
       :else
-      (let [BODY (alpha-rename new old body)]
+      (let [BODY (alpha-rename old new body)]
         `(~'fn ~fml* ~BODY)))
     [(['if test conseq alt] :seq)]
     (let [TEST (alpha-rename old new test)

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  6 Feb 2012
-;; Last modified  4 Mar 2012
+;; Last modified  5 Mar 2012
 ;; 
 ;; Defines utilities for trampolining Clojure code.
 ;;----------------------------------------------------------------------
@@ -59,10 +59,9 @@
 
 (defn tramp-fn
   [th done]
-  (loop [th th]
-    (if (true? done)
-        th
-        (recur (th)))))
+  (if @done
+      th
+      (recur (th) done)))
 
 (defn tramp
   "Takes a sequence representing a Clojure expression (assumed to be
@@ -76,16 +75,19 @@
               [(n :when number?)] n
               [(s :when symbol?)] s
               [(['fn fml* body] :seq)]
-              (let [done (new-var 'done)
-                    kv (last body)
-                    fnv (new-var 'fnv)
-                    thunk (new-var 'th)
-                    BODY (tramp-helper body done kv)] 
-                `(fn ~fml*
-                   (with-local-vars [~done false]
-                     (let [~fnv (~'fn [fml*] ~BODY)
-                           th (~fnv ~@fml*)]
-                       (~tramp-fn th ~done)))))
+              (if (> (count fml*) 0)
+                  (let [done (new-var 'done)
+                        kv (last body)
+                        fnv (new-var 'fnv)
+                        thunk (new-var 'th)
+                        BODY (tramp-helper body done kv)] 
+                    `(fn ~fml*
+                       (def ~done (atom false))
+                       (let [~fnv (~'fn [fml*] ~BODY)]
+                         (let [~thunk (~fnv ~@fml*)]
+                           (~tramp-fn th ~done)))))
+                  (let [BODY (tramp-helper body done kv)]
+                    `(fn ~fml* ~BODY)))
               [(['if test conseq alt] :seq)]
               (let [TEST (tramp-helper test done kv)
                     CONSEQ (tramp-helper conseq done kv)
@@ -95,7 +97,7 @@
               (let [OPND* (map
                            (fn [opnd] (tramp-helper opnd done kv))
                            opnd*)]
-                `(~op ~OPND*))
+                `(~op ~@OPND*))
               [([(:or 'defn 'defn-) name fml* body] :seq)]
               (let [deftype (first expr)
                     done (new-var 'done)
@@ -105,19 +107,21 @@
                     body-rn (alpha-rename name fnv body)
                     BODY-RN (tramp-helper body-rn done kv)]
                 `(~deftype ~name
-                     ~fml*
-                   (with-local-vars [~done false]
-                     (letfn [(~fnv ~fml* ~BODY-RN)
-                             th (fnv ~@fml*)]
-                       (~tramp-fn th ~done)))))
+                     [~@fml*]
+                   (def ~done (atom false))
+                   (letfn [(~fnv ~fml* ~BODY-RN)]
+                     (let [~thunk  (~fnv ~@fml*)]
+                       (~tramp-fn ~thunk ~done)))))
               [([rator & rand*] :seq)]
               (if (= rator kv)
-                  `(do (var-set ~done true) (~rator ~@rand*))
+                  `(do (swap! ~done not) (~rator ~@rand*))
                   (let [RATOR (tramp-helper rator done kv)
-                        RAND* (map
-                               (fn [n] (tramp-helper n done kv))
-                               rand*)]
-                    `(~RATOR ~RAND*)))
+                        kont (last rand*)
+                        rand-bl* (butlast rand*)
+                        RAND-BL* (map
+                                  (fn [n] (tramp-helper n done kv))
+                                  rand-bl*)]
+                    `(~RATOR ~@RAND-BL* ~kont)))
               :else (throw
                      (Exception.
                       (str
@@ -153,7 +157,7 @@
     [([(:or 'defn 'defn-) name fml* body] :seq)]
       (let [deftype (first expr)
             BODY (thunkify body)]
-        `(~deftype ~name ~fml* (~'fn [] ~BODY)))
+        `(~deftype ~name [~@fml*] (~'fn [] ~BODY)))
     [([rator & rand*] :seq)]
     ;; Assuming that the expression is in CPS, the rator will either
     ;; be a variable bound to a procedure that has been or will be

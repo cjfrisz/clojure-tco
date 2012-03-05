@@ -14,7 +14,7 @@
   (:use [clojure-tco.util
          :only (reset-var-num new-var simple-op?)]))
 
-(defn alpha-rename
+(defn- alpha-rename
   "Performs alpha-renaming from old to new in expr. The expr argument
   is expected to be a sequence representing a Clojure expression.
   Returns expr with the proper renaming done."
@@ -51,7 +51,7 @@
            (Exception.
             (str "Invalid expression in alpha-rename: " expr)))))
 
-(defn tramp-fn
+(defn- tramp-fn
   [th done]
   (loop [th th]
     (if @done th (recur (th)))))

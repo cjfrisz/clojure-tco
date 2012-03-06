@@ -51,7 +51,7 @@
     (let [TEST (alpha-rename old new test)
           CONSEQ (alpha-rename old new conseq)
           ALT (alpha-rename old new alt)]
-      `(if ~TEST ~CONSEQ ~ALT))
+      `(~'if ~TEST ~CONSEQ ~ALT))
     [([(op :when simple-op?) & opnd*] :seq)]
     (let [OPND* (map (fn [n] (alpha-rename old new n)) opnd*)]
       `(~op ~@OPND*))
@@ -89,18 +89,18 @@
                         fnv (new-var 'fnv)
                         thunk (new-var 'th)
                         BODY (tramp-helper body done kv)] 
-                    `(fn ~fml*
+                    `(~'fn ~fml*
                        (def ~done (ref false))
                        (let [~fnv (~'fn [fml*] ~BODY)]
                          (let [~thunk (~fnv ~@fml*)]
                            (~tramp-fn th ~done)))))
                   (let [BODY (tramp-helper body done kv)]
-                    `(fn ~fml* ~BODY)))
+                    `(~'fn ~fml* ~BODY)))
               [(['if test conseq alt] :seq)]
               (let [TEST (tramp-helper test done kv)
                     CONSEQ (tramp-helper conseq done kv)
                     ALT (tramp-helper alt done kv)]
-                `(if ~TEST ~CONSEQ ~ALT))
+                `(~'if ~TEST ~CONSEQ ~ALT))
               [([(op :when simple-op?) & opnd*] :seq)]
               (let [OPND* (map
                            (fn [opnd] (tramp-helper opnd done kv))
@@ -122,7 +122,9 @@
                        (~tramp-fn ~thunk ~done)))))
               [([rator & rand*] :seq)]
               (if (= rator kv)
-                  `(do (dosync (ref-set ~done true)) (~rator ~@rand*))
+                  `(~'do
+                     (~'dosync (~'ref-set ~done ~'true))
+                     (~rator ~@rand*))
                   (let [RATOR (tramp-helper rator done kv)
                         kont (last rand*)
                         rand-bl* (butlast rand*)

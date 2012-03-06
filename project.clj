@@ -17,4 +17,4 @@
                   "0.2.0-alpha9"]]
   :source-path "src/main"
   :test-path "src/test"
-  :repl-init clojure-tco.cps)
+  :repl-init clojure-tco.tco)

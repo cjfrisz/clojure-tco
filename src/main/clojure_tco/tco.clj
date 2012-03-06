@@ -30,13 +30,15 @@
   sequence representing the original CPSed and trampolined to allow
   for constant-space tail calls."
   [expr]
-  (let [expr-cps (cps expr)
-        expr-cps-th (thunkify expr-cps)
-        tramp-fn (new-var 'tramp)
-        expr-tco (tramp expr-cps-th tramp-fn)
+  ;; Generate variables used for code generation
+  (let [tramp-fn (new-var 'tramp)
         thv (new-var 'th)
         donev (new-var 'done)]
-    `(~'letfn [(~tramp-fn [~thv ~donev]
-                 (~'loop [~thv ~thv]
-                   (~'if @~donev ~thv (~'recur (~thv)))))]
-       ~expr-tco)))
+    ;; Perform the code transformations
+    (let [expr-cps (cps expr)
+          expr-cps-th (thunkify expr-cps)
+          expr-tco (tramp expr-cps-th tramp-fn)]
+      `(~'letfn [(~tramp-fn [~thv ~donev]
+                   (~'loop [~thv ~thv]
+                     (~'if @~donev ~thv (~'recur (~thv)))))]
+         ~expr-tco))))

@@ -58,9 +58,6 @@
     ;; Simple ops
     [([(op :when simple-op?) & opnd*] :seq)]
      (every? trivial? opnd*)
-    ;; defn
-    [([(:or 'defn 'defn-) name doc fml* body] :seq)] true
-    [([(:or 'defn 'defn-) name fml* body] :seq)] true
     :else false))
 
 (defn- E
@@ -164,6 +161,11 @@
   [expr]
   (do
     (reset-var-num)
-    (let [k (new-var 'k)
-          EXPR (E expr k)]
-      `(~'fn [~k] ~EXPR))))
+    (let [k (new-var 'k)]
+      (match [expr]
+        [(['defn name fml* body] :seq)]
+        (let [BODY (E body k)]
+          `(defn ~name [~@fml* ~k] ~BODY))
+        :else
+        (let [EXPR (E expr k)]
+          `(~'fn [~k] ~EXPR))))))

@@ -90,7 +90,7 @@
                         thunk (new-var 'th)
                         BODY (tramp-helper body done kv)] 
                     `(~'fn ~fml*
-                       (def ~done (ref false))
+                       (def ~done (~'ref false))
                        (let [~fnv (~'fn [fml*] ~BODY)]
                          (let [~thunk (~fnv ~@fml*)]
                            (~tramp-fn th ~done)))))
@@ -116,9 +116,9 @@
                     BODY-RN (tramp-helper body-rn done kv)]
                 `(~deftype ~name
                      [~@fml*]
-                   (def ~done (ref false))
-                   (letfn [(~fnv ~fml* ~BODY-RN)]
-                     (let [~thunk  (~fnv ~@fml*)]
+                   (def ~done (~'ref false))
+                   (~'letfn [(~fnv ~fml* ~BODY-RN)]
+                     (~'let [~thunk  (~fnv ~@fml*)]
                        (~tramp-fn ~thunk ~done)))))
               [([rator & rand*] :seq)]
               (if (= rator kv)

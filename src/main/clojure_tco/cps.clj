@@ -165,7 +165,7 @@
       (match [expr]
         [(['defn name fml* body] :seq)]
         (let [BODY (E body k)]
-          `(defn ~name [~@fml* ~k] ~BODY))
+          `(~'defn ~name [~@fml* ~k] ~BODY))
         :else
         (let [EXPR (E expr k)]
           `(~'fn [~k] ~EXPR))))))

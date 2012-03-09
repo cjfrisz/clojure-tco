@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Feb 2012
-;; Last modified  5 Mar 2012
+;; Last modified  9 Mar 2012
 ;; 
 ;; Miscellaneous utilities for Clojure TCO.
 ;;
@@ -35,7 +35,7 @@
       (swap! var-num inc)
       new-var)))
 
-(defn simple-op?
+(defn triv-op?
   "Returns a boolean whether s is a simple-op"
   [s]
   (let [simple-ops '(+ - * / < <= = >= > zero? inc dec)]

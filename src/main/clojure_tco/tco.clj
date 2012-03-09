@@ -30,13 +30,11 @@
   sequence representing the original CPSed and trampolined to allow
   for constant-space tail calls."
   [expr]
-  ;; Generate variables used for code generation
   (do 
     (reset-var-num)
     (let [tramp-fn (new-var 'tramp)
         thv (new-var 'th)
         donev (new-var 'done)]
-    ;; Perform the code transformations
     (let [expr-cps (cps expr)
           expr-cps-th (thunkify expr-cps)
           expr-tco (tramp expr-cps-th tramp-fn)]

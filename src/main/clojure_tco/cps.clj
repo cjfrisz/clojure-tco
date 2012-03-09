@@ -35,9 +35,13 @@
   (:use [clojure.core.match
          :only (match)])
   (:use [clojure-tco.util
-         :only (reset-var-num new-var simple-op?)]))
+         :only (reset-var-num new-var triv-op?)]))
 
-(declare cps expr srs srs-if srs-op srs-app triv triv-fn triv-if triv-op triv?)
+(declare
+ cps
+ expr
+ srs srs-if srs-op srs-app
+ triv triv-fn triv-if triv-op triv?)
 
 ;;------------------------------
 ;; CPS: Entry-point function
@@ -77,13 +81,13 @@
   Olivier-style CPS algorithm."
   [e k]
   (match [e]
-    [(['if test conseq alt] :seq)]           (srs-if test conseq alt k)
-    [([(op :when simple-op?) & rand*] :seq)] (let [final (fn [arg* k]
+    [(['if test conseq alt] :seq)]         (srs-if test conseq alt k)
+    [([(op :when triv-op?) & rand*] :seq)] (let [final (fn [arg* k]
                                                            `(~k (~op ~@arg*)))]
                                                (srs-app rand* k '() final))
-    [([rator & rand*] :seq)]                 (let [final (fn [arg* k]
-                                                           `(~@arg* ~k))]
-                                               (srs-app e k '() final)) 
+    [([rator & rand*] :seq)]               (let [final (fn [arg* k]
+                                                         `(~@arg* ~k))]
+                                             (srs-app e k '() final)) 
     :else (throw
            (Exception.
             (str "Invalid serious expression in srs: " e)))))
@@ -132,12 +136,12 @@
   Olivier-style CPS algorithm."
   [e]
   (match [e]
-    [(:or true false)]                       e
-    [(s :when symbol?)]                      s
-    [(n :when number?)]                      n
-    [(['fn fml* body] :seq)]                 (triv-fn fml* body)
-    [(['if test conseq alt] :seq)]           (triv-if test conseq alt)
-    [([(op :when simple-op?) & opnd*] :seq)] (triv-op op opnd*)
+    [(:or true false)]                     e
+    [(s :when symbol?)]                    s
+    [(n :when number?)]                    n
+    [(['fn fml* body] :seq)]               (triv-fn fml* body)
+    [(['if test conseq alt] :seq)]         (triv-if test conseq alt)
+    [([(op :when triv-op?) & opnd*] :seq)] (triv-op op opnd*)
     :else (throw
            (Exception. (str "Invalid trivial expression: " e)))))
 
@@ -175,13 +179,13 @@
   trivial with respect to the Olivier-style CPS algorithm."
   [t]
   (match [t]
-    [(:or true false)]                       true
-    [(s :when symbol?)]                      true
-    [(n :when number?)]                      true
-    [(['fn fml* body] :seq)]                 true
-    [(['if test conseq alt] :seq)]           (and
-                                              (triv? test)
-                                              (triv? conseq)
-                                              (triv? alt))
-    [([(op :when simple-op?) & opnd*] :seq)] (every? triv? opnd*)
+    [(:or true false)]                     true
+    [(s :when symbol?)]                    true
+    [(n :when number?)]                    true
+    [(['fn fml* body] :seq)]               true
+    [(['if test conseq alt] :seq)]         (and
+                                            (triv? test)
+                                            (triv? conseq)
+                                            (triv? alt))
+    [([(op :when triv-op?) & opnd*] :seq)] (every? triv? opnd*)
     :else false))

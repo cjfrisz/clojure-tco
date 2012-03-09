@@ -129,7 +129,7 @@
 
 (defn- tramp-if
   "Helper function for tramp that handles 'if' expressions"
-  [test conseq bounch done kv]
+  [test conseq alt bounce done kv]
   (let [TEST (tramp test bounce done kv)
         CONSEQ (tramp conseq bounce done kv)
         ALT (tramp alt bounce done kv)]

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Feb 2012
-;; Last modified  5 Mar 2012
+;; Last modified  9 Mar 2012
 ;; 
 ;; Defines CPS algorithm for Clojure expressions. The "cps" function
 ;; takes a sequence representing a Clojure expression and returns
@@ -159,13 +159,11 @@
   representing a continuation and evaluates the original expression
   with respect to that continuation."
   [expr]
-  (do
-    (reset-var-num)
-    (let [k (new-var 'k)]
-      (match [expr]
-        [(['defn name fml* body] :seq)]
-        (let [BODY (E body k)]
-          `(~'defn ~name [~@fml* ~k] ~BODY))
-        :else
-        (let [EXPR (E expr k)]
-          `(~'fn [~k] ~EXPR))))))
+  (let [k (new-var 'k)]
+    (match [expr]
+      [(['defn name fml* body] :seq)]
+      (let [BODY (E body k)]
+        `(~'defn ~name [~@fml* ~k] ~BODY))
+      :else
+      (let [EXPR (E expr k)]
+        `(~'fn [~k] ~EXPR)))))

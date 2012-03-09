@@ -28,7 +28,7 @@
 
 (declare
  alpha-rename alpha-rename-fn alpha-rename-if alpha-rename-op alpha-rename-app
- tramp tramp-helper tramp-fn tramp-if tramp-op tramp-defn tramp-app
+ tramp tramp-helper tr-fn tr-if tr-op tr-defn tr-app
  thunkify)
 
 ;;-------------------------------------------------------
@@ -95,22 +95,22 @@
   CPSed) and returns the trampolined version of the expression. That
   is, it returns the expression such that it executes one step at a
   time."
-  ([expr bounce] (tramp expr bounce 'hukarz 'hukarz))
+  ([expr bounce] (tramp expr bounce nil nil))
   ([expr bounce done kv]
      (match [expr]
        [(:or true false)] expr
        [(n :when number?)] n
        [(s :when symbol?)] s
-       [(['fn fml* body] :seq)] (tramp-fn fml* body bounce)
-       [(['if test conseq alt] :seq)] (tramp-if test conseq alt bounce done kv)
-       [([(op :when triv-op?) & opnd*] :seq)] (tramp-op op opnd* bounce done kv)
-       [(['defn name fml* body] :seq)] (tramp-defn name fml* bounce done kv)
-       [([rator & rand*] :seq)] (tramp-app rator rand* bounce done kv)
+       [(['fn fml* body] :seq)] (tr-fn fml* body bounce done kv)
+       [(['if test conseq alt] :seq)] (tr-if test conseq alt bounce done kv)
+       [([(op :when triv-op?) & opnd*] :seq)] (tr-op op opnd* bounce done kv)
+       [(['defn name fml* body] :seq)] (tr-defn name fml* body bounce done kv)
+       [([rator & rand*] :seq)] (tr-app rator rand* bounce done kv)
        :else (throw
               (Exception.
                (str "Invalid expression in tramp: " expr))))))
 
-(defn- tramp-fn
+(defn- tr-fn
   "Helper function for tramp that handles functions."
   [fml* body bounce done kv]
   (if (> (count fml*) 0)
@@ -127,7 +127,7 @@
       (let [BODY (tramp body bounce done kv)]
         `(~'fn ~fml* ~BODY))))
 
-(defn- tramp-if
+(defn- tr-if
   "Helper function for tramp that handles 'if' expressions"
   [test conseq alt bounce done kv]
   (let [TEST (tramp test bounce done kv)
@@ -135,14 +135,14 @@
         ALT (tramp alt bounce done kv)]
     `(~'if ~TEST ~CONSEQ ~ALT)))
 
-(defn- tramp-op
+(defn- tr-op
   "Helper function for tramp that handles simple operations (i.e.
   arithmetic +, -, *, etc.)"
   [op opnd* bounce done kv]
   (let [OPND* (map (fn [opnd] (tramp opnd bounce done kv)) opnd*)]
     `(~op ~@OPND*)))
 
-(defn- tramp-defn
+(defn- tr-defn
   "Helper function for tramp that handles 'defn' expressions."
   [name fml* body bounce done kv]
   (let [done (new-var 'done)
@@ -158,7 +158,7 @@
          (~'let [~thunk  (~fnv ~@fml*)]
            (~bounce ~thunk ~done))))))
 
-(defn- tramp-app
+(defn- tr-app
   "Helper function for tramp that handles function application."
   [rator rand* bounce done kv]
   (if (= rator kv)

@@ -138,16 +138,6 @@
     [(['fn fml* body] :seq)] (triv-fn fml* body)
     [(['if test conseq alt] :seq)] (triv-if test conseq alt)
     [([(op :when simple-op?) & opnd*] :seq)] (triv-op op opnd*)
-    [([(:or 'defn 'defn-) name fml* body] :seq)] ;; Without the docstring
-     (let [deftype (first e)
-           k (new-var 'k)
-           BODY (expr body k)]
-       `(~deftype ~name [~@fml* ~k] ~BODY))     
-    [([(:or 'defn 'defn-) name doc fml* body] :seq)]
-     (let [deftype (first e)
-           k (new-var 'k)
-           BODY (expr body k)]
-       `(~deftype ~name ~(str doc) [~@fml* ~k] ~BODY))
     :else (throw
            (Exception. (str "Invalid trivial expression: " e)))))
 

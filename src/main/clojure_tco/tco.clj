@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  5 Mar 2012
-;; Last modified  5 Mar 2012
+;; Last modified  9 Mar 2012
 ;; 
 ;; Defines the "tco" function, which takes a sequence representing a
 ;; Clojure expression and returns the expression CPSed and
@@ -31,7 +31,9 @@
   for constant-space tail calls."
   [expr]
   ;; Generate variables used for code generation
-  (let [tramp-fn (new-var 'tramp)
+  (do 
+    (reset-var-num)
+    (let [tramp-fn (new-var 'tramp)
         thv (new-var 'th)
         donev (new-var 'done)]
     ;; Perform the code transformations
@@ -41,4 +43,4 @@
       `(~'letfn [(~tramp-fn [~thv ~donev]
                    (~'loop [~thv ~thv]
                      (~'if @~donev ~thv (~'recur (~thv)))))]
-         ~expr-tco))))
+         ~expr-tco)))))

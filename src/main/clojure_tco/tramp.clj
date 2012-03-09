@@ -80,7 +80,7 @@
   time."
   [expr bounce]
   (letfn []
-    (tramp-helper expr bounce'hukarz 'hukarz)))
+    (tramp-helper expr bounce 'hukarz 'hukarz)))
 
 (defn- tramp-helper
   [expr done kv]

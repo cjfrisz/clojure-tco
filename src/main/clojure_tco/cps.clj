@@ -50,12 +50,10 @@
   [e]
   (let [k (new-var 'k)]
     (match [e]
-      [(['defn name fml* body] :seq)]
-      (let [BODY (expr body k)]
-        `(~'defn ~name [~@fml* ~k] ~BODY))
-      :else
-      (let [E (expr e k)]
-        `(~'fn [~k] ~E)))))
+      [(['defn name fml* body] :seq)] (let [BODY (expr body k)]
+                                        `(~'defn ~name [~@fml* ~k] ~BODY))
+      :else                           (let [E (expr e k)]
+                                        `(~'fn [~k] ~E)))))
 
 ;;----------------------------------------
 ;; EXPR: General expression CPS function
@@ -64,10 +62,11 @@
   "CPS function for an arbitrary Clojure expression with respect to
   the Olivier-style CPS algorithm."
   [e k]
-  (if (triv? e)
-      (let [E (triv e)]
-        `(~k ~E))
-      (srs e k)))
+  (match [e]
+    [(['defn name fml* body] :seq)] (cps e)
+    :else                           (if (triv? e)
+                                        `(~k ~(triv e))
+                                        (srs e k))))
 
 
 ;;--------------------------------------------------
@@ -78,19 +77,20 @@
   Olivier-style CPS algorithm."
   [e k]
   (match [e]
-    [(['if test conseq alt] :seq)] (srs-if test conseq alt)
+    [(['if test conseq alt] :seq)]           (srs-if test conseq alt k)
     [([(op :when simple-op?) & rand*] :seq)] (let [final (fn [arg* k]
                                                            `(~k (~op ~@arg*)))]
                                                (srs-app rand* k '() final))
-    [([rator & rand*] :seq)] (let [final (fn [arg* k] `(~@arg* ~k))]
-                               (srs-app e k '() final)) 
+    [([rator & rand*] :seq)]                 (let [final (fn [arg* k]
+                                                           `(~@arg* ~k))]
+                                               (srs-app e k '() final)) 
     :else (throw
            (Exception.
             (str "Invalid serious expression in srs: " e)))))
 
 (defn- srs-if
   "Helper function for srs that handles non-trivial 'if' expressions"
-  [test conseq alt]
+  [test conseq alt k]
   (let [CONSEQ (expr conseq k)
         ALT (expr alt k)]
     (if (triv? test)
@@ -115,7 +115,7 @@
       (let [fst (first e)
             rst (rest e)]
         (if (triv? fst)
-            (let [FST (T fst)
+            (let [FST (triv fst)
                   ARG* `(~@arg* ~FST)]
               (recur rst k ARG* final))
             (let [s (new-var 's)
@@ -132,11 +132,11 @@
   Olivier-style CPS algorithm."
   [e]
   (match [e]
-    [(:or true false)] e
-    [(s :when symbol?)] s
-    [(n :when number?)] n
-    [(['fn fml* body] :seq)] (triv-fn fml* body)
-    [(['if test conseq alt] :seq)] (triv-if test conseq alt)
+    [(:or true false)]                       e
+    [(s :when symbol?)]                      s
+    [(n :when number?)]                      n
+    [(['fn fml* body] :seq)]                 (triv-fn fml* body)
+    [(['if test conseq alt] :seq)]           (triv-if test conseq alt)
     [([(op :when simple-op?) & opnd*] :seq)] (triv-op op opnd*)
     :else (throw
            (Exception. (str "Invalid trivial expression: " e)))))
@@ -175,10 +175,13 @@
   trivial with respect to the Olivier-style CPS algorithm."
   [t]
   (match [t]
-    [(:or true false)] true
-    [(s :when symbol?)] true
-    [(n :when number?)] true
-    [(['fn fml* body] :seq)] true
-    [(['if test conseq alt] :seq)] (every? triv? (list test conseq alt))
+    [(:or true false)]                       true
+    [(s :when symbol?)]                      true
+    [(n :when number?)]                      true
+    [(['fn fml* body] :seq)]                 true
+    [(['if test conseq alt] :seq)]           (and
+                                              (triv? test)
+                                              (triv? conseq)
+                                              (triv? alt))
     [([(op :when simple-op?) & opnd*] :seq)] (every? triv? opnd*)
     :else false))

@@ -27,23 +27,34 @@
   (:use [clojure-tco.util
          :only (new-var reset-var-num)]))
 
-(defn- overload
-  "Takes a sequence representing a Clojure expression and, if ")
+(defn overload
+  "Takes a sequence representing a CPSed Clojure expression and, if it
+  is a function definition, overloads it so that it can interoperate
+  with existing code."
+  [expr]
+  (match [expr]
+    [(['defn name fml* & body*] :seq)] (let [fml-bl* (butlast fml*)
+                                             v (new-var 'v)]
+                                         `(~'defn ~name
+                                            ([~@fml-bl*]
+                                               (~name ~@fml-bl* (~'fn [~v] ~v)))
+                                            ([~@fml*]
+                                               ~@body*)))
+    :else expr))
 
 (defn tco
   "Takes a sequence representing a Clojure expression and returns a
   sequence representing the original CPSed and trampolined to allow
   for constant-space tail calls."
   [expr]
-  ;; Generate variables used for code generation
   (let [tramp-fn (new-var 'tramp)
         thv (new-var 'th)
         donev (new-var 'done)]
-    ;; Perform the code transformations
     (let [expr-cps (cps expr)
           expr-cps-th (thunkify expr-cps)
-          expr-tco (tramp expr-cps-th tramp-fn)]
+          expr-tco (tramp expr-cps-th tramp-fn)
+          expr-tco-ol (overload expr-tco)]
       `(~'letfn [(~tramp-fn [~thv ~donev]
                    (~'loop [~thv ~thv]
                      (~'if @~donev ~thv (~'recur (~thv)))))]
-         ~expr-tco))))
+         ~expr-tco-ol))))

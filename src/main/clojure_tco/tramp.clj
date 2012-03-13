@@ -24,7 +24,7 @@
   (:use [clojure.core.match
          :only (match)])
   (:use [clojure-tco.util
-         :only (reset-var-num new-var triv-op?)]))
+         :only (reset-var-num new-var triv-op? alpha-rename)]))
 
 (declare
  tramp tramp-helper tr-fn tr-if tr-op tr-defn tr-app

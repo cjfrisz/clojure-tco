@@ -17,8 +17,7 @@
   (:use clojure-tco.util))
 
 (declare
- alpha-equiv? alpha-equiv-fn? alpha-equiv-op? alpha-equiv-app?
- free-vars)
+ alpha-equiv? alpha-equiv-fn? alpha-equiv-op? alpha-equiv-app?)
 
 (defn alpha-equiv?
   [e1 e2]
@@ -56,33 +55,6 @@
   [rator1 rand1* rator2 rand2*]
   (let [equiv-rand* (map (fn [x y] (alpha-equiv? x y)) rand1* rand2*)]
     (and (alpha-equiv? rator1 rator2) (reduce true? equiv-rand*))))
-
-(defn free-vars
-  [expr]
-  ((fn loop [expr bound* free*]
-     (match [expr]
-       [(s :when symbol?)] (if (some #{s} bound*) free* (union `(~s) free*))
-       [(:or true false)]  free*
-       [(n :when number?)] free*
-       [(['fn fml* body] :seq)] (recur body (union fml* bound*) free*)
-       [(['if test conseq alt] :seq)] (let [t-free* (loop test bound* free*)
-                                            c-free* (loop conseq bound* free*)
-                                            a-free* (loop alt bound* free*)]
-                                        (union t-free* c-free* a-free*))
-       [([(op :when triv-op?) & opnd*] :seq)] (apply
-                                               union
-                                               (map
-                                                (fn [x] (loop x bound* free*))
-                                                opnd*))
-       [([rator & rand*] :seq)] (let [rator-free* (loop rator bound* free*)
-                                      rand-free** (map
-                                                   (fn [x] (loop x bound* free*))
-                                                   rand*)]
-                                  (apply union `(~rator-free* ~@rand-free**)))
-       :else (throw
-              (Exception.
-               (str "Invalid expression in free-vars: " expr)))))
-   expr '() '()))
 
 (def fact-seq
   '(defn fact

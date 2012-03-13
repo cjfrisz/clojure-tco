@@ -11,23 +11,27 @@
 ;; generate semi-unique identifiers with a given symbol root
 ;; symbol. This acts as a prettier gensym for performing the
 ;; algorithms like CPS.
-;; ----------------------------------------------------------------------
+;;----------------------------------------------------------------------
 
-(ns clojure-tco.util)
+(ns clojure-tco.util
+  (:use [clojure.core.match
+         :only (match)]))
 
 (declare
  sep var-num reset-var-num new-var triv-op?
- alpha-rename alpha-rename-fn alpha-rename-if alpha-rename-op alpha-rename-app)
+ alpha-rename ar-fn ar-if ar-op ar-app)
 
-(def sep
+(def
+  ^{:private true}
+  sep
   "The separator which goes between the root symbol and number for
   identifiers."
-  ^{:private true}
   "!")
 
-(def var-num
-  "The var-num which makes each new variable semi-unique."
+(def
   ^{:private true}
+  var-num
+  "The var-num which makes each new variable semi-unique."
   (atom 0))
 
 (defn reset-var-num
@@ -62,15 +66,15 @@
     [(s :when symbol?)] (if (= s old) new s)
     [(:or true false)] expr
     [(n :when number?)] n
-    [(['fn fml* body] :seq)] (alpha-rename-fn fml* body old new)
-    [(['if test conseq alt] :seq)] (alpha-rename-if test conseq alt old new)
-    [([(op :when triv-op?) & opnd*] :seq)] (alpha-rename-op op opnd* old new)
-    [([rator & rand*] :seq)] (alpha-rename-app rator rand* old new)
+    [(['fn fml* body] :seq)] (ar-fn fml* body old new)
+    [(['if test conseq alt] :seq)] (ar-if test conseq alt old new)
+    [([(op :when triv-op?) & opnd*] :seq)] (ar-op op opnd* old new)
+    [([rator & rand*] :seq)] (ar-app rator rand* old new)
     :else (throw
            (Exception.
             (str "Invalid expression in alpha-rename: " expr)))))
 
-(defn- alpha-rename-fn
+(defn- ar-fn
   "Helper function for alpha-rename for handling functions."
   [fml* body old new]
   (cond
@@ -83,7 +87,7 @@
     :else              (let [BODY (alpha-rename old new body)]
                          `(~'fn ~fml* ~BODY))))
 
-(defn- alpha-rename-if
+(defn- ar-if
   "Helper function for alpha-rename for handling 'if' expressions."
   [test conseq alt old new]
   (let [TEST (alpha-rename old new test)
@@ -91,14 +95,14 @@
         ALT (alpha-rename old new alt)]
     `(~'if ~TEST ~CONSEQ ~ALT)))
 
-(defn- alpha-rename-op
+(defn- ar-op
   "Helper function for alpha-rename for handling simple operators (i.e.
   arithmetic +, -, *, etc.)"
   [op opnd* old new]
   (let [OPND* (map (fn [n] (alpha-rename old new n)) opnd*)]
     `(~op ~@OPND*)))
 
-(defn- alpha-rename-app
+(defn- ar-app
   "Helper function for alpha-rename for handling function application."  
   [rator rand* old new]
   (let [RATOR (alpha-rename old new rator)

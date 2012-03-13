@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  6 Feb 2012
-;; Last modified  9 Mar 2012
+;; Last modified 13 Mar 2012
 ;; 
 ;; Defines utilities for trampolining Clojure code. Primarily, this
 ;; consists of two functions:
@@ -27,65 +27,8 @@
          :only (reset-var-num new-var triv-op?)]))
 
 (declare
- alpha-rename alpha-rename-fn alpha-rename-if alpha-rename-op alpha-rename-app
  tramp tramp-helper tr-fn tr-if tr-op tr-defn tr-app
  thunkify)
-
-;;-------------------------------------------------------
-;; ALPHA-RENAME: Perform alpha-renamine on an expression
-;;-------------------------------------------------------
-(defn- alpha-rename
-  "Performs alpha-renaming from old to new in expr. The expr argument
-  is expected to be a sequence representing a Clojure expression.
-  Returns expr with the proper renaming done."
-  [old new expr]
-  (match [expr]
-    [(s :when symbol?)] (if (= s old) new s)
-    [(:or true false)] expr
-    [(n :when number?)] n
-    [(['fn fml* body] :seq)] (alpha-rename-fn fml* body old new)
-    [(['if test conseq alt] :seq)] (alpha-rename-if test conseq alt old new)
-    [([(op :when triv-op?) & opnd*] :seq)] (alpha-rename-op op opnd* old new)
-    [([rator & rand*] :seq)] (alpha-rename-app rator rand* old new)
-    :else (throw
-           (Exception.
-            (str "Invalid expression in alpha-rename: " expr)))))
-
-(defn- alpha-rename-fn
-  "Helper function for alpha-rename for handling functions."
-  [fml* body old new]
-  (cond
-    (some #{old} fml*) `(~'fn ~fml* ~body)
-    (some #{new} fml*) (let [alt (new-var new)
-                             FML* (replace {new alt} fml*)
-                             body-alt (alpha-rename new alt body)
-                             BODY-ALT (alpha-rename old new body)]
-                         `(~'fn ~FML* ~BODY-ALT))
-    :else              (let [BODY (alpha-rename old new body)]
-                         `(~'fn ~fml* ~BODY))))
-
-(defn- alpha-rename-if
-  "Helper function for alpha-rename for handling 'if' expressions."
-  [test conseq alt old new]
-  (let [TEST (alpha-rename old new test)
-        CONSEQ (alpha-rename old new conseq)
-        ALT (alpha-rename old new alt)]
-    `(~'if ~TEST ~CONSEQ ~ALT)))
-
-(defn- alpha-rename-op
-  "Helper function for alpha-rename for handling simple operators (i.e.
-  arithmetic +, -, *, etc.)"
-  [op opnd* old new]
-  (let [OPND* (map (fn [n] (alpha-rename old new n)) opnd*)]
-    `(~op ~@OPND*)))
-
-(defn- alpha-rename-app
-  "Helper function for alpha-rename for handling function application."  
-  [rator rand* old new]
-  (let [RATOR (alpha-rename old new rator)
-        RAND* (map (fn [n] (alpha-rename old new n)) rand*)]
-    `(~RATOR ~@RAND*)))
-
 
 ;;-------------------------------------------------------
 ;; TRAMP: Sets up code for trampolining (and helpers)

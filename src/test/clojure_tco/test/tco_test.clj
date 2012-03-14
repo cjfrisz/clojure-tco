@@ -1,16 +1,18 @@
 ;;----------------------------------------------------------------------
 ;; File tco_test.clj
-;; Written by Christopher Frisz
+;; Written by Chris Frisz
 ;; 
 ;; Created 10 Mar 2012
-;; Last modified 10 Mar 2012
+;; Last modified 13 Mar 2012
 ;; 
 ;; Tests for the full tail-call optimization suite.
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.test.tco-test
   (:use clojure.test)
-  (:require [clojurecheck.core :as cc])
+  (:use clojure-tco.test.util)
+  (:use clojure-tco.cps)
+  (:use clojure-tco.tramp)
   (:use clojure-tco.tco))
 
 (def fact-seq
@@ -28,3 +30,15 @@
          (if (zero? y)
              (ack (dec x) 1)
              (ack (dec x) (ack x (dec y)))))))
+
+(def ackermann-by-hand
+  '(defn ack-cps
+     [x y k]
+     (if (zero? x)
+         (k (inc y))
+         (if (zero? y)
+             (ack-cps (dec x) 1 k)
+             (ack-cps x (dec y) (fn [z] (ack-cps (dec x) z k)))))))
+
+(deftest ack-cps-equiv
+  (is (alpha-equiv? (cps ackermann-seq) ackermann-by-hand)))

@@ -11,6 +11,8 @@
 (ns clojure-tco.test.tco-test
   (:use clojure.test)
   (:use clojure-tco.test.util)
+  (:use clojure-tco.cps)
+  (:use clojure-tco.tramp)
   (:use clojure-tco.tco))
 
 (def fact-seq
@@ -28,3 +30,15 @@
          (if (zero? y)
              (ack (dec x) 1)
              (ack (dec x) (ack x (dec y)))))))
+
+(def ackermann-by-hand
+  '(defn ack-cps
+     [x y k]
+     (if (zero? x)
+         (k (inc y))
+         (if (zero? y)
+             (ack (dec x) y k)
+             (ack x (dec y) (fn [z] (ack (dec x) y k)))))))
+
+(deftest ack-cps
+  (is (alpha-equiv? (cps ackermann-seq) ackermann-by-hand)))

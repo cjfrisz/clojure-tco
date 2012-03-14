@@ -9,8 +9,9 @@
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.test.cps-test
-  (:use [clojure-tco.cps])
-  (:use [clojure.test]))
+  (:use clojure-tco.cps)
+  (:use clojure.test)
+  (:use clojure-tco.test.util))
 
 (def empty-k (fn [x] x))
 
@@ -28,7 +29,7 @@
   (apply cps-eval-with-k `(~expr ~empty-k ~@args)))
 
 (deftest id-test-1
-  (is (= (cps '(fn [x] x)) '(fn [k!0] (k!0 (fn [x k!1] (k!1 x))))))
+  (is (alpha-equiv? (cps '(fn [x] x)) '(fn [k!0] (k!0 (fn [x k!1] (k!1 x))))))
   "Make sure that simple tranformations come out right.")
 
 (deftest heavy-redex

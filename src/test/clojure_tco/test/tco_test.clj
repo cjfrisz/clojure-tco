@@ -37,8 +37,8 @@
      (if (zero? x)
          (k (inc y))
          (if (zero? y)
-             (ack (dec x) 1 k)
-             (ack x (dec y) (fn [z] (ack (dec x) z k)))))))
+             (ack-cps (dec x) 1 k)
+             (ack-cps x (dec y) (fn [z] (ack-cps (dec x) z k)))))))
 
-(deftest ack-cps
+(deftest ack-cps-equiv
   (is (alpha-equiv? (cps ackermann-seq) ackermann-by-hand)))

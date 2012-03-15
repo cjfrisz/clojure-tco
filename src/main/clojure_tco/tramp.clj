@@ -56,6 +56,12 @@
   (if (> (count fml*) 0)
       (let [done (new-var 'done)
             kv (last body)
+            ka (new-var 'v)
+            k `(fn [~ka]
+                 (~'do
+                   (~'dosync (~'ref-set ~done ~'true))
+                   (~kv ~ka)))
+            fml-bl* (butlast fml*)
             fnv (new-var 'fnv)
             thunk (new-var 'th)
             BODY (tramp body bounce)] 
@@ -87,6 +93,12 @@
   [name fml* body bounce]
   (let [done (new-var 'done)
         kv (last fml*)
+        ka (new-var 'v)
+        k `(fn [~ka]
+             (~'do
+               (~'dosync (~'ref-set ~done ~'true))
+               (~kv ~ka)))
+        fml-bl* (butlast fml*)
         fnv (new-var name)
         thunk (new-var 'th)
         body-rn (alpha-rename name fnv body)
@@ -95,7 +107,7 @@
        [~@fml*]
        (~'def ~done (~'ref ~'false))
        (~'letfn [(~fnv ~fml* ~BODY-RN)]
-         (~'let [~thunk  (~fnv ~@fml*)]
+         (~'let [~thunk  (~fnv ~@fml-bl* ~k)]
            (~bounce ~thunk ~done))))))
 
 (defn- tr-app

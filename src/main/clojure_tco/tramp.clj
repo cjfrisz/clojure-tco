@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  6 Feb 2012
-;; Last modified 14 Mar 2012
+;; Last modified 15 Mar 2012
 ;; 
 ;; Defines utilities for trampolining Clojure code. Primarily, this
 ;; consists of two functions:
@@ -39,79 +39,73 @@
   expression. That is, it returns the expression such that it executes
   one step at a time."
   [expr bounce]
-  (tramp-main expr bounce nil nil))
-
-(defn- tramp-main
-  "Helper function for tramp. It performs the bulk of the decision
-  work for trampolining."
-  [expr bounce done kv]
   (match [expr]
     [(:or true false)] expr
     [(n :when number?)] n
     [(s :when symbol?)] s
-    [(['fn fml* body] :seq)] (tr-fn fml* body bounce done kv)
-    [(['if test conseq alt] :seq)] (tr-if test conseq alt bounce done kv)
-    [([(op :when triv-op?) & opnd*] :seq)] (tr-op op opnd* bounce done kv)
-    [(['defn name fml* body] :seq)] (tr-defn name fml* body bounce done kv)
-    [([rator & rand*] :seq)] (tr-app rator rand* bounce done kv)
+    [(['fn fml* body] :seq)] (tr-fn fml* body bounce)
+    [(['if test conseq alt] :seq)] (tr-if test conseq alt bounce)
+    [([(op :when triv-op?) & opnd*] :seq)] (tr-op op opnd* bounce)
+    [(['defn name fml* body] :seq)] (tr-defn name fml* body bounce)
+    [([rator & rand*] :seq)] (tr-app rator rand* bounce)
     :else (throw (Exception. (str "Invalid expression in tramp: " expr)))))
 
 (defn- tr-fn
   "Helper function for tramp that handles functions."
-  [fml* body bounce done kv]
+  [fml* body bounce]
   (if (> (count fml*) 0)
       (let [done (new-var 'done)
             kv (last body)
             fnv (new-var 'fnv)
             thunk (new-var 'th)
-            BODY (tramp-main body bounce done kv)] 
+            BODY (tramp body bounce)] 
         `(~'fn ~fml*
-           (def ~done (~'ref false))
-           (let [~fnv (~'fn [fml*] ~BODY)]
-             (let [~thunk (~fnv ~@fml*)]
-               (~bounce th ~done)))))
-      (let [BODY (tramp-main body bounce done kv)]
+           (~'def ~done (~'ref false))
+           (~'let [~fnv (~'fn [fml*] ~BODY)]
+             (~'let [~thunk (~fnv ~@fml-bl* ~k)]
+               (~bounce ~thunk ~done)))))
+      (let [BODY (tramp body bounce)]
         `(~'fn ~fml* ~BODY))))
 
 (defn- tr-if
   "Helper function for tramp that handles 'if' expressions"
-  [test conseq alt bounce done kv]
-  (let [TEST (tramp-main test bounce done kv)
-        CONSEQ (tramp-main conseq bounce done kv)
-        ALT (tramp-main alt bounce done kv)]
+  [test conseq alt bounce]
+  (let [TEST (tramp test bounce)
+        CONSEQ (tramp conseq bounce)
+        ALT (tramp alt bounce)]
     `(~'if ~TEST ~CONSEQ ~ALT)))
 
 (defn- tr-op
   "Helper function for tramp that handles simple operations (i.e.
   arithmetic +, -, *, etc.)"
-  [op opnd* bounce done kv]
-  (let [OPND* (map (fn [opnd] (tramp-main opnd bounce done kv)) opnd*)]
+  [op opnd* bounce]
+  (let [OPND* (map (fn [opnd] (tramp opnd bounce)) opnd*)]
     `(~op ~@OPND*)))
 
 (defn- tr-defn
   "Helper function for tramp that handles 'defn' expressions."
-  [name fml* body bounce done kv]
+  [name fml* body bounce]
   (let [done (new-var 'done)
         kv (last fml*)
         fnv (new-var name)
         thunk (new-var 'th)
         body-rn (alpha-rename name fnv body)
-        BODY-RN (tramp-main body-rn bounce done kv)]
+        BODY-RN (tramp body-rn bounce)]
     `(~'defn ~name
        [~@fml*]
-       (def ~done (~'ref false))
+       (~'def ~done (~'ref ~'false))
        (~'letfn [(~fnv ~fml* ~BODY-RN)]
          (~'let [~thunk  (~fnv ~@fml*)]
            (~bounce ~thunk ~done))))))
 
 (defn- tr-app
   "Helper function for tramp that handles function application."
-  [rator rand* bounce done kv]
-  (let [RATOR (tramp-main rator bounce done kv)
+  [rator rand* bounce]
+  (let [RATOR (tramp rator bounce)
         kont (last rand*)
         rand-bl* (butlast rand*)
         RAND-BL* (map
-                  (fn [n] (tramp-main n bounce done kv))
+                  (fn [n] (tramp n bounce))
                   rand-bl*)]
     `(~RATOR ~@RAND-BL* ~kont)))
 
@@ -150,3 +144,4 @@
                                    RAND-BL* (map thunkify rand-bl*)]
                                `(~RATOR ~@RAND-BL* ~k))
     :else (throw (Exception. (str "Invalid expression: " expr)))))
+

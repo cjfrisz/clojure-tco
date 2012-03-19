@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Feb 2012
-;; Last modified 10 Mar 2012
+;; Last modified 19 Mar 2012
 ;; 
 ;; Project declaration for clojure-tco. 
 ;;----------------------------------------------------------------------
@@ -17,6 +17,7 @@
                   "0.2.0-alpha9"]]
   :dev-dependencies [[clojurecheck
                       "2.0.2"]]
+  :plugins [[lein-swank "1.4.3"]]
   :source-path "src/main"
   :test-path "src/test"
   :repl-init clojure-tco.tco)

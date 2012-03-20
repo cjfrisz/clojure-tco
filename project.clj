@@ -16,7 +16,9 @@
                  [org.clojure/core.match
                   "0.2.0-alpha9"]]
   :dev-dependencies [[clojurecheck
-                      "2.0.2"]]
+                      "2.0.2"]
+                     [org.clojure/tools.macro
+                      "0.1.1"]]
   :plugins [[lein-swank "1.4.3"]]
   :source-path "src/main"
   :test-path "src/test"

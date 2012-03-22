@@ -18,7 +18,7 @@
   (:use [clojure-tco.util
          :only (new-var triv-op? alpha-rename)]))
 
-(declare tramp tramp-helper tr-fn tr-if tr-op tr-defn tr-app)
+(declare tramp tr-fn tr-if tr-op tr-defn tr-app)
 
 ;;-------------------------------------------------------
 ;; TRAMP: Sets up code for trampolining (and helpers)

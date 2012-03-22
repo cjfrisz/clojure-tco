@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  6 Feb 2012
-;; Last modified 21 Mar 2012
+;; Last modified 22 Mar 2012
 ;; 
 ;; Defines utilities for trampolining Clojure code. Primarily, this
 ;; refers to "tramp," which takes a sequence representing a Clojure
@@ -45,20 +45,13 @@
   [fml* body bounce]
   (if (> (count fml*) 0)
       (let [done (new-var 'done)
-            kv (last body)
-            ka (new-var 'v)
-            k `(fn [~ka]
-                 (~'do
-                   (~'dosync (~'ref-set ~done ~'true))
-                   (~kv ~ka)))
-            fml-bl* (butlast fml*)
             fnv (new-var 'fnv)
             thunk (new-var 'th)
             BODY (tramp body bounce)] 
         `(~'fn ~fml*
            (~'def ~done (~'ref false))
-           (~'let [~fnv (~'fn [fml*] ~BODY)]
-             (~'let [~thunk (~fnv ~@fml-bl* ~k)]
+           (~'let [~fnv (~'fn ~fml* ~BODY)]
+             (~'let [~thunk (~fnv ~fml*)]
                (~bounce ~thunk ~done)))))
       (let [BODY (tramp body bounce)]
         `(~'fn ~fml* ~BODY))))
@@ -82,22 +75,16 @@
   "Helper function for tramp that handles 'defn' expressions."
   [name fml* body bounce]
   (let [done (new-var 'done)
-        kv (last fml*)
-        ka (new-var 'v)
-        k `(fn [~ka]
-             (~'do
-               (~'dosync (~'ref-set ~done ~'true))
-               (~kv ~ka)))
         fml-bl* (butlast fml*)
         fnv (new-var name)
         thunk (new-var 'th)
         body-rn (alpha-rename name fnv body)
         BODY-RN (tramp body-rn bounce)]
     `(~'defn ~name
-       [~@fml*]
+       ~fml*
        (~'def ~done (~'ref ~'false))
        (~'letfn [(~fnv ~fml* ~BODY-RN)]
-         (~'let [~thunk  (~fnv ~@fml-bl* ~k)]
+         (~'let [~thunk  (~fnv ~fml)]
            (~bounce ~thunk ~done))))))
 
 (defn- tr-app

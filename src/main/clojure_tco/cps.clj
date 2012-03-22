@@ -22,7 +22,9 @@
 ;;            functions.
 ;;      "If" expressions
 ;;      Simple arithmetic and relational operators:
-;;              +, -, *, /, <, <=, =, >=, >, zero, inc, dec
+;;              +, -, *, /, <, <=, =, >=, >, zero?, inc, dec
+;;      The "defn" macro for defining functions
+;;
 ;;
 ;; This implementation is intended for use as part of the Clojure TCO
 ;; project for implementing tail-call optimization in Clojure.

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Feb 2012
-;; Last modified 21 Mar 2012
+;; Last modified 22 Mar 2012
 ;; 
 ;; Defines CPS algorithm for Clojure expressions. The "cps" function
 ;; takes a sequence representing a Clojure expression and returns
@@ -218,3 +218,41 @@
     [(['defn name fml* body] :seq)] (abstract-k-defn name fml* body app-k)
     [([rator & rand*] :seq)] (abstract-k-app rator rand* app-k kv)
     :else (throw (Exception. (str "Invalid expression: " e)))))
+
+(defn- abstract-k-fn
+  "Helper function for abstract-k-main that handles anonymous functions."
+  [fml* body app-k]
+  (let [kv (last fml*)
+        BODY (abstract-k-main body app-k kv)]
+    `(~'fn ~fml* ~BODY)))
+
+(defn- abstract-k-if
+  "Helper function for abstract-k-main that handles 'if' expressions."
+  [test conseq alt app-k kv]
+  (let [TEST (abstract-k-main test app-k kv)
+        CONSEQ (abstract-k-main conseq app-k kv)
+        ALT (abstract-k-main alt app-k kv)]
+    `(~'if ~TEST ~CONSEQ ~ALT)))
+
+(defn- abstract-k-op
+  "Helper function for abstract-k-main that handles simple operators (i.e.
+  arithmetic, relational, etc.)"
+  [op opnd* app-k kv]
+  (let [OPND* (map (fn [x] (abstract-k-main x app-k kv)) opnd*)]
+    (~op ~@OPND*)))
+
+(defn- abstract-k-defn
+  "Helper function for abstract-k-main that handles 'defn' expressions."
+  [name fml* body app-k]
+  (let [kv (last fml*)
+        BODY (abstract-k-main body app-k kv)]
+    `(~'defn ~fml* ~BODY)))
+
+(defn- abstract-k-app
+  "Helper function fo abstract-k-app that handles function application."
+  [rator rand app-k kv]
+  (let [RATOR (abstract-k-main rator app-k kv)
+        RAND* (map (fn [x] (abstract-k-main x app-k kv)) rand*)]
+    (if (= RATOR kv)
+        `(~app-k ~RATOR ~@RAND*)
+        `(~RATOR ~@RAND*))))

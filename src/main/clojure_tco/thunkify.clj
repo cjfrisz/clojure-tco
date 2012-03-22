@@ -69,7 +69,7 @@
   "Helper function for thunkify that handles 'defn' expressions."
   [name fml* body]
   (let [BODY (thunkify body)]
-    `(~'defn ~name [~@fml*]
+    `(~'defn ~name ~fml*
        (~'fn [] ~BODY))))
 
 (defn- thunkify-app

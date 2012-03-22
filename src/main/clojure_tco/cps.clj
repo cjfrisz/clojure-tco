@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Feb 2012
-;; Last modified  9 Mar 2012
+;; Last modified 21 Mar 2012
 ;; 
 ;; Defines CPS algorithm for Clojure expressions. The "cps" function
 ;; takes a sequence representing a Clojure expression and returns
@@ -41,7 +41,9 @@
  cps
  expr
  srs srs-if srs-op srs-app
- triv triv-fn triv-if triv-op triv?)
+ triv triv-fn triv-if triv-op triv?
+ abstract-k abstract-k-main abstract-k-fn abstract-k-if abstract-k-op
+ abstract-k-op abstract-k-defn abstract-k-app)
 
 ;;------------------------------
 ;; CPS: Entry-point function
@@ -189,3 +191,30 @@
                                             (triv? alt))
     [([(op :when triv-op?) & opnd*] :seq)] (every? triv? opnd*)
     :else false))
+
+;;--------------------------------------------------
+;; ABSRACT-K: Abstracts continuation application
+;;--------------------------------------------------
+(defn abstract-k
+  "Takes a sequence representing a CPSed Clojure expression and a
+  symbol representing a handler for applying continuation and returns
+  the expression such that it is representationally independent with
+  respect to continuations using the given handler for applying
+  continuations."
+  [e app-k]
+  (abstract-k-main e app-k nil))
+
+(defn- abstract-k-main
+  "Helper function for abstract-k that additionally carries the name
+  of the continuation argument."
+  [e app-k kv]
+  (match [e]
+    [(:or true false)] expr
+    [(n :when number?)] n
+    [(s :when symbol?)] s
+    [(['fn fml* body] :seq)] (abstract-k-fn fml* body app-k)
+    [(['if test conseq alt] :seq)] (abstract-k-if test conseq alt app-k kv)
+    [([(op :when triv-op?) & opnd*] :seq)] (abstract-k-op op opnd* app-k kv)
+    [(['defn name fml* body] :seq)] (abstract-k-defn name fml* body app-k)
+    [([rator & rand*] :seq)] (abstract-k-app rator rand* app-k kv)
+    :else (throw (Exception. (str "Invalid expression: " e)))))

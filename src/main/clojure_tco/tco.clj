@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  5 Mar 2012
-;; Last modified  9 Mar 2012
+;; Last modified 21 Mar 2012
 ;; 
 ;; Defines the "tco" function, which takes a sequence representing a
 ;; Clojure expression and returns the expression CPSed and
@@ -22,8 +22,10 @@
          :only (match)])
   (:use [clojure-tco.cps
          :only (cps)])
+  (:use [clojure-tco.thunkify
+         :only (thunkify)])
   (:use [clojure-tco.tramp
-         :only (thunkify tramp)])
+         :only (tramp)])
   (:use [clojure-tco.util
          :only (new-var reset-var-num)]))
 

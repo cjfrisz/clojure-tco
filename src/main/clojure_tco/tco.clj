@@ -21,7 +21,9 @@
   (:use [clojure.core.match
          :only (match)])
   (:use [clojure-tco.cps
-         :only (cps abstract-k)])
+         :only (cps)])
+  (:use [clojure-tco.abstract-k
+         :only (abstract-k)])
   (:use [clojure-tco.thunkify
          :only (thunkify)])
   (:use [clojure-tco.tramp

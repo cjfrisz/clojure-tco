@@ -35,13 +35,11 @@
   with existing code."
   [expr]
   (match [expr]
-    [(['defn name fml* & body*] :seq)] (let [fml-bl* (butlast fml*)
-                                             v (new-var 'v)]
-                                         `(~'defn ~name
+    [(['defn name fml* & body*] :seq)] `(~'defn ~name
                                             ([~@fml-bl*]
-                                               (~name ~@fml-bl* (~'fn [~v] ~v)))
+                                               (~name ~@fml-bl* '(empty-k)))
                                             ([~@fml*]
-                                               ~@body*)))
+                                               ~@body*))
     :else expr))
 
 (defn tco

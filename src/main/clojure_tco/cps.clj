@@ -250,7 +250,7 @@
 
 (defn- abstract-k-app
   "Helper function fo abstract-k-app that handles function application."
-  [rator rand app-k kv]
+  [rator rand* app-k kv]
   (let [RATOR (abstract-k-main rator app-k kv)
         RAND* (map (fn [x] (abstract-k-main x app-k kv)) rand*)]
     (if (= RATOR kv)

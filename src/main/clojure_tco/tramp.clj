@@ -75,7 +75,6 @@
   "Helper function for tramp that handles 'defn' expressions."
   [name fml* body bounce]
   (let [done (new-var 'done)
-        fml-bl* (butlast fml*)
         fnv (new-var name)
         thunk (new-var 'th)
         body-rn (alpha-rename name fnv body)
@@ -84,7 +83,7 @@
        ~fml*
        (~'def ~done (~'ref ~'false))
        (~'letfn [(~fnv ~fml* ~BODY-RN)]
-         (~'let [~thunk  (~fnv ~fml)]
+         (~'let [~thunk  (~fnv ~fml*)]
            (~bounce ~thunk ~done))))))
 
 (defn- tramp-app

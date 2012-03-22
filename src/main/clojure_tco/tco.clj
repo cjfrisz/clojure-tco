@@ -21,7 +21,7 @@
   (:use [clojure.core.match
          :only (match)])
   (:use [clojure-tco.cps
-         :only (cps)])
+         :only (cps abstract-k)])
   (:use [clojure-tco.thunkify
          :only (thunkify)])
   (:use [clojure-tco.tramp
@@ -35,11 +35,12 @@
   with existing code."
   [expr]
   (match [expr]
-    [(['defn name fml* & body*] :seq)] `(~'defn ~name
-                                            ([~@fml-bl*]
-                                               (~name ~@fml-bl* '(empty-k)))
-                                            ([~@fml*]
-                                               ~@body*))
+    [(['defn name fml* & body*] :seq)] (let [fml-bl* (butlast fml*)]
+                                         `(~'defn ~name
+                                            (~fml-bl*
+                                             (~name ~@fml-bl* '(empty-k)))
+                                            (~fml*
+                                             ~@body*)))
     :else expr))
 
 (defn tco
@@ -63,6 +64,6 @@
                        (~'if @~donev ~thv (~'recur (~thv)))))
                    (~apply-k [k# a#]
                      (~'if (= k# '(empty-k))
-                           (~'do (~'dosync (~'ref-set ~donev ~'true)) ~a#)
+                           (~'do (~'dosync (~'ref-set ~donev ~'true)) a#)
                            (k# a#)))]
-           ~expr-tco-ol)))))
+           ~expr-tco-ol-absk)))))

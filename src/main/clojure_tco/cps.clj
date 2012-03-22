@@ -239,7 +239,7 @@
   arithmetic, relational, etc.)"
   [op opnd* app-k kv]
   (let [OPND* (map (fn [x] (abstract-k-main x app-k kv)) opnd*)]
-    (~op ~@OPND*)))
+    `(~op ~@OPND*)))
 
 (defn- abstract-k-defn
   "Helper function for abstract-k-main that handles 'defn' expressions."
@@ -251,8 +251,8 @@
 (defn- abstract-k-app
   "Helper function fo abstract-k-app that handles function application."
   [rator rand* app-k kv]
-  (let [RATOR (abstract-k-main rator app-k kv)
-        RAND* (map (fn [x] (abstract-k-main x app-k kv)) rand*)]
-    (if (= RATOR kv)
-        `(~app-k ~RATOR ~@RAND*)
-        `(~RATOR ~@RAND*))))
+  (let [RAND* (map (fn [x] (abstract-k-main x app-k kv)) rand*)]
+    (if (= rator kv)
+        `(~app-k ~rator ~@RAND*)
+        (let [RATOR (abstract-k-main rator app-k kv)]
+          `(~RATOR ~@RAND*)))))

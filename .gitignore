@@ -3,6 +3,7 @@
 # Leiningen files
 .lein-deps-sum
 .lein-failures
+.lein-plugins
 
 # Dependencies
 lib/

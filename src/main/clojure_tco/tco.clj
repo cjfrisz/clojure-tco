@@ -21,7 +21,9 @@
   (:use [clojure.core.match
          :only (match)])
   (:use [clojure-tco.cps
-         :only (cps abstract-k)])
+         :only (cps)])
+  (:use [clojure-tco.abstract-k
+         :only (abstract-k)])
   (:use [clojure-tco.thunkify
          :only (thunkify)])
   (:use [clojure-tco.tramp
@@ -55,15 +57,15 @@
           donev (new-var 'done)
           apply-k (new-var 'apply-k)]
       (let [expr-cps (cps expr)
-            expr-cps-th (thunkify expr-cps)
-            expr-tco (tramp expr-cps-th tramp-fn)
-            expr-tco-ol (overload expr-tco)
-            expr-tco-ol-absk (abstract-k expr-tco-ol apply-k)]
+            expr-cps-absk (abstract-k expr-cps apply-k)
+            expr-cps-absk-th (thunkify expr-cps-absk)
+            expr-tco (tramp expr-cps-absk-th tramp-fn)
+            expr-tco-ol (overload expr-tco)]
         `(~'letfn [(~tramp-fn [~thv ~donev]
                      (~'loop [~thv ~thv]
                        (~'if @~donev ~thv (~'recur (~thv)))))
                    (~apply-k [k# a#]
-                     (~'if (= k# '(empty-k))
+                     (~'if (~'= k# '(empty-k))
                            (~'do (~'dosync (~'ref-set ~donev ~'true)) a#)
                            (k# a#)))]
-           ~expr-tco-ol-absk)))))
+           ~expr-tco-ol)))))

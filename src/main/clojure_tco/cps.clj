@@ -22,7 +22,9 @@
 ;;            functions.
 ;;      "If" expressions
 ;;      Simple arithmetic and relational operators:
-;;              +, -, *, /, <, <=, =, >=, >, zero, inc, dec
+;;              +, -, *, /, <, <=, =, >=, >, zero?, inc, dec
+;;      The "defn" macro for defining functions
+;;
 ;;
 ;; This implementation is intended for use as part of the Clojure TCO
 ;; project for implementing tail-call optimization in Clojure.
@@ -35,15 +37,13 @@
   (:use [clojure.core.match
          :only (match)])
   (:use [clojure-tco.util
-         :only (reset-var-num new-var triv-op?)]))
+         :only (new-var triv-op?)]))
 
 (declare
  cps
  expr
  srs srs-if srs-op srs-app
- triv triv-fn triv-if triv-op triv?
- abstract-k abstract-k-main abstract-k-fn abstract-k-if abstract-k-op
- abstract-k-op abstract-k-defn abstract-k-app)
+ triv triv-fn triv-if triv-op triv?)
 
 ;;------------------------------
 ;; CPS: Entry-point function
@@ -191,68 +191,3 @@
                                             (triv? alt))
     [([(op :when triv-op?) & opnd*] :seq)] (every? triv? opnd*)
     :else false))
-
-;;--------------------------------------------------
-;; ABSRACT-K: Abstracts continuation application
-;;--------------------------------------------------
-(defn abstract-k
-  "Takes a sequence representing a CPSed Clojure expression and a
-  symbol representing a handler for applying continuation and returns
-  the expression such that it is representationally independent with
-  respect to continuations using the given handler for applying
-  continuations."
-  [e app-k]
-  (abstract-k-main e app-k nil))
-
-(defn- abstract-k-main
-  "Helper function for abstract-k that additionally carries the name
-  of the continuation argument."
-  [e app-k kv]
-  (match [e]
-    [(:or true false)] expr
-    [(n :when number?)] n
-    [(s :when symbol?)] s
-    [(['fn fml* body] :seq)] (abstract-k-fn fml* body app-k)
-    [(['if test conseq alt] :seq)] (abstract-k-if test conseq alt app-k kv)
-    [([(op :when triv-op?) & opnd*] :seq)] (abstract-k-op op opnd* app-k kv)
-    [(['defn name fml* body] :seq)] (abstract-k-defn name fml* body app-k)
-    [([rator & rand*] :seq)] (abstract-k-app rator rand* app-k kv)
-    :else (throw (Exception. (str "Invalid expression: " e)))))
-
-(defn- abstract-k-fn
-  "Helper function for abstract-k-main that handles anonymous functions."
-  [fml* body app-k]
-  (let [kv (last fml*)
-        BODY (abstract-k-main body app-k kv)]
-    `(~'fn ~fml* ~BODY)))
-
-(defn- abstract-k-if
-  "Helper function for abstract-k-main that handles 'if' expressions."
-  [test conseq alt app-k kv]
-  (let [TEST (abstract-k-main test app-k kv)
-        CONSEQ (abstract-k-main conseq app-k kv)
-        ALT (abstract-k-main alt app-k kv)]
-    `(~'if ~TEST ~CONSEQ ~ALT)))
-
-(defn- abstract-k-op
-  "Helper function for abstract-k-main that handles simple operators (i.e.
-  arithmetic, relational, etc.)"
-  [op opnd* app-k kv]
-  (let [OPND* (map (fn [x] (abstract-k-main x app-k kv)) opnd*)]
-    `(~op ~@OPND*)))
-
-(defn- abstract-k-defn
-  "Helper function for abstract-k-main that handles 'defn' expressions."
-  [name fml* body app-k]
-  (let [kv (last fml*)
-        BODY (abstract-k-main body app-k kv)]
-    `(~'defn ~fml* ~BODY)))
-
-(defn- abstract-k-app
-  "Helper function fo abstract-k-app that handles function application."
-  [rator rand* app-k kv]
-  (let [RAND* (map (fn [x] (abstract-k-main x app-k kv)) rand*)]
-    (if (= rator kv)
-        `(~app-k ~rator ~@RAND*)
-        (let [RATOR (abstract-k-main rator app-k kv)]
-          `(~RATOR ~@RAND*)))))

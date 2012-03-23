@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  5 Mar 2012
-;; Last modified 22 Mar 2012
+;; Last modified 23 Mar 2012
 ;; 
 ;; Defines the "tco" function, which takes a sequence representing a
 ;; Clojure expression and returns the expression CPSed and
@@ -55,7 +55,9 @@
     (let [tramp-fn (new-var 'tramp)
           thv (new-var 'th)
           donev (new-var 'done)
-          apply-k (new-var 'apply-k)]
+          apply-k (new-var 'apply-k)
+          k (new-var 'k)
+          a (new-var 'a)]
       (let [expr-cps (cps expr)
             expr-cps-absk (abstract-k expr-cps apply-k)
             expr-cps-absk-th (thunkify expr-cps-absk)
@@ -64,8 +66,8 @@
         `(~'letfn [(~tramp-fn [~thv ~donev]
                      (~'loop [~thv ~thv]
                        (~'if @~donev ~thv (~'recur (~thv)))))
-                   (~apply-k [k# a#]
-                     (~'if (~'= k# '(empty-k))
-                           (~'do (~'dosync (~'ref-set ~donev ~'true)) a#)
-                           (k# a#)))]
+                   (~apply-k [~k ~a]
+                     (~'if (~'= ~k '(empty-k))
+                           (~'do (~'dosync (~'ref-set ~donev ~'true)) ~a)
+                           (~k ~a)))]
            ~expr-tco-ol)))))

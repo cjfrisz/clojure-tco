@@ -33,66 +33,64 @@
 (defn- abstract-k-main
   "Helper function for abstract-k that additionally carries the name
   of the continuation argument."
-  [e app-k kv]
+  [e app-k ks]
   (match [e]
     [(:or true false)] e
     [(n :when number?)] n
     [(s :when symbol?)] s
-    [(['fn fml* body] :seq)] (abstract-k-fn fml* body app-k kv)
-    [(['if test conseq alt] :seq)] (abstract-k-if test conseq alt app-k kv)
-    [([(op :when triv-op?) & opnd*] :seq)] (abstract-k-op op opnd* app-k kv)
-    [(['defn name fml* body] :seq)] (abstract-k-defn name fml* body app-k kv)
-    [([rator & rand*] :seq)] (abstract-k-app rator rand* app-k kv)
+    [(['fn fml* body] :seq)] (abstract-k-fn fml* body app-k ks)
+    [(['if test conseq alt] :seq)] (abstract-k-if test conseq alt app-k ks)
+    [([(op :when triv-op?) & opnd*] :seq)] (abstract-k-op op opnd* app-k ks)
+    [(['defn name fml* body] :seq)] (abstract-k-defn name fml* body app-k ks)
+    [([rator & rand*] :seq)] (abstract-k-app rator rand* app-k ks)
     :else (throw (Exception. (str "Invalid expression: " e)))))
 
 (defn- abstract-k-fn
   "Helper function for abstract-k-main that handles anonymous functions."
-  [fml* body app-k kv]
-  (let [body-abs (abstract-k-main body app-k kv)
-        ka (last fml*)
-        BODY-ABS (abstract-k-main body app-k ka)]
-    `(~'fn ~fml* ~BODY-ABS)))
+  [fml* body app-k ks]
+  (let [KS (cons (last fml*) ks)
+        BODY (abstract-k-main body app-k KS)]
+    `(~'fn ~fml* ~BODY)))
 
 (defn- abstract-k-if
   "Helper function for abstract-k-main that handles 'if' expressions."
-  [test conseq alt app-k kv]
-  (let [TEST (abstract-k-main test app-k kv)
-        CONSEQ (abstract-k-main conseq app-k kv)
-        ALT (abstract-k-main alt app-k kv)]
+  [test conseq alt app-k ks]
+  (let [TEST (abstract-k-main test app-k ks)
+        CONSEQ (abstract-k-main conseq app-k ks)
+        ALT (abstract-k-main alt app-k ks)]
     `(~'if ~TEST ~CONSEQ ~ALT)))
 
 (defn- abstract-k-op
   "Helper function for abstract-k-main that handles simple operators (i.e.
   arithmetic, relational, etc.)"
-  [op opnd* app-k kv]
-  (let [OPND* (map (fn [x] (abstract-k-main x app-k kv)) opnd*)]
+  [op opnd* app-k ks]
+  (let [OPND* (map (fn [x] (abstract-k-main x app-k ks)) opnd*)]
     `(~op ~@OPND*)))
 
 (defn- abstract-k-defn
   "Helper function for abstract-k-main that handles 'defn' expressions."
-  [name fml* body app-k kv]
-  (let [body-abs (abstract-k-main body app-k kv)
-        ka (last fml*)
-        BODY-ABS (abstract-k-main body app-k ka)]
-    `(~'defn ~fml* ~BODY-ABS)))
+  [name fml* body app-k ks]
+  (let [KS (cons (last fml*) ks)
+        BODY (abstract-k-main body app-k KS)]
+    `(~'defn ~fml* ~BODY)))
 
 (defn- abstract-k-app
   "Helper function for abstract-k-main that handles function application."
-  [rator rand* app-k kv]
+  [rator rand* app-k ks]
   (let [rand-bl* (butlast rand*)
-        RAND-BL* (map (fn [x] (abstract-k-main x app-k kv)) rand-bl*)
-        kd (last rand*)]
-    (if (= rator kv)
-        `(~app-k ~rator ~@RAND-BL* ~kd) ; RAND-BL* should be empty here
-        (let [RATOR (abstract-k-main rator app-k kv)
-              KD (abstract-k-kont kd app-k kv)]
-          `(~RATOR ~@RAND-BL* ~KD)))))
+        RAND-BL* (map (fn [x] (abstract-k-main x app-k ks)) rand-bl*)
+        k (last rand*)]
+    (if (some #{rator} ks)
+        `(~app-k ~rator ~@RAND-BL* ~k) ; RAND-BL* should be empty here
+        (let [RATOR (abstract-k-main rator app-k ks)
+              K (abstract-k-kont k app-k ks)]
+          `(~RATOR ~@RAND-BL* ~K)))))
 
 (defn- abstract-k-kont
   "Helper function for abstract-k-app that handles continuation arguments."
-  [k app-k kv]
+  [k app-k ks]
   (match [k]
     [(s :when symbol?)]      s
-    [(['fn fml* body] :seq)] (let [BODY (abstract-k-main body app-k kv)]
+    [(['fn fml* body] :seq)] (let [BODY (abstract-k-main body app-k ks)]
                                  `(~'fn ~fml* ~BODY))
     :else (throw (Exception. (str "Invalid continuation: " k)))))

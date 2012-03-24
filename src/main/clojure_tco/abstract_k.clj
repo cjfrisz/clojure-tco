@@ -3,7 +3,7 @@
 ;; Written by Christopher Frisz
 ;; 
 ;; Created 22 Mar 2012
-;; Last modified 22 Mar 2012
+;; Last modified 24 Mar 2012
 ;; 
 ;; Defines the abstract-k function which takes a sequence representing
 ;; a Clojure expression and a symbol representing the name of a
@@ -72,7 +72,7 @@
   [name fml* body app-k ks]
   (let [KS (cons (last fml*) ks)
         BODY (abstract-k-main body app-k KS)]
-    `(~'defn ~fml* ~BODY)))
+    `(~'defn ~name ~fml* ~BODY)))
 
 (defn- abstract-k-app
   "Helper function for abstract-k-main that handles function application."

@@ -27,20 +27,72 @@
   (:use [clojure-tco.thunkify
          :only (thunkify)])
   (:use [clojure-tco.util
-         :only (new-var reset-var-num)]))
+         :only (new-var reset-var-num alpha-rename)]))
+
+(defn- define-tramp
+  "Given an expression and a name, returns the expression wrapped in a letfn
+  defining a trampoline function with the given name."
+  [expr name]
+  (let [thunk (new-var 'thunk)
+        done (new-var 'done)]
+    `(letfn [(~name [~thunk ~done]
+               (loop [~thunk ~thunk]
+                 (if (true? @~done)
+                     (do (dosync (ref-set ~done false)) ~thunk)
+                     (recur (~thunk)))))]
+       ~expr)))
+
+(defn- define-apply-k
+  "Given an expression and a name, returns the expression wrapped in a letfn
+  defining a continuation application function with the given name."
+  [expr name]
+  (let [kont (new-var 'k)
+        arg (new-var 'a)
+        done (new-var 'done)]
+    `(letfn [(~name [~kont ~arg]
+               (if (and (seq? ~kont) (= (first ~kont) 'empty-k))
+                   (let [~done (first (rest ~kont))]
+                     (do (dosync (ref-set ~done true)) ~arg))
+                   (~kont ~arg)))]
+       ~expr)))
+
+(defn- define-done
+  "Given an expression and a name, returns the expression wrapped in a let
+  introducing a reference used as a done flag."
+  [expr name]
+  `(let [~name (ref false)]
+     ~expr))
+
+(defn- load-trampoline
+  "Given a Clojure expression, a symbol representing a trampoline function, and
+  a symbol representing a done variable, sets up the expression to be loaded
+  onto the trampoline."
+  [expr tramp done]
+  (match [expr]
+    [(['defn name fml* body] :seq)] (let [NAME (new-var name)
+                                          BODY (alpha-rename name NAME body)
+                                          thunk (new-var 'th)]
+                                      `(~'defn ~name
+                                         ~fml*
+                                         (letfn [(~NAME ~fml* ~BODY)]
+                                           (let [~thunk (~NAME ~@fml*)]
+                                             (~tramp ~thunk ~done)))))
+    :else expr))
 
 (defn- overload
-  "Takes a sequence representing a CPSed Clojure expression and, if it
-  is a function definition, overloads it so that it can interoperate
-  with existing code."
-  [expr]
+  "Given an expression and a symbol representing the name of a done variable,
+  overloads the function so it can be called with or without a continuation
+  argument. Also sets up the version called without the continuation argument
+  to create a proper empty continuation and call off to the CPS version."
+  [expr done]
   (match [expr]
-    [(['defn name fml* & body*] :seq)] (let [fml-bl* (butlast fml*)]
-                                         `(~'defn ~name
-                                            (~fml-bl*
-                                             (~name ~@fml-bl* '(empty-k)))
-                                            (~fml*
-                                             ~@body*)))
+    [(['defn name fml* body] :seq)] (let [fml-bl* (butlast fml*)]
+                                      `(~'defn ~name
+                                         ([~@fml-bl*]
+                                          (~name ~@fml-bl*
+                                                 (list 'empty-k ~done)))
+                                         (~fml*
+                                          ~body)))
     :else expr))
 
 (defn tco
@@ -50,21 +102,18 @@
   [expr]
   (do 
     (reset-var-num)
-    (let [tramp-fn (new-var 'tramp)
-          thv (new-var 'th)
-          donev (new-var 'done)
+    ;; Variables
+    (let [tramp (new-var 'tramp)
           apply-k (new-var 'apply-k)
-          k (new-var 'k)
-          a (new-var 'a)]
-      (let [expr-cps (cps expr)
-            expr-cps-absk (abstract-k expr-cps apply-k)
-            expr-tco (thunkify expr-cps-absk)
-            expr-tco-ol (overload expr-tco)]
-        `(~'letfn [(~tramp-fn [~thv ~donev]
-                     (~'loop [~thv ~thv]
-                       (~'if @~donev ~thv (~'recur (~thv)))))
-                   (~apply-k [~k ~a]
-                     (~'if (~'= ~k '(empty-k))
-                           (~'do (~'dosync (~'ref-set ~donev ~'true)) ~a)
-                           (~k ~a)))]
-           ~expr-tco-ol)))))
+          done (new-var 'done)]
+      ;; Code transformations
+      (let [expr (cps expr)
+            expr (abstract-k expr apply-k)
+            expr (thunkify expr)
+            expr (load-trampoline expr tramp done)
+            expr (overload expr done)]
+        ;; Bindings
+        (let [expr (define-done expr done)
+              expr (define-tramp expr tramp)
+              expr (define-apply-k expr apply-k)]
+          expr)))))

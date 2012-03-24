@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  6 Feb 2012
-;; Last modified 23 Mar 2012
+;; Last modified 24 Mar 2012
 ;; 
 ;; Defines utilities for trampolining Clojure code. Primarily, this
 ;; refers to "tramp," which takes a sequence representing a Clojure
@@ -40,18 +40,8 @@
 (defn- tramp-fn
   "Helper function for tramp that handles functions."
   [fml* body bounce]
-  (if (> (count fml*) 0)
-      (let [done (new-var 'done)
-            fnv (new-var 'fnv)
-            thunk (new-var 'th)
-            BODY (tramp body bounce)] 
-        `(~'fn ~fml*
-           (~'def ~done (~'ref false))
-           (~'let [~fnv (~'fn ~fml* ~BODY)]
-             (~'let [~thunk (~fnv ~fml*)]
-               (~bounce ~thunk ~done)))))
-      (let [BODY (tramp body bounce)]
-        `(~'fn ~fml* ~BODY))))
+  (let [BODY (tramp body bounce)]
+        `(~'fn ~fml* ~BODY)))
 
 (defn- tramp-if
   "Helper function for tramp that handles 'if' expressions"

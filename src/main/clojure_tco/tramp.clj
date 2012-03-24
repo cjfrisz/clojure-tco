@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  6 Feb 2012
-;; Last modified 22 Mar 2012
+;; Last modified 23 Mar 2012
 ;; 
 ;; Defines utilities for trampolining Clojure code. Primarily, this
 ;; refers to "tramp," which takes a sequence representing a Clojure
@@ -20,9 +20,6 @@
 
 (declare tramp tramp-fn tramp-if tramp-op tramp-defn tramp-app)
 
-;;-------------------------------------------------------
-;; TRAMP: Sets up code for trampolining (and helpers)
-;;-------------------------------------------------------
 (defn tramp
   "Takes a sequence representing a Clojure expression (assumed to be
   CPSed and thunkified) and returns the trampolined version of the

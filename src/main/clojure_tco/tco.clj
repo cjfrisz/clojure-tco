@@ -35,11 +35,11 @@
   [expr name]
   (let [thunk (new-var 'thunk)
         done (new-var 'done)]
-    `(letfn [(~name [~thunk ~done]
-               (loop [~thunk ~thunk]
-                 (if (true? @~done)
-                     (do (dosync (ref-set ~done false)) ~thunk)
-                     (recur (~thunk)))))]
+    `(~'letfn [(~name [~thunk ~done]
+               (~'loop [~thunk ~thunk]
+                 (~'if (~'true? @~done)
+                     (~'do (~'dosync (~'ref-set ~done false)) ~thunk)
+                     (~'recur (~thunk)))))]
        ~expr)))
 
 (defn- define-apply-k
@@ -49,10 +49,10 @@
   (let [kont (new-var 'k)
         arg (new-var 'a)
         done (new-var 'done)]
-    `(letfn [(~name [~kont ~arg]
-               (if (and (seq? ~kont) (= (first ~kont) 'empty-k))
-                   (let [~done (first (rest ~kont))]
-                     (do (dosync (ref-set ~done true)) ~arg))
+    `(~'letfn [(~name [~kont ~arg]
+               (~'if (~'and (~'seq? ~kont) (~'= (~'first ~kont) 'empty-k))
+                   (~'let [~done (~'first (~'rest ~kont))]
+                     (~'do (~'dosync (~'ref-set ~done true)) ~arg))
                    (~kont ~arg)))]
        ~expr)))
 
@@ -60,7 +60,7 @@
   "Given an expression and a name, returns the expression wrapped in a let
   introducing a reference used as a done flag."
   [expr name]
-  `(let [~name (ref false)]
+  `(~'let [~name (~'ref false)]
      ~expr))
 
 (defn- load-trampoline
@@ -74,8 +74,8 @@
                                           thunk (new-var 'th)]
                                       `(~'defn ~name
                                          ~fml*
-                                         (letfn [(~NAME ~fml* ~BODY)]
-                                           (let [~thunk (~NAME ~@fml*)]
+                                         (~'letfn [(~NAME ~fml* ~BODY)]
+                                           (~'let [~thunk (~NAME ~@fml*)]
                                              (~tramp ~thunk ~done)))))
     :else expr))
 
@@ -90,7 +90,7 @@
                                       `(~'defn ~name
                                          ([~@fml-bl*]
                                           (~name ~@fml-bl*
-                                                 (list 'empty-k ~done)))
+                                                 (~'list 'empty-k ~done)))
                                          (~fml*
                                           ~body)))
     :else expr))

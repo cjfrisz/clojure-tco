@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Mar 2012
-;; Last modified 13 Mar 2012
+;; Last modified 24 Mar 2012
 ;; 
 ;; Tests for the full tail-call optimization suite.
 ;;----------------------------------------------------------------------
@@ -12,7 +12,8 @@
   (:use clojure.test)
   (:use clojure-tco.test.util)
   (:use clojure-tco.cps)
-  (:use clojure-tco.tramp)
+  (:use clojure-tco.abstract-k)
+  (:use clojure-tco.thunkify)
   (:use clojure-tco.tco))
 
 (def fact-seq

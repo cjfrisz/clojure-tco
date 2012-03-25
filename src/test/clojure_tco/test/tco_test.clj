@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Mar 2012
-;; Last modified 24 Mar 2012
+;; Last modified 25 Mar 2012
 ;; 
 ;; Tests for the full tail-call optimization suite.
 ;;----------------------------------------------------------------------
@@ -40,6 +40,16 @@
          (if (zero? y)
              (ack-cps (dec x) 1 k)
              (ack-cps x (dec y) (fn [z] (ack-cps (dec x) z k)))))))
+
+(def myeven?-seq
+  '(defn myeven?
+     [n]
+     (if (zero? n) true (myodd? (dec n)))))
+
+(def myodd?-seq
+  '(defn myodd?
+     [n]
+     (if (zero? n) false (myeven? (dec n)))))
 
 (deftest ack-cps-equiv
   (is (alpha-equiv? (cps ackermann-seq) ackermann-by-hand)))

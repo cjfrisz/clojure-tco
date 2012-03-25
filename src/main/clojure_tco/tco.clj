@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  5 Mar 2012
-;; Last modified 24 Mar 2012
+;; Last modified 25 Mar 2012
 ;; 
 ;; Defines the "tco" function, which takes a sequence representing a
 ;; Clojure expression and returns the expression CPSed and
@@ -27,7 +27,7 @@
   (:use [clojure-tco.thunkify
          :only (thunkify)])
   (:use [clojure-tco.util
-         :only (new-var reset-var-num alpha-rename)]))
+         :only (new-var reset-var-num)]))
 
 (defn- define-tramp
   "Given an expression and a name, returns the expression wrapped in a letfn
@@ -63,37 +63,25 @@
   `(~'let [~name (~'ref false)]
      ~expr))
 
-(defn- load-trampoline
-  "Given a Clojure expression, a symbol representing a trampoline function, and
-  a symbol representing a done variable, sets up the expression to be loaded
-  onto the trampoline."
-  [expr tramp done]
-  (match [expr]
-    [(['defn name fml* body] :seq)] (let [NAME (new-var name)
-                                          BODY (alpha-rename name NAME body)
-                                          thunk (new-var 'th)]
-                                      `(~'defn ~name
-                                         ~fml*
-                                         (~'letfn [(~NAME ~fml* ~BODY)]
-                                           (~'let [~thunk (~NAME ~@fml*)]
-                                             (~tramp ~thunk ~done)))))
-    :else expr))
-
 (defn- overload
   "Given an expression and a symbol representing the name of a done variable,
   overloads the function so it can be called with or without a continuation
   argument. Also sets up the version called without the continuation argument
   to create a proper empty continuation and call off to the CPS version."
-  [expr done]
-  (match [expr]
-    [(['defn name fml* body] :seq)] (let [fml-bl* (butlast fml*)]
-                                      `(~'defn ~name
-                                         ([~@fml-bl*]
-                                          (~name ~@fml-bl*
-                                                 (~'list 'empty-k ~done)))
-                                         (~fml*
-                                          ~body)))
-    :else expr))
+  [expr tramp done]
+  (let [thunk (new-var 'thunk)]
+    (match [expr]
+      [(['defn name fml* body] :seq)] (let [fml-bl* (butlast fml*)]
+                                        `(~'defn ~name
+                                           ([~@fml-bl*]
+                                              (~'let [~thunk (~name
+                                                              ~@fml-bl*
+                                                              (~'list
+                                                               'empty-k
+                                                               ~done))]
+                                                (~tramp ~thunk ~done)))
+                                           (~fml* ~body)))
+      :else expr)))
 
 (defn tco
   "Takes a sequence representing a Clojure expression and returns a
@@ -110,8 +98,7 @@
       (let [expr (cps expr)
             expr (abstract-k expr apply-k)
             expr (thunkify expr)
-            expr (load-trampoline expr tramp done)
-            expr (overload expr done)]
+            expr (overload expr tramp done)]
         ;; Bindings
         (let [expr (define-done expr done)
               expr (define-tramp expr tramp)

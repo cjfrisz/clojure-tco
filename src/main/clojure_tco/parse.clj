@@ -25,9 +25,9 @@
   returns the record representation of the expression, otherwise raises an exception."
   [expr]
   (core.match/match [expr]
-    [(:or true false)] (lang-forms/Bool. expr)
-    [(n :when number?)] (lang-forms/Num. n)
-    [(s :when symbol?)] (lang-forms/Var. s)
+    [(:or true false)] (Bool. expr)
+    [(n :when number?)] (Num. n)
+    [(s :when symbol?)] (Var. s)
     [([(op :when util/triv-op?) & opnd*] :seq)] (parse-op op opnd*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)
     [(['cond & clause*] :seq)] (parse-cond clause*)
@@ -41,13 +41,13 @@
   "Helper function for parse that parses 'fn' expressions."
   [fml* body]
   (let [BODY (parse body)]
-    (lang-forms/Fn. fml* BODY)))
+    (Fn. fml* BODY)))
 
 (defn- parse-defn
   "Helper function for parse that parses 'defn' expression."
   [name fml* body]
   (let [BODY (parse body)]
-    (lang-forms/Defn. name fml* BODY)))
+    (Defn. name fml* BODY)))
 
 (defn- parse-if
   "Helper function for parse that parses 'if' expressions."
@@ -55,7 +55,7 @@
   (let [TEST (parse test)
         CONSEQ (parse conseq)
         ALT (parse alt)]
-    (lang-forms/If. TEST CONSEQ ALT)))
+    (If. TEST CONSEQ ALT)))
 
 (defn- parse-cond
   "Helper function for parse that parses 'cond' expressions.
@@ -68,7 +68,7 @@
   operators (i.e. aritmetic and relational)."
   [op opnd*]
   (let [OPND* (for [x opnd*] (parse x))]
-    (lang-forms/TrivOp. op OPND*)))
+    (TrivOp. op OPND*)))
 
 (defn- parse-let
   "Helper function for parse that parses 'let' expression.
@@ -82,7 +82,7 @@
   [rator rand*]
   (let [RATOR (parse rator)
         RAND* (for [x rand*] (parse x))]
-    (lang-forms/App. RATOR RAND*)))
+    (App. RATOR RAND*)))
 
 (defn- unsupported
   "Helper function acting as a catch-all for unsupported language forms in

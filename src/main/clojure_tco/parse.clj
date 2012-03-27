@@ -41,21 +41,21 @@
 (defn- parse-fn
   "Helper function for parse that parses 'fn' expressions."
   [fml* body]
-  (let [BODY (parse body)]
+  (let [BODY (macroexpand `(parse ~body))]
     (Fn. fml* BODY)))
 
 (defn- parse-defn
   "Helper function for parse that parses 'defn' expression."
   [name fml* body]
-  (let [BODY (parse body)]
+  (let [BODY (macroexpand `(parse ~body))]
     (Defn. name fml* BODY)))
 
 (defn- parse-if
   "Helper function for parse that parses 'if' expressions."
   [test conseq alt]
-  (let [TEST (parse test)
-        CONSEQ (parse conseq)
-        ALT (parse alt)]
+  (let [TEST (macroexpand `(parse ~test))
+        CONSEQ (macroexpand `(parse ~conseq))
+        ALT (macroexpand `(parse ~alt))]
     (If. TEST CONSEQ ALT)))
 
 (defn- parse-cond
@@ -68,7 +68,7 @@
   "Helper function for parse that parses operands of expressions using simple
   operators (i.e. aritmetic and relational)."
   [op opnd*]
-  (let [OPND* (for [x opnd*] (parse x))]
+  (let [OPND* (for [x opnd*] (macroexpand `(parse ~x)))]
     (TrivOp. op OPND*)))
 
 (defn- parse-let
@@ -81,8 +81,8 @@
   "Helper function for parse that parses the operator and operands of
   function application."
   [rator rand*]
-  (let [RATOR (parse rator)
-        RAND* (for [x rand*] (parse x))]
+  (let [RATOR (macroexpand `(parse ~rator))
+        RAND* (for [x rand*] (macroexpand `(parse ~x)))]
     (App. RATOR RAND*)))
 
 (defn- unsupported

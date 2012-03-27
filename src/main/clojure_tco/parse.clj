@@ -11,6 +11,7 @@
 (ns clojure-tco.parse
   (:require [clojure.core.match :as core.match
              :only (match)])
+  (:require [clojure-tco.lang-forms])
   (:import [clojure_tco.lang_forms
             Bool Num Var TrivOp If Fn Defn App])
   (:require [clojure-tco.util :as util

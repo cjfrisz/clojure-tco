@@ -1,14 +1,14 @@
 ;;----------------------------------------------------------------------
-;; File verify.clj
-;; Written by 
+;; File parse.clj
+;; Written by Chris Frisz 
 ;; 
 ;; Created 26 Mar 2012
 ;; Last modified 26 Mar 2012
 ;; 
-;; Front-end verifier for the Clojure TCO compiler.
+;; Front-end parser and verifier for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.verify
+(ns clojure-tco.parse
   (:require [clojure.core.match :as core.match
              :only (match)])
   (:require [clojure-tco.util :as util

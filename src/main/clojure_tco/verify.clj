@@ -26,10 +26,10 @@
     [(:or true false)] true
     [(n :when number?)] true
     [(s :when symbol?)] true
-    [(['fn fml* body] :seq)] (verify-fn fml* body)
+    [([(op :when util/triv-op?) & opnd*] :seq)] (verify-op opnd*)
     [(['if test conseq alt] :seq)] (verify-if test conseq alt)
     [(['cond & clause*] :seq)] (verify-cond clause*)
-    [([(op :when util/triv-op?) & opnd*] :seq)] (verify-op opnd*)
+    [(['fn fml* body] :seq)] (verify-fn fml* body)
     [(['defn name fml* body] :seq)] (verify-fn fml* body)
     [(['let bind* body] :seq)] (verify-let bind* body)
     [([rator & rand*] :seq)] (verify-app rator rand*)

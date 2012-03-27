@@ -3,16 +3,16 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Mar 2012
-;; Last modified 26 Mar 2012
+;; Last modified 27 Mar 2012
 ;; 
 ;; Defines the records for the language forms in Clojure TCO.
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.lang-forms)
 
-(defrecord Boolean [val])
+(defrecord Bool [val])
 
-(defrecord Number [val])
+(defrecord Num [val])
 
 (defrecord Var [val])
 
@@ -27,3 +27,5 @@
 (defrecord Defn [name fml* body])
 
 (defrecord Let [bind* body])
+
+(defrecord App [rator rand*])

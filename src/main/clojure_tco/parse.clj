@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz 
 ;; 
 ;; Created 26 Mar 2012
-;; Last modified 26 Mar 2012
+;; Last modified 27 Mar 2012
 ;; 
 ;; Front-end parser and verifier for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -11,70 +11,78 @@
 (ns clojure-tco.parse
   (:require [clojure.core.match :as core.match
              :only (match)])
+  (:import [clojure_tco.lang_forms
+            Bool Num Var TrivOp If Fn Defn App])
   (:require [clojure-tco.util :as util
              :only (triv-op?)]))
 
 (declare
- verify verify-fn verify-if verify-cond verify-op verify-app verify-let
+ parse parse-fn parse-defn parse-if parse-cond parse-op parse-app parse-let
  unsupported)
 
-(defmacro verify
-  "Verifies that an expression is supported in the Clojure TCO compiler. If so,
-  returns true, otherwise raises an exception."
+(defmacro parse
+  "Parses an expression and verifies that it's supported in the Clojure TCO compiler. If so,
+  returns the record representation of the expression, otherwise raises an exception."
   [expr]
   (core.match/match [expr]
-    [(:or true false)] true
-    [(n :when number?)] true
-    [(s :when symbol?)] true
-    [([(op :when util/triv-op?) & opnd*] :seq)] (verify-op opnd*)
-    [(['if test conseq alt] :seq)] (verify-if test conseq alt)
-    [(['cond & clause*] :seq)] (verify-cond clause*)
-    [(['fn fml* body] :seq)] (verify-fn fml* body)
-    [(['defn name fml* body] :seq)] (verify-fn fml* body)
-    [(['let bind* body] :seq)] (verify-let bind* body)
-    [([rator & rand*] :seq)] (verify-app rator rand*)
+    [(:or true false)] (lang-forms/Bool. expr)
+    [(n :when number?)] (lang-forms/Num. n)
+    [(s :when symbol?)] (lang-forms/Var. s)
+    [([(op :when util/triv-op?) & opnd*] :seq)] (parse-op op opnd*)
+    [(['if test conseq alt] :seq)] (parse-if test conseq alt)
+    [(['cond & clause*] :seq)] (parse-cond clause*)
+    [(['fn fml* body] :seq)] (parse-fn fml* body)
+    [(['defn name fml* body] :seq)] (parse-defn name fml* body)
+    [(['let bind* body] :seq)] (parse-let bind* body)
+    [([rator & rand*] :seq)] (parse-app rator rand*)
     :else (throw (Exception. (str "Unsupported expression: " expr)))))
 
-(defn- verify-fn
-  "Helper function for verify that verifies 'fn' and 'defn' expressions."
+(defn- parse-fn
+  "Helper function for parse that parses 'fn' expressions."
   [fml* body]
-  (do
-    (apply distinct? fml*)
-    (verify body)))
+  (let [BODY (parse body)]
+    (lang-forms/Fn. fml* BODY)))
 
-(defn- verify-if
-  "Helper function for verify that verifies 'if' expressions."
+(defn- parse-defn
+  "Helper function for parse that parses 'defn' expression."
+  [name fml* body]
+  (let [BODY (parse body)]
+    (lang-forms/Defn. name fml* BODY)))
+
+(defn- parse-if
+  "Helper function for parse that parses 'if' expressions."
   [test conseq alt]
-  (do
-    (verify test)
-    (verify conseq)
-    (verify alt)))
+  (let [TEST (parse test)
+        CONSEQ (parse conseq)
+        ALT (parse alt)]
+    (lang-forms/If. TEST CONSEQ ALT)))
 
-(defn- verify-cond
-  "Helper function for verify that verifies 'cond' expressions.
+(defn- parse-cond
+  "Helper function for parse that parses 'cond' expressions.
   N.B. 'cond' expressions are not yet supported."
   [clause*]
   (unsupported 'cond))
 
-(defn- verify-op
-  "Helper function for verify that verifies operands of expressions using simple
+(defn- parse-op
+  "Helper function for parse that parses operands of expressions using simple
   operators (i.e. aritmetic and relational)."
-  [opnd*]
-  (for [x opnd*] (verify x)))
+  [op opnd*]
+  (let [OPND* (for [x opnd*] (parse x))]
+    (lang-forms/TrivOp. op OPND*)))
 
-(defn- verify-let
-  "Helper function for verify that verifies 'let' expression.
+(defn- parse-let
+  "Helper function for parse that parses 'let' expression.
   N.B. 'let' is not yet supported."
   [bind* body]
   (unsupported 'let))
 
-(defn- verify-app
-  "Helper function for verify that verifies the operator and operands of
+(defn- parse-app
+  "Helper function for parse that parses the operator and operands of
   function application."
   [rator rand*]
-  (do
-    (verify rator)
-    (for [x rand*] (verify x))))
+  (let [RATOR (parse rator)
+        RAND* (for [x rand*] (parse x))]
+    (lang-forms/App. RATOR RAND*)))
 
 (defn- unsupported
   "Helper function acting as a catch-all for unsupported language forms in

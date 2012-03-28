@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Feb 2012
-;; Last modified 22 Mar 2012
+;; Last modified 28 Mar 2012
 ;; 
 ;; Defines CPS algorithm for Clojure expressions. The "cps" function
 ;; takes a sequence representing a Clojure expression and returns
@@ -34,10 +34,12 @@
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.cps
-  (:use [clojure.core.match
-         :only (match)])
-  (:use [clojure-tco.util
-         :only (new-var triv-op?)]))
+  (:require [clojure-tco.lang-forms])
+  (:import [clojure_tco.lang_forms
+            Bool Num Var TrivOp If Fn Defn App])
+  (:require [clojure-tco.tco-pass :as tco-pass])
+  (:require [clojure-tco.util :as util
+             :only (new-var triv-op?)]))
 
 (declare
  cps
@@ -48,18 +50,28 @@
 ;;------------------------------
 ;; CPS: Entry-point function
 ;;------------------------------
-(defn cps
+(def cps
   "Entry-point function for the Olivier-style CPS algorithm. Returns a
   sequence representatin a function which takes a Clojure function
   representing a continuation and evaluates the original expression
   with respect to that continuation."
+  (TcoPass. (hash-map)))
+
+(defn- cps-defn
   [e]
-  (let [k (new-var 'k)]
-    (match [e]
-      [(['defn name fml* body] :seq)] (let [BODY (expr body k)]
-                                        `(~'defn ~name [~@fml* ~k] ~BODY))
-      :else                           (let [E (expr e k)]
-                                        `(~'fn [~k] ~E)))))
+  (let [k (new-var 'k)
+        FML* (conj (:fml* e) k)
+        BODY (expr (:body e) k)]
+    (Defn. FML* BODY)))
+
+(defn- cps-default
+  [e]
+  (let [k (new-var 'k)
+        E (expr e k)]
+    (Fn. [k] E)))
+
+(register cps Defn cps-defn)
+(register-default cps cps-default)
 
 ;;----------------------------------------
 ;; EXPR: General expression CPS function

@@ -9,7 +9,7 @@
 ;; compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.tco-pass.clj)
+(ns clojure-tco.tco-pass)
 
 (defprotocol PTcoPass
   "Protocol implemented by passes in the Clojure TCO compiler."

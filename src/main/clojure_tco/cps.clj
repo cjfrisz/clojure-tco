@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Feb 2012
-;; Last modified 28 Mar 2012
+;; Last modified 29 Mar 2012
 ;; 
 ;; Defines CPS algorithm for Clojure expressions. The "cps" function
 ;; takes a sequence representing a Clojure expression and returns
@@ -61,13 +61,13 @@
   [e]
   (let [k (new-var 'k)
         FML* (conj (:fml* e) k)
-        BODY (expr (:body e) k)]
+        BODY (run expr (:body e) k)]
     (Defn. FML* BODY)))
 
 (defn- cps-default
   [e]
   (let [k (new-var 'k)
-        E (expr e k)]
+        E (run expr e k)]
     (Fn. [k] E)))
 
 (register cps Defn cps-defn)
@@ -78,8 +78,8 @@
 ;;----------------------------------------
 (def expr (tco-pass/TcoPass. (hash-map)))
 
-(defn- expr-defn
-  [])
+(defn- expr-defn [e _] (run cps e))
+
 (defn- expr
   "CPS function for an arbitrary Clojure expression with respect to
   the Olivier-style CPS algorithm."

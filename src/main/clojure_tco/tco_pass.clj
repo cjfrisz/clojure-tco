@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 28 Mar 2012
-;; Last modified 28 Mar 2012
+;; Last modified 29 Mar 2012
 ;;
 ;; Defines the base protocol and record type used by the Clojure TCO
 ;; compiler.
@@ -18,7 +18,7 @@
   (register-default [this default]
     "Registers a default handler to use when an expression doesn't match any
     registered language forms.")
-  (run [this expr]
+  (run [this expr & args]
     "Given a language form, runs the handler for that form on the expression,
     returning the transformed expression."))
 
@@ -28,8 +28,8 @@
     (assoc (:form->handler this) form handler))
   (register-default [this default]
     (register this :default default))
-  (run [this expr]
+  (run [this expr & args]
     (let [form (or (some #(when (instance? % expr) (keys this)))
                    :default)
           handler ((:form->handler this) form)]
-      (handler expr))))
+      (apply handler expr args))))

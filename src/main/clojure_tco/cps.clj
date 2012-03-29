@@ -55,7 +55,7 @@
   sequence representatin a function which takes a Clojure function
   representing a continuation and evaluates the original expression
   with respect to that continuation."
-  (TcoPass. (hash-map)))
+  (tco-pass/TcoPass. (hash-map)))
 
 (defn- cps-defn
   [e]
@@ -76,6 +76,10 @@
 ;;----------------------------------------
 ;; EXPR: General expression CPS function
 ;;----------------------------------------
+(def expr (tco-pass/TcoPass. (hash-map)))
+
+(defn- expr-defn
+  [])
 (defn- expr
   "CPS function for an arbitrary Clojure expression with respect to
   the Olivier-style CPS algorithm."

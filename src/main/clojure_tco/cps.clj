@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Feb 2012
-;; Last modified 29 Mar 2012
+;; Last modified 30 Mar 2012
 ;; 
 ;; Defines CPS algorithm for Clojure expressions. The "cps" function
 ;; takes a sequence representing a Clojure expression and returns
@@ -66,7 +66,7 @@
 
 (defn- cps-default
   [e]
-  (let [k (new-var 'k)
+  (let [k (lang-forms/Var. (new-var 'k))
         E (run expr e k)]
     (Fn. [k] E)))
 
@@ -76,27 +76,33 @@
 ;;----------------------------------------
 ;; EXPR: General expression CPS function
 ;;----------------------------------------
-(def expr (tco-pass/TcoPass. (hash-map)))
+(def- expr
+  "CPS function for an arbitrary Clojure expression with respect to
+  the Olivier-style CPS algorithm."
+  (tco-pass/TcoPass. (hash-map)))
 
 (defn- expr-defn [e _] (run cps e))
 
-(defn- expr
-  "CPS function for an arbitrary Clojure expression with respect to
-  the Olivier-style CPS algorithm."
-  [e k]
-  (match [e]
-    [(['defn name fml* body] :seq)] (cps e)
-    :else                           (if (triv? e)
-                                        `(~k ~(triv e))
-                                        (srs e k))))
+(defn- expr-default [e k]
+  (if (triv? e)
+      (let [E (run triv e)]
+        (lang-forms/App. k E))
+      (run srs e k)))
+
+(register expr Defn cps-defn)
+(register-default expr expr-default)
 
 
 ;;--------------------------------------------------
 ;; SRS: Serious expression CPS function (and helpers
 ;;--------------------------------------------------
-(defn- srs
+(def- srs
   "CPS function for serious Clojure expressions with respect to the
   Olivier-style CPS algorithm."
+  (tco-pass/TcoPass. (hash-map)))
+
+
+(defn- srs
   [e k]
   (match [e]
     [(['if test conseq alt] :seq)]         (srs-if test conseq alt k)

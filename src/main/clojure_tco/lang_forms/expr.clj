@@ -16,7 +16,7 @@
   (walk-expr [this f & args]
     "Applies the function (with optional arguments) to the expression subforms
     of the expression.")
-  (cps [this]
+  (cps [this & k]
     "CPS transformation for an expression.")
   (abstract-k [this app-k]
     "Abstract over applying continuations using app-k.")

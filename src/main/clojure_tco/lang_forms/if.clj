@@ -15,32 +15,25 @@
              :only (new-var)]))
 
 (def if-base
-  {:expr-walk   (fn [this f & args]
-                  )
-   :abstract-k  (fn [this apply-k]
-                  (let [TEST (abstract-k (:test this) apply-k)
-                        CONSEQ (abstract-k (:conseq this) apply-k)
-                        ALT (abstract-k (:alt this) apply-k)]
-                    ((type this) TEST CONSEQ ALT)))
-   :thunkify    (fn [this]
-                  (let [TEST (thunkify (:test this))
-                        CONSEQ (thunkify (:conseq this))
-                        ALT (thunkify (:alt this))]
-                    ((type this) TEST CONSEQ ALT)))})
+  {:walk-expr   (fn [this f & args]
+                  (let [TEST (apply f (:test this) args)
+                        CONSEQ (apply f (:conseq this) args)
+                        ALT (apply f (:alt this) args)]
+                    (IfCps. TEST CONSEQ ALT)))
+   :abstract-k  (fn [this apply-k] (walk-expr this apply-k))
+   :thunkify    (fn [this] (walk-expr this thunkify))})
 
 (defrecord IfTriv [test conseq alt])
 
 (extend IfTriv
-  expr/Expr
-  (merge {:cps (fn [this]
-                 (let [TEST (cps (:test this))
-                       CONSEQ (cps (:conseq this))
-                       ALT (cps (:alt this))]
-                   (IfTriv. TEST CONSEQ ALT)))}
+  expr/PExpr
+  (merge {:cps (fn [this & k] (apply walk-expr this k))}
          if-base))
 
 (defrecord IfSrs [test conseq alt])
 
 (extend IfSrs
-  expr/Expr
-  (merge {:cps (fn [this & ])}))
+  expr/PExpr
+  (merge {:cps (fn [this & k])}
+         if-base))
+

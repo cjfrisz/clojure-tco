@@ -14,6 +14,8 @@
   (:require [clojure-tco.util :as util
              :only (new-var)]))
 
+(declare IfTriv IfSrs IfCps)
+
 (def if-base
   {:walk-expr   (fn [this f & args]
                   (let [TEST (apply f (:test this) args)
@@ -37,3 +39,9 @@
   (merge {:cps (fn [this & k])}
          if-base))
 
+(defrecord IfCps [test conseq alt])
+
+(extend IfCps
+  expr/PExpr
+  (merge {:cps (fn [this & k] this)}
+         if-base))

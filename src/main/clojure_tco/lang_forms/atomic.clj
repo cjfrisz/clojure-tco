@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 30 Mar 2012
+;; Last modified 31 Mar 2012
 ;; 
 ;; Implements the PExpr protocol functions for atomic expressions
 ;; (e.g. booleans, integers, symbols, etc.).
@@ -13,9 +13,10 @@
   (:require [clojure-tco.expr :as expr]))
 
 (def atomic-tco-fns
-  {:cps identity}
-  {:abstract-k (fn [this _] this)}
-  {:thunkify identity})
+  {:walk-expr (fn [this & _] this)
+   :cps identity
+   :abstract-k (fn [this _] this)
+   :thunkify identity})
 
 (defrecord Boolean [val])
 

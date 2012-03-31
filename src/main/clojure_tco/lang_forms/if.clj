@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 30 Mar 2012
+;; Last modified 31 Mar 2012
 ;; 
 ;; Defines the If record (both triv and srs variants) for the Clojure
 ;; TCO compiler.

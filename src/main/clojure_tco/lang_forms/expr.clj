@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 30 Mar 2012
+;; Last modified 31 Mar 2012
 ;; 
 ;; Defines the base protocol for all expressions in the TCO compiler.
 ;;----------------------------------------------------------------------
@@ -13,6 +13,9 @@
 (defprotocol PExpr
   "Protocol for expressions in the TCO compiler, including all the operations
   and transformations required."
+  (walk-expr [this f & args]
+    "Applies the function (with optional arguments) to the expression subforms
+    of the expression.")
   (cps [this]
     "CPS transformation for an expression.")
   (abstract-k [this app-k]

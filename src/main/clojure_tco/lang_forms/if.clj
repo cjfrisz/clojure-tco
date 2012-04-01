@@ -11,6 +11,9 @@
 
 (ns clojure-tco.lang-forms.if
   (:require [clojure-tco.lang-forms.expr :as expr])
+  (:require [clojure-tco.lang-forms.cont :as cont])
+  (:import [clojure_tco.lang_forms.cont
+            Cont AppCont])
   (:require [clojure-tco.util :as util
              :only (new-var)]))
 

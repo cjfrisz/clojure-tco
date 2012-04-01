@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 31 Mar 2012
+;; Last modified  1 Apr 2012
 ;; 
 ;; Defines the Fn record for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -15,6 +15,7 @@
 
 (defrecord Fn [fml* body]
   expr/PExpr
+  (triv? [this] true)
   (walk-expr [this f & args]
     (let [fml* (:fml* this)
           BODY (apply f (:body this) args)]

@@ -3,14 +3,14 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 31 Mar 2012
+;; Last modified  1 Apr 2012
 ;; 
 ;; Defines the If record (both triv and srs variants) for the Clojure
 ;; TCO compiler.
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.lang-forms.if
-  (:require [clojure-tco.lang-forma.expr :as expr])
+  (:require [clojure-tco.lang-forms.expr :as expr])
   (:require [clojure-tco.util :as util
              :only (new-var)]))
 
@@ -29,19 +29,32 @@
 
 (extend IfTriv
   expr/PExpr
-  (merge {:cps (fn [this & k] (apply walk-expr this k))}
+  (merge {:triv? (fn [this] true)
+          :cps   (fn [this & k] (apply walk-expr this k))}
          if-base))
 
 (defrecord IfSrs [test conseq alt])
 
 (extend IfSrs
   expr/PExpr
-  (merge {:cps (fn [this & k])}
+  (merge {:triv? (fn [this] false)
+          :cps   (fn [this & k]
+                   (let [[k] k]
+                     (let [CONSEQ (apply cps (:conseq this) k)
+                           ALT (apply cps (:alt this) k)]
+                       (if (triv? (:test this))
+                           (IfCps. (:test this) CONSEQ ALT)
+                           (let [s (new-var 's)
+                                 K-if (IfCps. s CONSEQ ALT)
+                                 K-body (AppCont. s K-if)
+                                 K (Cont. s K-body)]
+                             (cps (:test this) K))))))}
          if-base))
 
 (defrecord IfCps [test conseq alt])
 
 (extend IfCps
   expr/PExpr
-  (merge {:cps (fn [this & k] this)}
+  (merge {:triv? (fn [this] true)
+          :cps   (fn [this & k] this)}
          if-base))

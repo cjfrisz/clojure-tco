@@ -25,5 +25,4 @@
           FML* (conj (:fml* this) k)
           BODY (cps body k)]
       (Fn. FML* BODY)))
-  (abstract-k [this app-k] (walk-expr this app-k))
   (thunkify [this] (Fn. [] this)))

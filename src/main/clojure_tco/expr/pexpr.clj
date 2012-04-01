@@ -21,7 +21,5 @@
     of the expression.")
   (cps [this & k]
     "CPS transformation for an expression.")
-  (abstract-k [this app-k]
-    "Abstract over applying continuations using app-k.")
   (thunkify [this]
     "Transform all functions to return thunks."))

@@ -16,7 +16,6 @@
   {:triv?       (fn [this] true)
    :walk-expr   (fn [this & _] this)
    :cps         (fn [this & _] this)
-   :abstract-k  (fn [this _] this)
    :thunkify    identity})
 
 (defrecord Boolean [val])

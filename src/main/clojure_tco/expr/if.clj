@@ -25,7 +25,6 @@
                         CONSEQ (apply f (:conseq this) args)
                         ALT (apply f (:alt this) args)]
                     (IfCps. TEST CONSEQ ALT)))
-   :abstract-k  (fn [this apply-k] (walk-expr this apply-k))
    :thunkify    (fn [this] (walk-expr this thunkify))})
 
 (defrecord IfTriv [test conseq alt])

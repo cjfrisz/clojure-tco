@@ -10,7 +10,7 @@
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.atomic
-  (:require [clojure-tco.expr.expr :as expr]))
+  (:require [clojure-tco.expr.pexpr :as pexpr]))
 
 (def atomic-base
   {:triv?       (fn [this] true)
@@ -22,17 +22,17 @@
 (defrecord Boolean [val])
 
 (extend Boolean
-  expr/PExpr
+  pexpr/PExpr
   atomic-tco-fns)
 
 (defrecord Number [val])
 
 (extend Number
-  expr/PExpr
+  pexpr/PExpr
   atomic-tco-fns)
 
 (defrecord Symbol [val])
 
 (extend Symbol
-  expr/PExpr
+  pexpr/PExpr
   atomic-tco-fns)

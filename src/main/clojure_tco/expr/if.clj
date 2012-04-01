@@ -10,7 +10,7 @@
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.expr.if
-  (:require [clojure-tco.expr.expr :as expr])
+  (:require [clojure-tco.expr.pexpr :as pexpr])
   (:require [clojure-tco.expr.cont :as cont])
   (:import [clojure_tco.expr.cont
             Cont AppCont])
@@ -31,7 +31,7 @@
 (defrecord IfTriv [test conseq alt])
 
 (extend IfTriv
-  expr/PExpr
+  pexpr/PExpr
   (merge {:triv? (fn [this] true)
           :cps   (fn [this & k] (apply walk-expr this k))}
          if-base))
@@ -39,7 +39,7 @@
 (defrecord IfSrs [test conseq alt])
 
 (extend IfSrs
-  expr/PExpr
+  pexpr/PExpr
   (merge {:triv? (fn [this] false)
           :cps   (fn [this & k]
                    (let [[k] k]
@@ -57,7 +57,7 @@
 (defrecord IfCps [test conseq alt])
 
 (extend IfCps
-  expr/PExpr
+  pexpr/PExpr
   (merge {:triv? (fn [this] true)
           :cps   (fn [this & k] this)}
          if-base))

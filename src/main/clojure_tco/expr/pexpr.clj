@@ -1,5 +1,5 @@
 ;;----------------------------------------------------------------------
-;; File expr.clj
+;; File pexpr.clj
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
@@ -8,7 +8,7 @@
 ;; Defines the base protocol for all expressions in the TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.expr.expr)
+(ns clojure-tco.expr.pexpr)
 
 (defprotocol PExpr
   "Protocol for expressions in the TCO compiler, including all the operations

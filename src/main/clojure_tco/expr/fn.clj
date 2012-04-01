@@ -9,12 +9,12 @@
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.expr.fn
-  (:require [clojure-tco.expr.expr :as expr])
+  (:require [clojure-tco.expr.pexpr :as pexpr])
   (:require [clojure-tco.util :as util
              :only (new-var)]))
 
 (defrecord Fn [fml* body]
-  expr/PExpr
+  pexpr/PExpr
   (triv? [this] true)
   (walk-expr [this f & args]
     (let [fml* (:fml* this)

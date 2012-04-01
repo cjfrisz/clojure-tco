@@ -9,10 +9,10 @@
 ;; TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.lang-forms.if
-  (:require [clojure-tco.lang-forms.expr :as expr])
-  (:require [clojure-tco.lang-forms.cont :as cont])
-  (:import [clojure_tco.lang_forms.cont
+(ns clojure-tco.expr.if
+  (:require [clojure-tco.expr.expr :as expr])
+  (:require [clojure-tco.expr.cont :as cont])
+  (:import [clojure_tco.expr.cont
             Cont AppCont])
   (:require [clojure-tco.util :as util
              :only (new-var)]))

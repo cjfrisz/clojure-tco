@@ -8,8 +8,8 @@
 ;; Defines the Fn record for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.lang-forms.fn
-  (:require [clojure-tco.lang-forms.expr :as expr])
+(ns clojure-tco.expr.fn
+  (:require [clojure-tco.expr.expr :as expr])
   (:require [clojure-tco.util :as util
              :only (new-var)]))
 

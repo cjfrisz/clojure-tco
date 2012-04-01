@@ -7,10 +7,9 @@
 ;; 
 ;; Defines the record types for continuations and continuation
 ;; application.
-
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.lang-forms.cont)
+(ns clojure-tco.expr.cont)
 
 (defrecord Cont [arg body])
 

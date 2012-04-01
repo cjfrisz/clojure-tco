@@ -8,7 +8,7 @@
 ;; Defines the base protocol for all expressions in the TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.expr)
+(ns clojure-tco.expr.expr)
 
 (defprotocol PExpr
   "Protocol for expressions in the TCO compiler, including all the operations

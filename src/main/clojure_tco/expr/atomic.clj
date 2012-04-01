@@ -10,7 +10,7 @@
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.atomic
-  (:require [clojure-tco.expr :as expr]))
+  (:require [clojure-tco.expr.expr :as expr]))
 
 (def atomic-base
   {:triv?       (fn [this] true)

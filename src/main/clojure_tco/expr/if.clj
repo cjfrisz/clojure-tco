@@ -31,15 +31,15 @@
 
 (extend IfTriv
   pexpr/PExpr
-  (merge {:triv? (fn [this] true)
-          :cps   (fn [this & k] (apply walk-expr this k))}
+  (merge {:triv? (fn [_] true)
+          :cps   (fn [this & k] (apply walk-expr this cps k))}
          if-base))
 
 (defrecord IfSrs [test conseq alt])
 
 (extend IfSrs
   pexpr/PExpr
-  (merge {:triv? (fn [this] false)
+  (merge {:triv? (fn [_] false)
           :cps   (fn [this & k]
                    (let [[k] k]
                      (let [CONSEQ (apply cps (:conseq this) k)
@@ -57,6 +57,6 @@
 
 (extend IfCps
   pexpr/PExpr
-  (merge {:triv? (fn [this] true)
-          :cps   (fn [this & k] this)}
+  (merge {:triv? (fn [_] true)
+          :cps   (fn [this & _] this)}
          if-base))

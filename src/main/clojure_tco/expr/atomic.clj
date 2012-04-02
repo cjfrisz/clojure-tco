@@ -3,13 +3,13 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  1 Apr 2012
+;; Last modified  2 Apr 2012
 ;; 
 ;; Implements the PExpr protocol functions for atomic expressions
 ;; (e.g. booleans, integers, symbols, etc.).
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.atomic
+(ns clojure-tco.expr.atomic
   (:require [clojure-tco.expr.pexpr :as pexpr]))
 
 (def atomic-base
@@ -18,20 +18,20 @@
    :cps         (fn [this & _] this)
    :thunkify    identity})
 
-(defrecord Boolean [val])
+(defrecord Bool [val])
 
-(extend Boolean
+(extend Bool
   pexpr/PExpr
-  atomic-tco-fns)
+  atomic-base)
 
-(defrecord Number [val])
+(defrecord Num [val])
 
-(extend Number
+(extend Num
   pexpr/PExpr
-  atomic-tco-fns)
+  atomic-base)
 
-(defrecord Symbol [val])
+(defrecord Sym [val])
 
-(extend Symbol
+(extend Sym
   pexpr/PExpr
-  atomic-tco-fns)
+  atomic-base)

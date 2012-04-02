@@ -8,7 +8,7 @@
 ;; Defines the protocol for thunkifying expression in the TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.expr.pthunkify)
+(ns clojure-tco.protocol.pthunkify)
 
 (defprotocol PThunkify
   "Protocol for expressions that can be thunkified in the TCO compiler."

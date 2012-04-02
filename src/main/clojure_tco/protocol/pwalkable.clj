@@ -8,10 +8,10 @@
 ;; Defines the base protocol for all expressions in the TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.expr.pwalkable)
+(ns clojure-tco.protocol.pwalkable)
 
 (defprotocol PWalkable
   "Protocol for TCO expressions that can be walked."
-  (walk-expr ([this f c] [this f c args])
+  (walk-expr [this f c] [this f c args]
     "Applies the function f to the subforms of the argument expression,
     returning an expression created with the constructor."))

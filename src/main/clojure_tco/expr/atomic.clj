@@ -10,28 +10,24 @@
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.expr.atomic
-  (:require [clojure-tco.expr.pexpr :as pexpr]))
+  (:require [clojure-tco.protocol
+             [pwalkable :as pwalkable]
+             [pcps :as pcps] 
+             [pthunkify :as pthunkify]]))
 
-(def atomic-base
-  {:triv?       (fn [this] true)
-   :walk-expr   (fn [this & _] this)
-   :cps         (fn [this & _] this)
-   :thunkify    identity})
+(defrecord Atomic [val]
+  pwalkable/PWalkable
+    (walk-expr [this f c]
+      (let [THIS (f this)]
+        (c (:val THIS))))
+    (walk-expr [this f c args]
+      (let [THIS (apply f this args)]
+        (c (:val THIS))))
 
-(defrecord Bool [val])
+  pcps/PCps
+    (triv? [_] true)
+    (cps [this] this)
+    (cps [this _] this)
 
-(extend Bool
-  pexpr/PExpr
-  atomic-base)
-
-(defrecord Num [val])
-
-(extend Num
-  pexpr/PExpr
-  atomic-base)
-
-(defrecord Sym [val])
-
-(extend Sym
-  pexpr/PExpr
-  atomic-base)
+  pthunkify/PThunkify
+    (thunkify [this] this))

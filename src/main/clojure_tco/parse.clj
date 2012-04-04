@@ -3,14 +3,13 @@
 ;; Written by Chris Frisz 
 ;; 
 ;; Created 26 Mar 2012
-;; Last modified 27 Mar 2012
+;; Last modified  4 Apr 2012
 ;; 
 ;; Front-end parser and verifier for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.parse
-  (:require [clojure.core.match :as core.match
-             :only (match)])
+  (:require [clojure.core.match :as core.match])
   (:require [clojure-tco.lang-forms])
   (:import [clojure_tco.lang_forms
             Bool Num Var TrivOp If Fn Defn App])

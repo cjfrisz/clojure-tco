@@ -27,5 +27,5 @@
 
   pthunkify/PThunkify
   (thunkify [this]
-    (let [BODY (Fn. (:body this))]
+    (let [BODY (Fn. [] (:body this))]
       (Fn. (:fml* this) BODY))))

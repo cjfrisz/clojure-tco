@@ -30,7 +30,12 @@
   (cps [this]
     (let [ctor #(IfCps. %1 %2 %3)]
       (pwalkable/walk-expr this pcps/cps ctor)))
-  (cps [this _] (pcps/cps this)))
+  (cps [this _] (pcps/cps this))
+
+  pthunkify/PThunkify
+  (thunkify [this]
+    (let [ctor #(IfTriv. %1 %2 %3)]
+      (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
 (defrecord IfSrs [test conseq alt]
   pcps/PCps
@@ -47,7 +52,12 @@
           (let [s (new-var/new-var 's)
                 K-body (IfCps. s CONSEQ ALT)
                 K (Cont. s K-body)]
-            (pcps/cps test K))))))
+            (pcps/cps test K)))))
+
+  pthunkify/PThunkify
+  (thunkify [this]
+    (let [ctor #(IfSrs. %1 %2 %3)]
+      (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
 (def if-walkable
   {:walk-expr (fn

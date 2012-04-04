@@ -20,25 +20,19 @@
   (:require [clojure-tco.util :as util
              :only (new-var)]))
 
-(declare IfTriv IfSrs IfCps)
+(declare walk-expr)
 
-(def if-walkable
-  {:walk-expr (fn walk-expr
-                ([this f c] (walk-expr this f c nil))
-                ([this f c args]
-                   (let [TEST (apply f (:test this) args)
-                         CONSEQ (apply f (:conseq this) args)
-                         ALT (apply f (:alt this) args)]
-                     (c TEST CONSEQ ALT))))})
+(defrecord IfCps [test conseq alt]
+  pthunkify/PThunkify
+  (thunkify [this]
+    (let [out-type #(IfCps. %1 %2 %3)]
+      (walk-expr thunkify out-type))))
 
 (defrecord IfTriv [test conseq alt]
-  pwalkable/PWalkable
-  walk-expr
-
   pcps/PCps
   (triv? [_] true)
   (cps [this]
-    (let [out-type #(IfCps. %)]
+    (let [out-type #(IfCps. %1 %2 %3)]
       (walk-expr this cps out-type)))
   (cps [this _] (cps this)))
 
@@ -59,11 +53,19 @@
                 K (Cont. s K-body)]
             (cps test K))))))
 
-(defrecord IfCps [test conseq alt]
-  pwalkable/PWalkable
-  walk-expr
+(def if-walkable
+  {:walk-expr (fn walk-expr
+                ([this f c] (walk-expr this f c nil))
+                ([this f c args]
+                   (let [TEST (apply f (:test this) args)
+                         CONSEQ (apply f (:conseq this) args)
+                         ALT (apply f (:alt this) args)]
+                     (c TEST CONSEQ ALT))))})
 
-  pthunkify/PThunkify
-  (thunkify [this]
-    (let [out-type #(IfCps. %)]
-      (walk-expr thunkify out-type))))
+(extend IfTriv
+  pwalkable/PWalkable
+  if-walkable)
+
+(extend IfCps
+  pwalkable/PWalkable
+  if-walkable)

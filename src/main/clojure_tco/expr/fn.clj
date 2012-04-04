@@ -3,26 +3,29 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  1 Apr 2012
+;; Last modified  3 Apr 2012
 ;; 
 ;; Defines the Fn record for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.expr.fn
-  (:require [clojure-tco.expr.pexpr :as pexpr])
+  (:require [clojure-tco.protocol
+             [pcps :as pcps]
+             [pthunkify :as pthunkify]])
   (:require [clojure-tco.util :as util
              :only (new-var)]))
 
 (defrecord Fn [fml* body]
-  pexpr/PExpr
-  (triv? [this] true)
-  (walk-expr [this f & args]
-    (let [fml* (:fml* this)
-          BODY (apply f (:body this) args)]
-      (Fn. fml* BODY)))
-  (cps [this & _]
-    (let [k (new-var 'k)
-          FML* (conj (:fml* this) k)
-          BODY (cps body k)]
-      (Fn. FML* BODY)))
-  (thunkify [this] (Fn. [] this)))
+  pcps/PCps
+  (triv? [_] true)
+  (cps [this]
+    (let [k (new-var 'k)]
+      (let [FML* (conj (:fml* this) k)
+            BODY (cps (:body this) k)]
+        (Fn. FML* BODY))))
+  (cps [this _] (cps this))
+
+  pthunkify/PThunkify
+  (thunkify [this]
+    (let [BODY (Fn. (:body this))]
+      (Fn. (:fml* this) BODY))))

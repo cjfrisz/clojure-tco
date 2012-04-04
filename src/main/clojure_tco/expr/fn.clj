@@ -12,7 +12,9 @@
   (:require [clojure-tco.protocol
              [pcps :as pcps]
              [pthunkify :as pthunkify]]
-            [clojure-tco.util.new-var :as new-var]))
+            [clojure-tco.expr.thunk]
+            [clojure-tco.util.new-var :as new-var])
+  (:import [clojure_tco.expr.thunk Thunk]))
 
 (defrecord Fn [fml* body]
   pcps/PCps
@@ -26,5 +28,5 @@
 
   pthunkify/PThunkify
   (thunkify [this]
-    (let [BODY (Fn. [] (:body this))]
+    (let [BODY (Thunk. (:body this))]
       (Fn. (:fml* this) BODY))))

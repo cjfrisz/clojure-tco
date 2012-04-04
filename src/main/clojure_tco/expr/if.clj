@@ -22,7 +22,7 @@
   pthunkify/PThunkify
   (thunkify [this]
     (let [ctor #(IfCps. %1 %2 %3)]
-      (pwalkable/walk-expr this thunkify ctor))))
+      (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
 (defrecord IfTriv [test conseq alt]
   pcps/PCps
@@ -51,12 +51,12 @@
 
 (def if-walkable
   {:walk-expr (fn
-                ([this f c] (pwalkable/walk-expr this f c nil))
-                ([this f c args]
+                ([this f ctor] (pwalkable/walk-expr this f ctor nil))
+                ([this f ctor args]
                    (let [TEST (apply f (:test this) args)
                          CONSEQ (apply f (:conseq this) args)
                          ALT (apply f (:alt this) args)]
-                     (c TEST CONSEQ ALT))))})
+                     (ctor TEST CONSEQ ALT))))})
 
 (extend IfTriv
   pwalkable/PWalkable

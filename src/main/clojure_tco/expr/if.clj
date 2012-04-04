@@ -24,16 +24,16 @@
 (defrecord IfCps [test conseq alt]
   pthunkify/PThunkify
   (thunkify [this]
-    (let [out-type #(IfCps. %1 %2 %3)]
-      (walk-expr thunkify out-type))))
+    (let [ctor #(IfCps. %1 %2 %3)]
+      (pwalkable/walk-expr this thunkify ctor))))
 
 (defrecord IfTriv [test conseq alt]
   pcps/PCps
   (triv? [_] true)
   (cps [this]
-    (let [out-type #(IfCps. %1 %2 %3)]
-      (walk-expr this cps out-type)))
-  (cps [this _] (cps this)))
+    (let [ctor #(IfCps. %1 %2 %3)]
+      (pwalkable/walk-expr this pcps/cps ctor)))
+  (cps [this _] (pcps/cps this)))
 
 (defrecord IfSrs [test conseq alt]
   pcps/PCps
@@ -43,18 +43,18 @@
      (Exception. (str "Attempt to CPS serious 'if' expression as trivial"))))
   (cps [this k]
     (let [test (:test this)
-          CONSEQ (cps (:conseq this) k)
-          ALT (cps (:alt this) k)]
+          CONSEQ (pcps/cps (:conseq this) k)
+          ALT (pcps/cps (:alt this) k)]
       (if (triv? test)
           (IfCps. test CONSEQ ALT)
           (let [s (new-var/new-var 's)
                 K-body (IfCps. s CONSEQ ALT)
                 K (Cont. s K-body)]
-            (cps test K))))))
+            (pcps/cps test K))))))
 
 (def if-walkable
-  {:walk-expr (fn walk-expr
-                ([this f c] (walk-expr this f c nil))
+  {:walk-expr (fn
+                ([this f c] (pwalkable/walk-expr this f c nil))
                 ([this f c args]
                    (let [TEST (apply f (:test this) args)
                          CONSEQ (apply f (:conseq this) args)

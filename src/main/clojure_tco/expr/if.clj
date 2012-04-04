@@ -17,10 +17,9 @@
   (:require [clojure-tco.expr.cont :as cont])
   (:import [clojure_tco.expr.cont
             Cont AppCont])
-  (:require [clojure-tco.util :as util
-             :only (new-var)]))
+  (:require [clojure-tco.util.new-var :as new-var]))
 
-(declare walk-expr)
+(declare thunkify triv? cps)
 
 (defrecord IfCps [test conseq alt]
   pthunkify/PThunkify
@@ -48,7 +47,7 @@
           ALT (cps (:alt this) k)]
       (if (triv? test)
           (IfCps. test CONSEQ ALT)
-          (let [s (new-var 's)
+          (let [s (new-var/new-var 's)
                 K-body (IfCps. s CONSEQ ALT)
                 K (Cont. s K-body)]
             (cps test K))))))

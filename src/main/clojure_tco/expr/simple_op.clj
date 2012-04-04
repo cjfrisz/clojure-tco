@@ -3,52 +3,85 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  2 Apr 2012
+;; Last modified  4 Apr 2012
 ;; 
 ;; Defines the SimpleOp record types for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.expr.simple-op
-  (:require [clojure-tco.expr.pexpr :as pexpr])
-  (:require [clojure-tco.expr.cont :as cont])
+  (:require [clojure-tco.protocol
+             [pwalkable :as pwalkable]
+             [pcps :as pcps]
+             [pthunkify :as pthunkify]]
+            [clojure-tco.expr.cont :as cont]
+            [clojure-tco.util.new-var :as new-var])
   (:import [clojure_tco.expr.cont
-            Cont AppCont])
-  (:require [clojure-tco.util :as util
-             :only (new-var)]))
+            Cont AppCont]))
 
-(declare SimpleOpTriv SimpleOpSrs SimpleOpCps)
+(defrecord SimpleOpCps [op opnd*]
+  pthunkify/PThunkify
+    (thunkify [this]
+      (let [ctor #(SimpleOpCps. %1 %2)]
+        (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
-(def simple-op-base
-  {:walk-expr   (fn [this f & args]
-                  (let [OPND* (map #(apply f % args) (:opnd* this))]
-                    (SimpleOpCps. (:op this) OPND*)))
-   :thunkify    (fn [this]
-                  (walk-expr this thunkify))})
+(defrecord SimpleOpTriv [op opnd*]
+  pcps/PCps
+    (triv? [_] true)
+    (cps [this]
+      (let [ctor #(SimpleOpCps. %1 %2)]
+        (pwalkable/walk-expr this pcps/cps ctor)))
+    (cps [this _] (pcps/cps this))
 
-(defrecord SimpleOpTriv [op opnd*])
+  pthunkify/PThunkify
+    (thunkify [this]
+      (let [ctor #(SimpleOpTriv. %1 %2)]
+        (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
-(extend SimpleOpTriv
-  pexpr/PExpr
-  (merge {:triv? (fn [_] true)
-          :cps   (fn [this & _] (walk-expr this cps (:opnd* this)))}
-         simple-op-base))
+(defrecord SimpleOpSrs [op opnd*]
+  pcps/PCps
+    (triv? [_] false)
+    (cps [this]
+      (throw
+       (Exception.
+        (str "Attempt to CPS SimpleOpSrs without continuation argument."))))
+    (cps [this k]
+      (letfn [(cps-op [pre-opnd* k post-opnd*]
+                (if (nil? (seq pre-opnd*))
+                    (let [op (SimpleOpCps. (:op this) post-opnd*)]
+                      (AppCont. k op))
+                    (let [fst (first pre-opnd*)
+                          rst (rest pre-opnd*)]
+                      (if (pcps/triv? fst)
+                          (let [FST (pcps/cps fst)
+                                POST-OPND* (conj post-opnd* FST)]
+                            (recur rst k POST-OPND*))
+                          (let [s (new-var/new-var 's)
+                                POST-OPND* (conj post-opnd* s)
+                                RST (cps-op rst k POST-OPND*)
+                                K (Cont. s RST)]
+                            (pcps/cps fst K))))))]
+        (cps-op (:opnd* this) k [])))
 
-(defrecord SimpleOpSrs [op opnd*])
+  pthunkify/PThunkify
+    (thunkify [this]
+      (let [ctor #(SimpleOpSrs. %1 %2)]
+        (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
-(extend SimpleOpSrs
-  pexpr/PExpr
-  (merge {:triv? (fn [_] false)
-          :cps   (fn [this & k]
-                   (let [[k] k]
-                     (loop [opnd* (:opnd* this)
-                            k k]
-                       (let []))))}
-         simple-op-base))
-
-(defrecord SimpleOpCps [op opnd*])
+(def simple-op-walk
+  {:walk-expr (fn
+                ([this f ctor] (pwalkable/walk-expr this f ctor nil))
+                ([this f ctor arg*]
+                   (let [OPND* (map #(apply f % arg*) (:opnd* this))]
+                     (ctor (:op this) OPND*))))})
 
 (extend SimpleOpCps
-  pexpr/PExpr
-  (merge {:triv? (fn [_] true)
-          :cps   (fn [this & _] this)}
-         simple-op-base))
+  pwalkable/PWalkable
+  simple-op-walk)
+
+(extend SimpleOpTriv
+  pwalkable/PWalkable
+  simple-op-walk)
+
+(extend SimpleOpSrs
+  pwalkable/PWalkable
+  simple-op-walk)

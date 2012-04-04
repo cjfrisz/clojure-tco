@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  2 Apr 2012
+;; Last modified  4 Apr 2012
 ;; 
 ;; Implements the PExpr protocol functions for atomic expressions
 ;; (e.g. booleans, integers, symbols, etc.).
@@ -11,23 +11,48 @@
 
 (ns clojure-tco.expr.atomic
   (:require [clojure-tco.protocol
-             [pwalkable :as pwalkable]
              [pcps :as pcps] 
              [pthunkify :as pthunkify]]))
 
-(defrecord Atomic [val]
-  pwalkable/PWalkable
-    (walk-expr [this f c]
-      (let [THIS (f this)]
-        (c (:val THIS))))
-    (walk-expr [this f c args]
-      (let [THIS (apply f this args)]
-        (c (:val THIS))))
+(defrecord Num [val])
 
+(defrecord Bool [val])
+
+(defrecord Var [val])
+
+(defrecord Sym [val])
+
+(def atomic-cps
+  {:triv? (fn [_] true)
+   :cps (fn cps ([this] this) ([this _] this))})
+
+(def atomic-thunkify
+  {:thunkify identity})
+
+(extend Num
   pcps/PCps
-    (triv? [_] true)
-    (cps [this] this)
-    (cps [this _] this)
+  atomic-cps
 
   pthunkify/PThunkify
-    (thunkify [this] this))
+  atomic-thunkify)
+
+(extend Bool
+  pcps/PCps
+  atomic-cps
+
+  pthunkify/PThunkify
+  atomic-thunkify)
+
+(extend Var
+  pcps/PCps
+  atomic-cps
+
+  pthunkify/PThunkify
+  atomic-thunkify)
+
+(extend Sym
+  pcps/PCps
+  atomic-cps
+
+  pthunkify/PThunkify
+  atomic-thunkify)

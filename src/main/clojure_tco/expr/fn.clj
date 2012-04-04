@@ -11,9 +11,8 @@
 (ns clojure-tco.expr.fn
   (:require [clojure-tco.protocol
              [pcps :as pcps]
-             [pthunkify :as pthunkify]])
-  (:require [clojure-tco.util :as util
-             :only (new-var)]))
+             [pthunkify :as pthunkify]]
+            [clojure-tco.util.new-var :as new-var]))
 
 (defrecord Fn [fml* body]
   pcps/PCps

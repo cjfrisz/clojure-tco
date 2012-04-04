@@ -13,13 +13,10 @@
   (:require [clojure-tco.protocol
              [pwalkable :as pwalkable]
              [pcps :as pcps]
-             [pthunkify :as pthunkify]])
-  (:require [clojure-tco.expr.cont :as cont])
-  (:import [clojure_tco.expr.cont
-            Cont AppCont])
-  (:require [clojure-tco.util.new-var :as new-var]))
-
-(declare thunkify triv? cps)
+             [pthunkify :as pthunkify]]
+            [clojure-tco.expr.cont :as cont]
+            [clojure-tco.util.new-var :as new-var])
+  (:import [clojure_tco.expr.cont Cont]))
 
 (defrecord IfCps [test conseq alt]
   pthunkify/PThunkify

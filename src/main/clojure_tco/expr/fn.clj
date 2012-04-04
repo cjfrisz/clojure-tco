@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  3 Apr 2012
+;; Last modified  4 Apr 2012
 ;; 
 ;; Defines the Fn record for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -19,11 +19,11 @@
   pcps/PCps
   (triv? [_] true)
   (cps [this]
-    (let [k (new-var 'k)]
+    (let [k (new-var/new-var 'k)]
       (let [FML* (conj (:fml* this) k)
-            BODY (cps (:body this) k)]
+            BODY (pcps/cps (:body this) k)]
         (Fn. FML* BODY))))
-  (cps [this _] (cps this))
+  (cps [this _] (pcps/cps this))
 
   pthunkify/PThunkify
   (thunkify [this]

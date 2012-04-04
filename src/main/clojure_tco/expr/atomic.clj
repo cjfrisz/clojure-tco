@@ -24,7 +24,7 @@
 
 (def atomic-cps
   {:triv? (fn [_] true)
-   :cps (fn cps ([this] this) ([this _] this))})
+   :cps (fn ([this] this) ([this _] this))})
 
 (def atomic-thunkify
   {:thunkify identity})

@@ -1,9 +1,9 @@
 ;;----------------------------------------------------------------------
-;; File new-var.clj
+;; File new_var.clj
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Apr 2012
-;; Last modified  3 Apr 2012
+;; Last modified  4 Apr 2012
 ;; 
 ;; Defines the new-var function, which returns a new, unique variable
 ;; for the TCO compiler.

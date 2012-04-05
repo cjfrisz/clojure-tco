@@ -22,10 +22,9 @@
 
 (defrecord App [rator rand*]
   pwalkable/PWalkable
-    (walk-expr [this f c] (pwalkable/walk-expr this f c nil))
-    (walk-expr [this f c arg*]
-      (let [RATOR (apply f (:rator this) arg*)
-            RAND* (map #(apply f % arg*) (:rand* this))]
+    (walk-expr [this f c]
+      (let [RATOR (f (:rator this))
+            RAND* (map #(f %) (:rand* this))]
         (c RATOR RAND*)))
 
   pcps/PCps

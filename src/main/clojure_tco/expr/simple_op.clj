@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  4 Apr 2012
+;; Last modified  5 Apr 2012
 ;; 
 ;; Defines the SimpleOp record types for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -68,11 +68,9 @@
         (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
 (def simple-op-walk
-  {:walk-expr (fn
-                ([this f ctor] (pwalkable/walk-expr this f ctor nil))
-                ([this f ctor arg*]
-                   (let [OPND* (map #(apply f % arg*) (:opnd* this))]
-                     (ctor (:op this) OPND*))))})
+  {:walk-expr (fn [this f ctor]
+                (let [OPND* (map #(f %) (:opnd* this))]
+                  (ctor (:op this) OPND*)))})
 
 (extend SimpleOpCps
   pwalkable/PWalkable

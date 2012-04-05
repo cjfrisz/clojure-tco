@@ -60,13 +60,11 @@
       (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
 (def if-walkable
-  {:walk-expr (fn
-                ([this f ctor] (pwalkable/walk-expr this f ctor nil))
-                ([this f ctor args]
-                   (let [TEST (apply f (:test this) args)
-                         CONSEQ (apply f (:conseq this) args)
-                         ALT (apply f (:alt this) args)]
-                     (ctor TEST CONSEQ ALT))))})
+  {:walk-expr (fn [this f ctor]
+                (let [TEST (f (:test this))
+                      CONSEQ (f (:conseq this))
+                      ALT (f (:alt this))]
+                  (ctor TEST CONSEQ ALT)))})
 
 (extend IfTriv
   pwalkable/PWalkable

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  4 Apr 2012
+;; Last modified  5 Apr 2012
 ;; 
 ;; Defines the record types for function application in the Clojure
 ;; TCO compiler.
@@ -14,7 +14,9 @@
              [pwalkable :as pwalkable]
              [pcps :as pcps] 
              [pthunkify :as pthunkify]]
-            [clojure-tco.expr.cont])
+            [clojure-tco.expr.cont]
+            [clojure-tco.util
+             [new-var :as new-var]])
   (:import [clojure_tco.expr.cont
             Cont AppCont]))
 
@@ -44,8 +46,8 @@
                             (let [FST (pcps/cps fst)
                                   POST-RAND* (conj post-rand* FST)]
                               (recur rst POST-RAND* k))
-                            (let [s (new-var 's)
-                                  POST-RAND* (conj POST-RAND* s)
+                            (let [s (new-var/new-var 's)
+                                  POST-RAND* (conj post-rand* s)
                                   RST (cps-app rst POST-RAND* k)
                                   K (Cont. s RST)]
                               (pcps/cps fst K))))))]

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  4 Apr 2012
+;; Last modified  5 Apr 2012
 ;; 
 ;; Defines the If record (both triv and srs variants) for the Clojure
 ;; TCO compiler.
@@ -47,7 +47,7 @@
     (let [test (:test this)
           CONSEQ (pcps/cps (:conseq this) k)
           ALT (pcps/cps (:alt this) k)]
-      (if (triv? test)
+      (if (pcps/triv? test)
           (IfCps. test CONSEQ ALT)
           (let [s (new-var/new-var 's)
                 K-body (IfCps. s CONSEQ ALT)

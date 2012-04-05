@@ -45,7 +45,7 @@
        (Exception.
         (str "Attempt to CPS SimpleOpSrs without continuation argument."))))
     (cps [this k]
-      (letfn [(cps-op [pre-opnd* k post-opnd*]
+      (letfn [(cps-op [pre-opnd* post-opnd* k]
                 (if (nil? (seq pre-opnd*))
                     (let [op (SimpleOpCps. (:op this) post-opnd*)]
                       (AppCont. k op))
@@ -57,10 +57,10 @@
                             (recur rst k POST-OPND*))
                           (let [s (new-var/new-var 's)
                                 POST-OPND* (conj post-opnd* s)
-                                RST (cps-op rst k POST-OPND*)
+                                RST (cps-op rst POST-OPND* k)
                                 K (Cont. s RST)]
                             (pcps/cps fst K))))))]
-        (cps-op (:opnd* this) k [])))
+        (cps-op (:opnd* this) [] k)))
 
   pthunkify/PThunkify
     (thunkify [this]

@@ -17,7 +17,8 @@
              [pwalkable :as pwalkable]]
             [clojure-tco.expr.cont :as cont]
             [clojure-tco.util.new-var :as new-var])
-  (:import [clojure_tco.expr.cont Cont AppCont]))
+  (:import [clojure_tco.expr.cont
+            Cont AppCont]))
 
 (defrecord IfCps [test conseq alt]
   pthunkify/PThunkify
@@ -37,7 +38,7 @@
         (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
 (defrecord IfSrs [test conseq alt]
-  pcps/PCps
+  srs/PCpsSrs
     (cps [this k]
       (letfn [(cps-if [expr]
                 (condp extends? (type expr)

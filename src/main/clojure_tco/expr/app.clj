@@ -30,12 +30,11 @@
                   srs/PCpsSrs (srs/cps rator k)))
               (cps-rand* [pre-rand* post-rand* k]
                 (if (nil? (seq pre-rand*))
-                    (let [RAND* (conj post-rand* k)]
-                      (App. RATOR RAND*))
+                    (conj post-rand* k)
                     (let [fst (first pre-rand*)
                           rst (rest pre-rand*)]
                       (if (extends? triv/PCpsTriv (type first))
-                          (let [FST (pcps/cps fst)
+                          (let [FST (triv/cps fst)
                                 POST-RAND* (conj post-rand* FST)]
                             (recur rst POST-RAND* k))
                           (let [s (new-var/new-var 's)

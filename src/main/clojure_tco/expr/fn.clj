@@ -10,6 +10,7 @@
 
 (ns clojure-tco.expr.fn
   (:require [clojure-tco.protocol
+             [pcps-srs :as srs]
              [pcps-triv :as triv]
              [pthunkify :as pthunkify]]
             [clojure-tco.expr.cont]

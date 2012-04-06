@@ -29,28 +29,28 @@
   {:thunkify identity})
 
 (extend Num
-  pcps-triv/PCpsTriv
+  triv/PCpsTriv
     atomic-cps-triv
 
   pthunkify/PThunkify
     atomic-thunkify)
 
 (extend Bool
-  pcps-triv/PCpsTriv
+  triv/PCpsTriv
     atomic-cps-triv
 
   pthunkify/PThunkify
     atomic-thunkify)
 
 (extend Var
-  pcps-triv/PCpsTriv
+  triv/PCpsTriv
     atomic-cps-triv
 
   pthunkify/PThunkify
     atomic-thunkify)
 
 (extend Sym
-  pcps-triv/PCpsTriv
+  triv/PCpsTriv
     atomic-cps-triv
 
   pthunkify/PThunkify

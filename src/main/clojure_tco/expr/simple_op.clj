@@ -10,9 +10,10 @@
 
 (ns clojure-tco.expr.simple-op
   (:require [clojure-tco.protocol
-             [pwalkable :as pwalkable]
-             [pcps :as pcps]
-             [pthunkify :as pthunkify]]
+             [pcps-srs :as srs]
+             [pcps-triv :as triv]
+             [pthunkify :as pthunkify]
+             [pwalkable :as pwalkable]]
             [clojure-tco.expr.cont :as cont]
             [clojure-tco.util.new-var :as new-var])
   (:import [clojure_tco.expr.cont
@@ -25,12 +26,10 @@
         (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
 (defrecord SimpleOpTriv [op opnd*]
-  pcps/PCps
-    (triv? [_] true)
+  triv/PCpsTriv
     (cps [this]
       (let [ctor #(SimpleOpCps. %1 %2)]
-        (pwalkable/walk-expr this pcps/cps ctor)))
-    (cps [this _] (pcps/cps this))
+        (pwalkable/walk-expr this triv/cps ctor)))
 
   pthunkify/PThunkify
     (thunkify [this]
@@ -38,12 +37,7 @@
         (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
 (defrecord SimpleOpSrs [op opnd*]
-  pcps/PCps
-    (triv? [_] false)
-    (cps [this]
-      (throw
-       (Exception.
-        (str "Attempt to CPS SimpleOpSrs without continuation argument."))))
+  srs/PCpsSrs
     (cps [this k]
       (letfn [(cps-op [pre-opnd* post-opnd* k]
                 (if (nil? (seq pre-opnd*))
@@ -51,15 +45,15 @@
                       (AppCont. k op))
                     (let [fst (first pre-opnd*)
                           rst (rest pre-opnd*)]
-                      (if (pcps/triv? fst)
-                          (let [FST (pcps/cps fst)
+                      (if (extends? triv/PCpsTriv (type fst))
+                          (let [FST (triv/cps fst)
                                 POST-OPND* (conj post-opnd* FST)]
                             (recur rst k POST-OPND*))
                           (let [s (new-var/new-var 's)
                                 POST-OPND* (conj post-opnd* s)
                                 RST (cps-op rst POST-OPND* k)
                                 K (Cont. s RST)]
-                            (pcps/cps fst K))))))]
+                            (srs/cps fst K))))))]
         (cps-op (:opnd* this) [] k)))
 
   pthunkify/PThunkify
@@ -74,12 +68,12 @@
 
 (extend SimpleOpCps
   pwalkable/PWalkable
-  simple-op-walk)
+    simple-op-walk)
 
 (extend SimpleOpTriv
   pwalkable/PWalkable
-  simple-op-walk)
+    simple-op-walk)
 
 (extend SimpleOpSrs
   pwalkable/PWalkable
-  simple-op-walk)
+    simple-op-walk)

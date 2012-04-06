@@ -5,59 +5,59 @@
 ;; Created 30 Mar 2012
 ;; Last modified  5 Apr 2012
 ;; 
-;; Defines the If record (both triv and srs variants) for the Clojure
+;; Defines the If record (triv, srs, and cps variants) for the Clojure
 ;; TCO compiler.
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.expr.if
   (:require [clojure-tco.protocol
-             [pwalkable :as pwalkable]
-             [pcps :as pcps]
-             [pthunkify :as pthunkify]]
+             [pcps-triv :as triv]
+             [pcps-srs :as srs]
+             [pthunkify :as pthunkify]
+             [pwalkable :as pwalkable]]
             [clojure-tco.expr.cont :as cont]
             [clojure-tco.util.new-var :as new-var])
-  (:import [clojure_tco.expr.cont Cont]))
+  (:import [clojure_tco.expr.cont Cont AppCont]))
 
 (defrecord IfCps [test conseq alt]
   pthunkify/PThunkify
-  (thunkify [this]
-    (let [ctor #(IfCps. %1 %2 %3)]
-      (pwalkable/walk-expr this pthunkify/thunkify ctor))))
+    (thunkify [this]
+      (let [ctor #(IfCps. %1 %2 %3)]
+        (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
 (defrecord IfTriv [test conseq alt]
-  pcps/PCps
-  (triv? [_] true)
+  triv/PCpsTriv
   (cps [this]
     (let [ctor #(IfCps. %1 %2 %3)]
-      (pwalkable/walk-expr this pcps/cps ctor)))
-  (cps [this _] (pcps/cps this))
+      (pwalkable/walk-expr this triv/cps ctor)))
 
   pthunkify/PThunkify
-  (thunkify [this]
-    (let [ctor #(IfTriv. %1 %2 %3)]
-      (pwalkable/walk-expr this pthunkify/thunkify ctor))))
+    (thunkify [this]
+      (let [ctor #(IfTriv. %1 %2 %3)]
+        (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
 (defrecord IfSrs [test conseq alt]
   pcps/PCps
-  (triv? [_] false)
-  (cps [_]
-    (throw
-     (Exception. (str "Attempt to CPS serious 'if' expression as trivial"))))
-  (cps [this k]
-    (let [test (:test this)
-          CONSEQ (pcps/cps (:conseq this) k)
-          ALT (pcps/cps (:alt this) k)]
-      (if (pcps/triv? test)
-          (IfCps. test CONSEQ ALT)
-          (let [s (new-var/new-var 's)
-                K-body (IfCps. s CONSEQ ALT)
-                K (Cont. s K-body)]
-            (pcps/cps test K)))))
+    (cps [this k]
+      (letfn [(cps-if [expr]
+                (condp extends? (type expr)
+                  triv/PCpsTriv (let [EXPR (triv/cps expr)]
+                                  (AppCont. k EXPR))
+                  srs/PCpsSrs (srs/cps expr k)))]
+        (let [test (:test this)
+              CONSEQ (cps-if (:conseq this))
+              ALT (cps-if (:alt this))]
+          (if (extends? triv/PCpsTriv (type test))
+              (IfCps. test CONSEQ ALT)
+              (let [s (new-var/new-var 's)
+                    K-body (IfCps. s CONSEQ ALT)
+                    K (Cont. s K-body)]
+                (srs/cps test K))))))
 
   pthunkify/PThunkify
-  (thunkify [this]
-    (let [ctor #(IfSrs. %1 %2 %3)]
-      (pwalkable/walk-expr this pthunkify/thunkify ctor))))
+    (thunkify [this]
+      (let [ctor #(IfSrs. %1 %2 %3)]
+        (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
 (def if-walkable
   {:walk-expr (fn [this f ctor]
@@ -68,8 +68,8 @@
 
 (extend IfTriv
   pwalkable/PWalkable
-  if-walkable)
+    if-walkable)
 
 (extend IfCps
   pwalkable/PWalkable
-  if-walkable)
+    if-walkable)

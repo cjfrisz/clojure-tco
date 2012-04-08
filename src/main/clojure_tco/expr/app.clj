@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  5 Apr 2012
+;; Last modified  8 Apr 2012
 ;; 
 ;; Defines the record types for function application in the Clojure
 ;; TCO compiler.
@@ -33,7 +33,7 @@
                     (conj post-rand* k)
                     (let [fst (first pre-rand*)
                           rst (rest pre-rand*)]
-                      (if (extends? triv/PCpsTriv (type first))
+                      (if (extends? triv/PCpsTriv (type fst))
                           (let [FST (triv/cps fst)
                                 POST-RAND* (conj post-rand* FST)]
                             (recur rst POST-RAND* k))

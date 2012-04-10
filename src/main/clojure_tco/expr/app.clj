@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  8 Apr 2012
+;; Last modified  9 Apr 2012
 ;; 
 ;; Defines the record types for function application in the Clojure
 ;; TCO compiler.
@@ -43,7 +43,7 @@
                                 K (Cont. s RST)]
                             (srs/cps fst K))))))]
         (let [RATOR (cps-rator (:rator this))
-              RAND* (cps-rand* (:rand* this))]
+              RAND* (cps-rand* (:rand* this) [] k)]
           (App. RATOR RAND*))))
 
   pthunkify/PThunkify

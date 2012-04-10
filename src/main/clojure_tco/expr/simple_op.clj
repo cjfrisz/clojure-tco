@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  5 Apr 2012
+;; Last modified  9 Apr 2012
 ;; 
 ;; Defines the SimpleOp record types for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -48,7 +48,7 @@
                       (if (extends? triv/PCpsTriv (type fst))
                           (let [FST (triv/cps fst)
                                 POST-OPND* (conj post-opnd* FST)]
-                            (recur rst k POST-OPND*))
+                            (recur rst POST-OPND* k))
                           (let [s (new-var/new-var 's)
                                 POST-OPND* (conj post-opnd* s)
                                 RST (cps-op rst POST-OPND* k)

@@ -3,13 +3,15 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  5 Apr 2012
+;; Last modified 11 Apr 2012
 ;; 
 ;; Defines the Fn record for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.expr.fn
   (:require [clojure-tco.protocol
+             [pabstract-k :as pabs-k]
+             [pemit :as pemit]
              [pcps-srs :as srs]
              [pcps-triv :as triv]
              [pthunkify :as pthunkify]]
@@ -22,6 +24,18 @@
             Thunk]))
 
 (defrecord Fn [fml* body]
+  pabs-k/PAbstractK
+    (abstract-k [this app-k]
+      (let [BODY (pabs-k/abstract-k (:body this) app-k)]
+        (Fn. (:fml* this) BODY)))
+
+  pemit/PEmit
+    (emit [this]
+      (let [fml* (map pemit/emit (:fml* this))
+            FML* (into [] fml*)
+            body (pemit/emit (:body this))]
+        `(fn ~FML* ~body)))
+  
   triv/PCpsTriv
     (cps [this]
       (let [k (new-var/new-var 'k)]

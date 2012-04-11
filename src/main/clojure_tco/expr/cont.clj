@@ -11,24 +11,42 @@
 
 (ns clojure-tco.expr.cont
   (:require [clojure-tco.protocol
+             [pabstract-k :as pabs-k]
              [pemit :as pemit]
              [pthunkify :as pthunkify]]))
 
 (defrecord Cont [arg body]
+  pabs-k/PAbstractK
+    (abstract-k [this app-k]
+      (let [BODY (pabs-k/abstract-k (:body this) app-k)]
+        (Cont. arg BODY)))
+  
   pemit/PEmit
     (emit [this]
       (let [arg (pemit/emit (:arg this))
             body (pemit/emit (:body this))]
         `(fn [~arg] ~body))))
 
-(defrecord AppCont [cont val])
+(defrecord AppCont [cont val]
+  pabs-k/PAbstractK
+    (abstract-k [this app-k]
+      (let [CONT (pabs-k/abstract-k (:cont this) app-k)
+            VAL (pabs-k/abstract-k (:val this) app-k)]
+        (AppContAbs. app-k CONT VAL))))
 
-(def cont-thunkify {:thunkufy identity})
+(defrecord AppContAbs [app-k cont val])
+
+(def cont-thunkify
+  {:thunkify identity})
 
 (extend Cont
   pthunkify/PThunkify
-  cont-thunkify)
+    cont-thunkify)
 
 (extend AppCont
   pthunkify/PThunkify
-  cont-thunkify)
+    cont-thunkify)
+
+(extend AppContAbs
+  pthunkify/PThunkify
+    cont-thunkify)

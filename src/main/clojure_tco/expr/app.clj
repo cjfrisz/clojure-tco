@@ -11,6 +11,7 @@
 
 (ns clojure-tco.expr.app
   (:require [clojure-tco.protocol
+             [pabstract-k :as pabs-k]
              [pcps-srs :as srs]
              [pcps-triv :as triv]
              [pemit :as pemit]
@@ -23,6 +24,11 @@
             Cont AppCont]))
 
 (defrecord App [rator rand*]
+  pabs-k/PAbstractK
+    (abstract-k [this app-k]
+      (let [ctor #(App %1 %2)]
+        (pwalkable/walk-expr this #(pabs-k/abstract-k % app-k)) ctor))
+  
   srs/PCpsSrs
     (cps [this k]
       (letfn [(cps-rator [rator]

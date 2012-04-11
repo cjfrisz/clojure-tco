@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  5 Apr 2012
+;; Last modified 11 Apr 2012
 ;; 
 ;; Defines the If record (triv, srs, and cps variants) for the Clojure
 ;; TCO compiler.
@@ -11,6 +11,8 @@
 
 (ns clojure-tco.expr.if
   (:require [clojure-tco.protocol
+             [pabstract-k :as pabs-k]
+             [pemit :as pemit]
              [pcps-triv :as triv]
              [pcps-srs :as srs]
              [pthunkify :as pthunkify]
@@ -21,6 +23,11 @@
             Cont AppCont]))
 
 (defrecord IfCps [test conseq alt]
+  pabs-k/PAbstractK
+  (abstract-k [this app-k]
+    (let [ctor #(IfCps. %1 %2 %3)]
+      (pwalkable/walk-expr this #(pabs-k/abstract-k % app-k) ctor)))
+  
   pthunkify/PThunkify
     (thunkify [this]
       (let [ctor #(IfCps. %1 %2 %3)]

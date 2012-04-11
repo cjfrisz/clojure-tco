@@ -3,13 +3,15 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  9 Apr 2012
+;; Last modified 11 Apr 2012
 ;; 
 ;; Defines the SimpleOp record types for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.expr.simple-op
   (:require [clojure-tco.protocol
+             [pabstract-k :as pabs-k]
+             [pemit :as pemit]
              [pcps-srs :as srs]
              [pcps-triv :as triv]
              [pthunkify :as pthunkify]
@@ -20,6 +22,17 @@
             Cont AppCont]))
 
 (defrecord SimpleOpCps [op opnd*]
+  pabs-k/PAbstractK
+    (abstract-k [this app-k]
+      (let [ctor #(SimpleOpCps %1 %2)]
+        (pwalkable/walk-expr this #(pabs-k/abstract-k % app-k) ctor)))
+
+  pemit/PEmit
+    (emit [this]
+      (let [op (:op this)
+            opnd* (map pemit/emit (:opnd* this))]
+        `(~op ~@opnd*)))
+  
   pthunkify/PThunkify
     (thunkify [this]
       (let [ctor #(SimpleOpCps. %1 %2)]

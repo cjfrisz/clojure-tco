@@ -11,6 +11,7 @@
 
 (ns clojure-tco.expr.atomic
   (:require [clojure-tco.protocol
+             [pabstract-k :as pabs-k]
              [pcps-triv :as triv]
              [pemit :as pemit]
              [pthunkify :as pthunkify]]))
@@ -23,6 +24,9 @@
 
 (defrecord Sym [val])
 
+(def atomic-abs-k
+  {:abstract-k (fn [this app-k] this)})
+
 (def atomic-cps-triv
   {:cps identity})
 
@@ -33,6 +37,9 @@
   {:thunkify identity})
 
 (extend Bool
+  pabs-k/PAbstractK
+    atomic-abs-k
+  
   triv/PCpsTriv
     atomic-cps-triv
 
@@ -43,6 +50,9 @@
     atomic-thunkify)
 
 (extend Num
+  pabs-k/PAbstractK
+    atomic-abs-k
+
   triv/PCpsTriv
     atomic-cps-triv
 
@@ -53,6 +63,9 @@
     atomic-thunkify)
 
 (extend Sym
+  pabs-k/PAbstractK
+    atomic-abs-k
+
   triv/PCpsTriv
     atomic-cps-triv
 
@@ -63,6 +76,9 @@
     atomic-thunkify)
 
 (extend Var
+  pabs-k/PAbstractK
+    atomic-abs-k
+
   triv/PCpsTriv
     atomic-cps-triv
 

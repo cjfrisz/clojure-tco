@@ -12,7 +12,7 @@
   (:use [clojure.core.match
          :only (match)])
   (:require [clojure-tco.expr
-             app atomic cont defn fn if simple-op]
+             app atomic defn fn if simple-op]
             [clojure-tco.protocol
              [pcps-srs :as srs]
              [pcps-triv :as triv]])

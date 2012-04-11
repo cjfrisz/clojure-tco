@@ -53,6 +53,7 @@
   "Helper function for parse that handles 'fn' expression."
   [fml* body]
   (let [FML* (map parse fml*)
+        FML* (into [] FML*)
         BODY (parse body)]
     (Fn. FML* BODY)))
 
@@ -71,17 +72,21 @@
   zero?, nil?, etc."
   [op opnd*]
   (let [OPND* (map parse opnd*)]
-    (if (every? #(extends? triv/PCpsTriv (type %)) OPND*)
-        (SimpleOpTriv. op OPND*)
-        (SimpleOpSrs. op OPND*))))
+    (let [OPND* (into [] OPND*)]
+      (if (every? #(extends? triv/PCpsTriv (type %)) OPND*)
+          (SimpleOpTriv. op OPND*)
+          (SimpleOpSrs. op OPND*)))))
 
 (defn- parse-app
   "Helper function for parse that handles application."
   [rator rand*]
   (let [RATOR (parse rator)
         RAND* (map parse rand*)]
-    (App. RATOR RAND*)))
+    (let [RAND* (into [] RAND*)]
+      (App. RATOR RAND*))))
 
 (defn- simple-op?
   [op]
-  (some #{op} '(+ - * / mod zero? true? false? nil?)))
+  (some #{op}
+        '(+ - * / mod < <= = >= >
+          inc dec zero? true? false? nil?)))

@@ -24,15 +24,9 @@
 (defrecord SimpleOpCps [op opnd*]
   pabs-k/PAbstractK
     (abstract-k [this app-k]
-      (let [ctor #(SimpleOpCps %1 %2)]
+      (let [ctor #(SimpleOpCps. %1 %2)]
         (pwalkable/walk-expr this #(pabs-k/abstract-k % app-k) ctor)))
 
-  pemit/PEmit
-    (emit [this]
-      (let [op (:op this)
-            opnd* (map pemit/emit (:opnd* this))]
-        `(~op ~@opnd*)))
-  
   pthunkify/PThunkify
     (thunkify [this]
       (let [ctor #(SimpleOpCps. %1 %2)]
@@ -74,19 +68,34 @@
       (let [ctor #(SimpleOpSrs. %1 %2)]
         (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
+(def simple-op-emit
+  {:emit (fn [this]
+           (let [op (:op this)
+                 opnd* (map pemit/emit (:opnd* this))]
+             `(~op ~@opnd*)))})
+
 (def simple-op-walk
   {:walk-expr (fn [this f ctor]
                 (let [OPND* (map #(f %) (:opnd* this))]
                   (ctor (:op this) OPND*)))})
 
 (extend SimpleOpCps
-  pwalkable/PWalkable
-    simple-op-walk)
-
-(extend SimpleOpTriv
+  pemit/PEmit
+    simple-op-emit
+  
   pwalkable/PWalkable
     simple-op-walk)
 
 (extend SimpleOpSrs
+  pemit/PEmit
+    simple-op-emit
+  
+  pwalkable/PWalkable
+    simple-op-walk)
+
+(extend SimpleOpTriv
+  pemit/PEmit
+    simple-op-emit
+  
   pwalkable/PWalkable
     simple-op-walk)

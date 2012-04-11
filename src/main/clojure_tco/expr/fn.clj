@@ -17,7 +17,7 @@
              [pthunkify :as pthunkify]]
             [clojure-tco.expr.cont]
             [clojure-tco.expr.thunk]
-            [clojure-tco.util.new-var :as new-var])
+            [clojure-tco.util.new-var :as nv])
   (:import [clojure_tco.expr.cont
             Cont AppCont]
            [clojure_tco.expr.thunk
@@ -38,7 +38,7 @@
   
   triv/PCpsTriv
     (cps [this]
-      (let [k (new-var/new-var 'k)]
+      (let [k (nv/new-var 'k)]
         (let [FML* (conj (:fml* this) k)
               BODY (condp extends? (type (:body this))
                        triv/PCpsTriv (AppCont. k (triv/cps body))

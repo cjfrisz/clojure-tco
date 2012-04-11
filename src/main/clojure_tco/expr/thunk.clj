@@ -10,7 +10,7 @@
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.expr.thunk
-  (:require [clojure.protocol
+  (:require [clojure-tco.protocol
              [pabstract-k :as pabs-k]
              [pemit :as pemit]]))
 

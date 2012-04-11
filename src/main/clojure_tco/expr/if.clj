@@ -24,9 +24,9 @@
 
 (defrecord IfCps [test conseq alt]
   pabs-k/PAbstractK
-  (abstract-k [this app-k]
-    (let [ctor #(IfCps. %1 %2 %3)]
-      (pwalkable/walk-expr this #(pabs-k/abstract-k % app-k) ctor)))
+    (abstract-k [this app-k]
+      (let [ctor #(IfCps. %1 %2 %3)]
+        (pwalkable/walk-expr this #(pabs-k/abstract-k % app-k) ctor)))
   
   pthunkify/PThunkify
     (thunkify [this]
@@ -67,6 +67,13 @@
       (let [ctor #(IfSrs. %1 %2 %3)]
         (pwalkable/walk-expr this pthunkify/thunkify ctor))))
 
+(def if-emit
+  {:emit (fn [this]
+           (let [test (pemit/emit (:test this))
+                 conseq (pemit/emit (:conseq this))
+                 alt (pemit/emit (:alt this))]
+             `(if ~test ~conseq ~alt)))})
+
 (def if-walkable
   {:walk-expr (fn [this f ctor]
                 (let [TEST (f (:test this))
@@ -74,10 +81,22 @@
                       ALT (f (:alt this))]
                   (ctor TEST CONSEQ ALT)))})
 
-(extend IfTriv
+(extend IfCps
+  pemit/PEmit
+    if-emit
+
   pwalkable/PWalkable
     if-walkable)
 
-(extend IfCps
+(extend IfSrs
+  pemit/PEmit
+    if-emit)
+
+(extend IfTriv
+  pemit/PEmit
+    if-emit
+
   pwalkable/PWalkable
     if-walkable)
+
+

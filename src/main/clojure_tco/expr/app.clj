@@ -10,14 +10,14 @@
 ;;----------------------------------------------------------------------
 
 (ns clojure-tco.expr.app
-  (:require [clojure-tco.protocol
+  (:require [clojure-tco.expr.cont]
+            [clojure-tco.protocol
              [pabstract-k :as pabs-k]
              [pcps-srs :as srs]
              [pcps-triv :as triv]
              [pemit :as pemit]
              [pthunkify :as pthunkify]
              [pwalkable :as pwalkable]]
-            [clojure-tco.expr.cont]
             [clojure-tco.util
              [new-var :as new-var]])
   (:import [clojure_tco.expr.cont
@@ -26,8 +26,14 @@
 (defrecord App [rator rand*]
   pabs-k/PAbstractK
     (abstract-k [this app-k]
-      (let [ctor #(App %1 %2)]
-        (pwalkable/walk-expr this #(pabs-k/abstract-k % app-k)) ctor))
+      (let [ctor #(App. %1 %2)]
+        (pwalkable/walk-expr this #(pabs-k/abstract-k % app-k) ctor)))
+
+  pemit/PEmit
+    (emit [this]
+      (let [rator (pemit/emit (:rator this))
+              rand* (map pemit/emit (:rand* this))]
+          `(~rator ~@rand*)))
   
   srs/PCpsSrs
     (cps [this k]
@@ -53,19 +59,13 @@
               RAND* (cps-rand* (:rand* this) [] k)]
           (App. RATOR RAND*))))
 
-  pemit/PEmit
-    (emit [this]
-      (let [rator (emit (:rator this))
-              rand* (map emit (:rand* this))]
-          `(~rator ~@rand*)))
-
   pthunkify/PThunkify
     (thunkify [this]
       (let [ctor #(App. %1 %2)]
         (pwalkable/walk-expr this pthunkify/thunkify ctor)))
 
   pwalkable/PWalkable
-    (walk-expr [this f c]
+    (walk-expr [this f ctor]
       (let [RATOR (f (:rator this))
-            RAND* (map #(f %) (:rand* this))]
-        (c RATOR RAND*))))
+            RAND* (map f (:rand* this))]
+        (ctor RATOR RAND*))))

@@ -31,7 +31,7 @@
   {:cps identity})
 
 (def atomic-emit
-  {:emit (fn [this] (quote (:val expr)))})
+  {:emit (fn [this] (:val this))})
 
 (def atomic-thunkify
   {:thunkify identity})

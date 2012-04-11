@@ -27,14 +27,26 @@
             body (pemit/emit (:body this))]
         `(fn [~arg] ~body))))
 
+(defrecord AppContAbs [app-k cont val]
+  pemit/PEmit
+    (emit [this]
+      (let [app-k (:app-k this)
+            cont (pemit/emit (:cont this))
+            val (pemit/emit (:val this))]
+        `(~app-k ~cont ~val))))
+
 (defrecord AppCont [cont val]
   pabs-k/PAbstractK
     (abstract-k [this app-k]
       (let [CONT (pabs-k/abstract-k (:cont this) app-k)
             VAL (pabs-k/abstract-k (:val this) app-k)]
-        (AppContAbs. app-k CONT VAL))))
+        (AppContAbs. app-k CONT VAL)))
 
-(defrecord AppContAbs [app-k cont val])
+  pemit/PEmit
+    (emit [this]
+      (let [cont (pemit/emit (:cont this))
+            val (pemit/emit (:val this))]
+        `(~cont ~val))))
 
 (def cont-thunkify
   {:thunkify identity})
@@ -43,10 +55,10 @@
   pthunkify/PThunkify
     cont-thunkify)
 
-(extend AppCont
+(extend AppContAbs
   pthunkify/PThunkify
     cont-thunkify)
 
-(extend AppContAbs
+(extend AppCont
   pthunkify/PThunkify
     cont-thunkify)

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  9 Apr 2012
+;; Last modified 11 Apr 2012
 ;; 
 ;; Defines the record types for function application in the Clojure
 ;; TCO compiler.
@@ -13,6 +13,7 @@
   (:require [clojure-tco.protocol
              [pcps-srs :as srs]
              [pcps-triv :as triv]
+             [pemit :as pemit]
              [pthunkify :as pthunkify]
              [pwalkable :as pwalkable]]
             [clojure-tco.expr.cont]
@@ -45,6 +46,12 @@
         (let [RATOR (cps-rator (:rator this))
               RAND* (cps-rand* (:rand* this) [] k)]
           (App. RATOR RAND*))))
+
+  pemit/PEmit
+    (emit [this]
+      (let [rator (emit (:rator this))
+              rand* (map emit (:rand* this))]
+          `(~rator ~@rand*)))
 
   pthunkify/PThunkify
     (thunkify [this]

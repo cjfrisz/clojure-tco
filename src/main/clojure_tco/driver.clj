@@ -50,6 +50,5 @@
                         (Cont. k app))))]
       (let [expr (parse/parse expr)
             expr (apply-cps expr)
-            ;;expr (pabs-k/abstract-k expr apply-k)
-            ]
+            expr (pabs-k/abstract-k expr apply-k)]
         expr))))

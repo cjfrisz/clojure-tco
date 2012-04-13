@@ -15,8 +15,10 @@
                   "1.3.0"]
                  [org.clojure/core.match
                   "0.2.0-alpha9"]]
-  :dev-dependencies [[org.clojure/tools.trace
-                      "0.7.3"]]
+  :dev-dependencies [[cdt
+                      "1.2.6.2"]
+                     [swank-clojure
+                      "1.4.2"]]
   :plugins [[lein-swank "1.4.3"]]
   :source-path "src/main"
   :test-path "src/test"

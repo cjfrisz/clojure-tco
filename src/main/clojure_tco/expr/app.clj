@@ -67,5 +67,6 @@
   pwalkable/PWalkable
     (walk-expr [this f ctor]
       (let [RATOR (f (:rator this))
-            RAND* (map f (:rand* this))]
+            RAND* (map f (:rand* this))
+            RAND* (into [] RAND*)]
         (ctor RATOR RAND*))))

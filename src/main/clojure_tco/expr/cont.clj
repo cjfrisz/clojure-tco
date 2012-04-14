@@ -19,7 +19,7 @@
   pabs-k/PAbstractK
     (abstract-k [this app-k]
       (let [BODY (pabs-k/abstract-k (:body this) app-k)]
-        (Cont. arg BODY)))
+        (Cont. (:arg this) BODY)))
   
   pemit/PEmit
     (emit [this]
@@ -30,7 +30,7 @@
 (defrecord AppContAbs [app-k cont val]
   pemit/PEmit
     (emit [this]
-      (let [app-k (:app-k this)
+      (let [app-k (pemit/emit (:app-k this))
             cont (pemit/emit (:cont this))
             val (pemit/emit (:val this))]
         `(~app-k ~cont ~val))))

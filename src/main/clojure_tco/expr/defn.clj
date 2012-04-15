@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified 11 Apr 2012
+;; Last modified 15 Apr 2012
 ;; 
 ;; Defines the record type for 'defn' expressions in the TCO compiler.
 ;;----------------------------------------------------------------------
@@ -13,33 +13,37 @@
              [pabstract-k :as pabs-k]
              [pemit :as pemit]
              [pcps-triv :as triv]
-             [pthunkify :as pthunkify]]
+             [pthunkify :as pthunkify]
+             [pwalkable :as pwalkable]]
             [clojure-tco.expr.fn]
             [clojure-tco.expr.thunk]
             [clojure-tco.util.new-var :as new-var])
   (:import [clojure_tco.expr.fn Fn]
            [clojure_tco.expr.thunk Thunk]))
 
-(defrecord Defn [name func]
+(defrecord Defn [name func*]
   pabs-k/PAbstractK
     (abstract-k [this app-k]
-      (let [FUNC (pabs-k/abstract-k (:func this) app-k)]
-        (Defn. (:name this) FUNC)))
+      (let [f #(pabs-k/abstract-k % app-k)]
+        (pwalkable/walk-expr this f nil)))
 
   pemit/PEmit
     (emit [this]
       (let [name (:name this)
-            fml* (map pemit/emit (:fml* (:func this)))
-            FML* (into [] fml*)
-            body (pemit/emit (:body (:func this)))]
-        `(defn ~name ~FML* ~body)))
+            fml** (map #(map pemit/emit (:fml* %)) (:func* this))
+            body* (map #(pemit/emit (:body %)) (:func* this))
+            func* (map #((list (into [] %1)) %2) fml** body*)]
+        (if (> (count func*) 2)
+            `(defn ~name ~func*)
+            `(defn ~name ~func*))))
   
   triv/PCpsTriv
-    (cps [this]
-      (let [FUNC (triv/cps (:func this))]
-        (Defn. (:name this) FUNC)))
+    (cps [this] (pwalkable/walk-expr this triv/cps nil))
 
   pthunkify/PThunkify
-    (thunkify [this]
-      (let [FUNC (pthunkify/thunkify (:func this))]
-        (Defn. (:name this) FUNC))))
+    (thunkify [this] (pwalkable/walk-expr this pthunkify/thunkify nil))
+
+  pwalkable/PWalkable
+    (walk-expr [this f _]
+      (let [FUNC* (map f (:func* this))]
+        (Defn. (:name this) FUNC*))))

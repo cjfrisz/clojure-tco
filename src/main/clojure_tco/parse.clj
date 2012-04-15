@@ -42,7 +42,7 @@
     [(['quote s] :seq)] (Sym. s)
     [(v :when symbol?)] (Var. v)
     [(['fn fml* body] :seq)] (parse-fn fml* body)
-    [(['defn name (fml* :when vector?) body] :seq)] (let [func* `(~fml* ~body)]
+    [(['defn name (fml* :when vector?) body] :seq)] (let [func* `((~fml* ~body))]
                                                       (parse-defn name func*)) 
     [(['defn name & func*] :seq)] (parse-defn name func*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)

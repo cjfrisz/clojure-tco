@@ -41,12 +41,8 @@
 
 (deftest defn-test
   (is (= '(clojure.core/defn id [x] x) (pemit/emit (parse '(defn id [x] x)))))
-  (is (= '(clojure.core/defn id ([x] x) ([x y] x)) (pemit/emit (parse '(defn id ([x] x) ([x y] x))))))
-  (print (parse '(defn id [x] x)))
-  (print (parse '(defn id ([x] x) ([x y] x)))))
+  (is (= '(clojure.core/defn id ([x] x) ([x y] x)) (pemit/emit (parse '(defn id ([x] x) ([x y] x)))))))
 
-(deftest fn-test
-  (is (= '(clojure.core/fn [x y] y) (pemit/emit (parse '(fn [x y] y))))))
 
 (deftest if-test
   (is (= '(if 3 4 5) (pemit/emit (parse '(if 3 4 5)))))

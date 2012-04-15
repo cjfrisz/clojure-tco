@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 11 Apr 2012
+;; Last modified 15 Apr 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -29,7 +29,7 @@
            [clojure_tco.expr.simple_op
             SimpleOpCps SimpleOpSrs SimpleOpTriv]))
 
-(declare parse parse-fn parse-if parse-op parse-app simple-op?)
+(declare parse parse-fn parse-defn parse-if parse-op parse-app simple-op?)
 
 (defn parse
   "Takes a sequence representing a Clojure expression (generally passed from a
@@ -42,20 +42,34 @@
     [(['quote s] :seq)] (Sym. s)
     [(v :when symbol?)] (Var. v)
     [(['fn fml* body] :seq)] (parse-fn fml* body)
-    [(['defn name fml* body] :seq)] (let [func (parse-fn fml* body)]
-                                      (Defn. name func))
+    [(['defn name (fml* :when vector?) body] :seq)] (let [func* `(~fml* ~body)]
+                                                      (parse-defn name func*)) 
+    [(['defn name & func*] :seq)] (parse-defn name func*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)
     [([(op :when simple-op?) & opnd*] :seq)] (parse-op op opnd*)
     [([rator & rand*] :seq)] (parse-app rator rand*)
     :else (throw (Exception. (str "Invalid expression in parse: " expr)))))
 
 (defn- parse-fn
-  "Helper function for parse that handles 'fn' expression."
+  "Helper function for parse that handles 'fn' expressions."
   [fml* body]
   (let [FML* (map parse fml*)
         FML* (into [] FML*)
         BODY (parse body)]
     (Fn. FML* BODY)))
+
+(defn- parse-defn
+  "Helper function for parse that handles 'defn' expression."
+  [name func*]
+  (letfn [(parse-func* [func* out*]
+            (if (nil? (seq func*))
+                out*
+                (let [fml* (ffirst func*)
+                      body (first (nfirst func*))
+                      func (parse-fn fml* body)]
+                  (recur (next func*) (conj out* func)))))]
+    (let [FUNC* (parse-func* func* [])]
+      (Defn. name FUNC*))))
 
 (defn- parse-if
   "Helper function for parse that handles 'if' expressions."

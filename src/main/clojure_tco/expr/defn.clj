@@ -32,10 +32,10 @@
       (let [name (:name this)
             fml** (map #(map pemit/emit (:fml* %)) (:func* this))
             body* (map #(pemit/emit (:body %)) (:func* this))
-            func* (map #((list (into [] %1)) %2) fml** body*)]
+            func* (map #(list (into [] %1) %2) fml** body*)]
         (if (> (count func*) 2)
             `(defn ~name ~func*)
-            `(defn ~name ~func*))))
+            `(defn ~name ~@func*))))
   
   triv/PCpsTriv
     (cps [this] (pwalkable/walk-expr this triv/cps nil))

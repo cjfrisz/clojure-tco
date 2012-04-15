@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified 13 Apr 2012
+;; Last modified 14 Apr 2012
 ;; 
 ;; Defines the driver for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -35,20 +35,21 @@
   [expr]
   (let [tramp (nv/new-var 'tramp)
         apply-k (nv/new-var 'apply-k)
-        done (nv/new-var 'done)
-        k (nv/new-var 'k)]
+        done (nv/new-var 'done)]
     (letfn [(apply-cps [expr]
-              (cond
-                (instance? Defn expr) (let [func (:func expr)
-                                            FML* (conj (:fml* func) k)
-                                            BODY (apply-cps (:body func))
-                                            FUNC (Fn. FML* BODY)]
-                                        (Defn. (:name expr) FUNC))
-                (extends? srs/PCpsSrs (type expr)) (srs/cps expr k)
-                :else (let [EXPR (triv/cps expr)
-                            app (AppContAbs. apply-k k EXPR)]
-                        (Cont. k app))))]
+              (if (extends? srs/PCpsSrs (type expr))
+                  (let [k (nv/new-var 'k)]
+                    (srs/cps expr k))
+                  (triv/cps expr)))
+            (wrap-expr [expr]
+              (if (instance? Defn expr)
+                  expr
+                  (let [k (nv/new-var 'k)
+                        app (AppContAbs. apply-k k expr)]
+                    (Cont. k app))))]
       (let [expr (parse/parse expr)
             expr (apply-cps expr)
-            expr (pabs-k/abstract-k expr apply-k)]
+            expr (pabs-k/abstract-k expr apply-k)
+            expr (pthunkify/thunkify expr)
+            expr (wrap-expr expr)]
         expr))))

@@ -33,9 +33,10 @@
             fml** (map #(map pemit/emit (:fml* %)) (:func* this))
             body* (map #(pemit/emit (:body %)) (:func* this))
             func* (map #(list (into [] %1) %2) fml** body*)]
-        (if (> (count func*) 2)
-            `(defn ~name ~func*)
-            `(defn ~name ~@func*))))
+        (if (> (count func*) 1)
+            `(defn ~name ~@func*)
+            (let [FUNC* (apply concat func*)]
+              `(defn ~name ~@FUNC*)))))
   
   triv/PCpsTriv
     (cps [this] (pwalkable/walk-expr this triv/cps nil))

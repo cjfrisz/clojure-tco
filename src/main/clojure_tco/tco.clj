@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  5 Mar 2012
-;; Last modified 25 Mar 2012
+;; Last modified 13 Apr 2012
 ;; 
 ;; Defines the "tco" function, which takes a sequence representing a
 ;; Clojure expression and returns the expression CPSed and
@@ -83,7 +83,7 @@
                                            (~fml* ~body)))
       :else expr)))
 
-(defn tco
+(defmacro tco
   "Takes a sequence representing a Clojure expression and returns a
   sequence representing the original CPSed and trampolined to allow
   for constant-space tail calls."

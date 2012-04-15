@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 11 Apr 2012
+;; Last modified 15 Apr 2012
 ;; 
 ;; Implements the PExpr protocol functions for atomic expressions
 ;; (e.g. booleans, integers, symbols, etc.).
@@ -16,74 +16,15 @@
              [pemit :as pemit]
              [pthunkify :as pthunkify]]))
 
-(defrecord Num [val])
-
-(defrecord Bool [val])
-
-(defrecord Var [val])
-
-(defrecord Sym [val])
-
-(def atomic-abs-k
-  {:abstract-k (fn [this app-k] this)})
-
-(def atomic-cps-triv
-  {:cps identity})
-
-(def atomic-emit
-  {:emit (fn [this] (:val this))})
-
-(def atomic-thunkify
-  {:thunkify identity})
-
-(extend Bool
+(defrecord Atomic [val]
   pabs-k/PAbstractK
-    atomic-abs-k
-  
-  triv/PCpsTriv
-    atomic-cps-triv
-
-  pemit/PEmit
-    atomic-emit
-
-  pthunkify/PThunkify
-    atomic-thunkify)
-
-(extend Num
-  pabs-k/PAbstractK
-    atomic-abs-k
+    (abstract-k [this _] this)
 
   triv/PCpsTriv
-    atomic-cps-triv
+    (cps [this] this)
 
   pemit/PEmit
-    atomic-emit
+    (emit [this] (:val this))
 
   pthunkify/PThunkify
-    atomic-thunkify)
-
-(extend Sym
-  pabs-k/PAbstractK
-    atomic-abs-k
-
-  triv/PCpsTriv
-    atomic-cps-triv
-
-  pemit/PEmit
-    atomic-emit
-
-  pthunkify/PThunkify
-    atomic-thunkify)
-
-(extend Var
-  pabs-k/PAbstractK
-    atomic-abs-k
-
-  triv/PCpsTriv
-    atomic-cps-triv
-
-  pemit/PEmit
-    atomic-emit
-
-  pthunkify/PThunkify
-    atomic-thunkify)
+    (thunkify [this] this))

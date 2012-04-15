@@ -19,7 +19,7 @@
   (:import [clojure_tco.expr.app
             App]
            [clojure_tco.expr.atomic
-            Bool Num Sym Var]
+            Atomic]
            [clojure_tco.expr.defn
             Defn]
            [clojure_tco.expr.fn
@@ -37,10 +37,10 @@
   records."
   [expr]
   (match [expr]
-    [(:or true false)] (Bool. expr)
-    [(n :when number?)] (Num. n)
-    [(['quote s] :seq)] (Sym. s)
-    [(v :when symbol?)] (Var. v)
+    [(:or true false)] (Atomic. expr)
+    [(n :when number?)] (Atomic. n)
+    [(['quote s] :seq)] (Atomic. s)
+    [(v :when symbol?)] (Atomic. v)
     [(['fn fml* body] :seq)] (parse-fn fml* body)
     [(['defn name (fml* :when vector?) body] :seq)] (let [func* `((~fml* ~body))]
                                                       (parse-defn name func*)) 

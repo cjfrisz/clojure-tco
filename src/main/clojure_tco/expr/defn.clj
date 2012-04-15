@@ -18,8 +18,10 @@
             [clojure-tco.expr.fn]
             [clojure-tco.expr.thunk]
             [clojure-tco.util.new-var :as new-var])
-  (:import [clojure_tco.expr.fn Fn]
-           [clojure_tco.expr.thunk Thunk]))
+  (:import [clojure_tco.expr.fn
+            Fn]
+           [clojure_tco.expr.thunk
+            Thunk]))
 
 (defrecord Defn [name func*]
   pabs-k/PAbstractK

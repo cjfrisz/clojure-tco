@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 11 Apr 2012
+;; Last modified 16 Apr 2012
 ;; 
 ;; Defines the Fn record for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -15,8 +15,8 @@
              [pcps-srs :as srs]
              [pcps-triv :as triv]
              [pthunkify :as pthunkify]]
-            [clojure-tco.expr.cont]
-            [clojure-tco.expr.thunk]
+            [clojure-tco.expr
+             cont thunk]
             [clojure-tco.util.new-var :as nv])
   (:import [clojure_tco.expr.cont
             Cont AppCont]

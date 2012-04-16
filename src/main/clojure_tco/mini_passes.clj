@@ -58,8 +58,8 @@
   If the input expression doesn't represent a function type then the expression
   is simply returned."
   [expr tramp flag]
-  (if (instance? Defn. expr)
-      (let [fml* (first (:func* expr))
+  (if (instance? Defn expr)
+      (let [fml* (:fml* (first (:func* expr)))
             fml-bl* (vec (butlast fml*))
             rand* (conj fml-bl* flag)
             init-call (App. (:name expr) rand*)

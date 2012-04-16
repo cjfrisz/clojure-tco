@@ -15,7 +15,7 @@
 
 (ns clojure-tco.mini-passes
   (:require [clojure-tco.expr
-             [app atomic fn defn do let loop recur simple-op]]
+             app atomic fn defn do if let loop recur simple-op]
             [clojure-tco.util
              [new-var :as nv]])
   (:import [clojure_tco.expr.app

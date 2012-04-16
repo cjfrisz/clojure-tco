@@ -18,3 +18,10 @@
     (emit [this]
       (let [arg* (map pemit/emit (:arg* this))]
         `(recur ~@arg*))))
+
+(defn make-recur
+  "Takes zero or more expressions (assumed to be in the proper representation)
+  and returns a Recur record with those values."
+  [& arg*]
+  (let [ARG* (vec arg*)]
+    (Recur. ARG*)))

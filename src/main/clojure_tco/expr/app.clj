@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 15 Apr 2012
+;; Last modified 16 Apr 2012
 ;; 
 ;; Defines the record types for function application in the Clojure
 ;; TCO compiler.
@@ -67,3 +67,11 @@
             RAND* (map f (:rand* this))
             RAND* (into [] RAND*)]
         (App. RATOR RAND*))))
+
+(defn make-app
+  "Acts as a secondary constructor or interface for creating App record. It
+  takes a rator and zero or more rand expressions (assumed to be in the proper
+  representation) and returns an App record type."
+  [rator & rand*]
+  (let [RAND* (vec rand*)]
+    (App. rator RAND*)))

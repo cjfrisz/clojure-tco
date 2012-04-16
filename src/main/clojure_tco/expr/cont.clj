@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified 11 Apr 2012
+;; Last modified 16 Apr 2012
 ;; 
 ;; Defines the record types for continuations and continuation
 ;; application.
@@ -62,3 +62,23 @@
 (extend AppCont
   pthunkify/PThunkify
     cont-thunkify)
+
+(defn make-cont
+  "Takes an arg value (assumedly an Atomic type representing a variable) and a
+  body expression and returns a Cont record with those values."
+  [arg body]
+  (Cont. arg body))
+
+(defn make-app-cont
+  "Takes a cont value (should either be an Atomic type representing a variable
+  or a Cont type) and a val and returns an AppCont record with those values."
+  [cont val]
+  (AppCont. cont val))
+
+(defn make-app-cont-abs
+  "Takes an app-k (should be a variable corresponding to a continuation
+  application funct), a cont (should either be an Atomic type representing a
+  variable or a Cont type), and a val and retusn an AppContAbs record with those
+  values."
+  [app-k cont val]
+  (AppContAbs. app-k cont val))

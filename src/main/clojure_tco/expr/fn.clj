@@ -49,3 +49,10 @@
     (thunkify [this]
       (let [BODY (Thunk. (:body this))]
         (Fn. (:fml* this) BODY))))
+
+(defn make-fn
+  "Takes a collection (assumed to contain Atomic types representing variables)
+  and a body expression and returns a Fn record with those values."
+  [fml* body]
+  (let [FML* (vec fml*)]
+    (Fn. FML* body)))

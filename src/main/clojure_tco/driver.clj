@@ -53,6 +53,7 @@
             expr (pabs-k/abstract-k expr apply-k)
             expr (pthunkify/thunkify expr)
             expr (wrap-expr expr)
-            expr (mp/overload expr tramp flag)]
-        (pemit/emit expr)))))
+            expr (mp/overload expr tramp flag)
+            expr (mp/make-flag expr flag)]
+        expr))))
 

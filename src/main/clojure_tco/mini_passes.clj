@@ -89,8 +89,8 @@
         arg (nv/new-var 'a)
         init (Fn. [kont arg]
                   (IfCps. (SimpleOpCps. 'not (SimpleOpCps. 'fn? kont))
-                          (DoSync. (SimpleOpCps. 'ref-set 'true) arg)
-                          (App. kont arg)))]
+                          (DoSync. [(SimpleOpCps. 'ref-set 'true) arg])
+                          (App. kont [arg])))]
     (Let. [apply-k init] expr)))
 
 (defn make-trampoline
@@ -105,6 +105,6 @@
         init (Fn. [thunk flag]
                   (Loop. [thunk thunk]
                          (IfCps. (SimpleOpCps. 'deref [flag])
-                                 (DoSync. (SimpleOpCps. 'ref-set 'false) thunk)
+                                 (DoSync. [(SimpleOpCps. 'ref-set 'false) thunk])
                                  (Recur. (App. thunk [])))))]
     (Let. [tramp init] expr)))

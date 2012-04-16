@@ -64,8 +64,9 @@
             rand* (conj fml-bl* flag)
             init-call (App. (:name expr) rand*)
             tramp-call (App. tramp [init-call flag])
-            func* (concat [fml-bl* tramp-call] (:func* expr))]
-        (Defn. (:name expr) func*))))
+            func* (vec (cons (Fn. fml-bl* tramp-call) (:func* expr)))]
+        (Defn. (:name expr) func*))
+      expr))
 
 (defn make-flag
   "Initializes the flag value for expr with the name given by flag by

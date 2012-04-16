@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified 15 Apr 2012
+;; Last modified 16 Apr 2012
 ;; 
 ;; Defines the record type for 'defn' expressions in the TCO compiler.
 ;;----------------------------------------------------------------------
@@ -16,8 +16,7 @@
              [pthunkify :as pthunkify]
              [pwalkable :as pwalkable]]
             [clojure-tco.expr.fn]
-            [clojure-tco.expr.thunk]
-            [clojure-tco.util.new-var :as new-var])
+            [clojure-tco.expr.thunk])
   (:import [clojure_tco.expr.fn
             Fn]
            [clojure_tco.expr.thunk
@@ -31,7 +30,7 @@
 
   pemit/PEmit
     (emit [this]
-      (let [name (:name this)
+      (let [name (pemit/emit (:name this))
             fml** (map #(map pemit/emit (:fml* %)) (:func* this))
             body* (map #(pemit/emit (:body %)) (:func* this))
             func* (map #(list (into [] %1) %2) fml** body*)]

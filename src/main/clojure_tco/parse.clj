@@ -69,8 +69,9 @@
                       body (first (nfirst func*))
                       func (parse-fn fml* body)]
                   (recur (next func*) (conj out* func)))))]
-    (let [FUNC* (parse-func* func* [])]
-      (Defn. name FUNC*))))
+    (let [NAME (Atomic. name)
+          FUNC* (parse-func* func* [])]
+      (Defn. NAME FUNC*))))
 
 (defn- parse-if
   "Helper function for parse that handles 'if' expressions."

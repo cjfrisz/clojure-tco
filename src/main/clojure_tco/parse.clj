@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 15 Apr 2012
+;; Last modified 16 Apr 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -39,8 +39,9 @@
   (match [expr]
     [(:or true false)] (Atomic. expr)
     [(n :when number?)] (Atomic. n)
-    [(['quote s] :seq)] (Atomic. s)
+    [(['quote s] :seq)] (Atomic. `(quote ~s))
     [(v :when symbol?)] (Atomic. v)
+    [(['ref val] :seq)] (Atomic. `(ref ~val))
     [(['fn fml* body] :seq)] (parse-fn fml* body)
     [(['defn name (fml* :when vector?) body] :seq)] (let [func* `((~fml* ~body))]
                                                       (parse-defn name func*)) 
@@ -100,7 +101,9 @@
       (App. RATOR RAND*))))
 
 (defn- simple-op?
+  "Predicate returning whether op is a simple, value-returning operator."
   [op]
   (some #{op}
-        '(+ - * / mod < <= = >= >
-          inc dec zero? true? false? nil?)))
+        '(+ - * / mod < <= = >= > and or not
+          inc dec zero? true? false? nil?
+          instance? fn? type ref ref-set deref)))

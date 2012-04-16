@@ -36,7 +36,7 @@
   [expr]
   (let [tramp (nv/new-var 'tramp)
         apply-k (nv/new-var 'apply-k)
-        done (nv/new-var 'done)]
+        flag (nv/new-var 'flag)]
     (letfn [(apply-cps [expr]
               (if (extends? srs/PCpsSrs (type expr))
                   (let [k (nv/new-var 'k)]
@@ -53,5 +53,6 @@
             expr (pabs-k/abstract-k expr apply-k)
             expr (pthunkify/thunkify expr)
             expr (wrap-expr expr)
-            expr (mp/overload expr)]
+            expr (mp/overload expr tramp flag)]
         (pemit/emit expr)))))
+

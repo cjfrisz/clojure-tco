@@ -28,6 +28,8 @@
             Defn]
            [clojure_tco.expr.do
             DoSync]
+           [clojure_tco.expr.if
+            IfCps]
            [clojure_tco.expr.let
             Let]
            [clojure_tco.expr.loop

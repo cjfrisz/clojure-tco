@@ -86,12 +86,13 @@
   expression is emitted."
   [expr apply-k]
   (let [kont (nv/new-var 'k)
-        arg (nv/new-var 'a)
-        init (Fn. [kont arg]
-                  (IfCps. (SimpleOpCps. 'not (SimpleOpCps. 'fn? kont))
-                          (DoSync. [(SimpleOpCps. 'ref-set 'true) arg])
-                          (App. kont [arg])))]
-    (Let. [apply-k init] expr)))
+        arg (nv/new-var 'a)]
+    (let [test (SimpleOpCps. 'fn? kont)
+          conseq (App. kont [arg])
+          alt (DoSync. [(SimpleOpCps. 'ref-set 'true) arg])
+          body (IfCps. test conseq alt)
+          init (Fn. [kont arg] body)]
+      (Let. [apply-k init] expr))))
 
 (defn make-trampoline
   "Introduces the definition of the trampoline function for expr using tramp as
@@ -102,9 +103,10 @@
   [expr tramp]
   (let [thunk (nv/new-var 'thunk)
         flag (nv/new-var 'flag)
-        init (Fn. [thunk flag]
-                  (Loop. [thunk thunk]
-                         (IfCps. (SimpleOpCps. 'deref [flag])
-                                 (DoSync. [(SimpleOpCps. 'ref-set 'false) thunk])
-                                 (Recur. (App. thunk [])))))]
+        test (SimpleOpCps. 'deref [flag])
+        conseq (DoSync. [(SimpleOpCps. 'ref-set 'false) thunk])
+        alt (Recur. (App. thunk []))
+        loop-body (IfCps. test conseq alt)
+        body (Loop [thunk thunk] loop-body)
+        init (Fn. [thunk flag] body)]
     (Let. [tramp init] expr)))

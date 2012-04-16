@@ -74,7 +74,7 @@
 
   At current, the flag is a ref initialized to 'false.'"
   [expr flag]
-  (let [init (Atomic. '(ref false))
+  (let [init (SimpleOpCps. 'ref ['false])
         bind* [flag init]]
     (Let. init expr)))
 

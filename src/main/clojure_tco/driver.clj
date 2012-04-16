@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified 15 Apr 2012
+;; Last modified 16 Apr 2012
 ;; 
 ;; Defines the driver for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -11,6 +11,7 @@
 (ns clojure-tco.driver
   (:require [clojure-tco.expr
              [cont defn fn]]
+            [clojure-tco.mini-passes :as mp]
             [clojure-tco.parse :as parse]
             [clojure-tco.protocol
              [pabstract-k :as pabs-k]
@@ -51,5 +52,6 @@
             expr (apply-cps expr)
             expr (pabs-k/abstract-k expr apply-k)
             expr (pthunkify/thunkify expr)
-            expr (wrap-expr expr)]
+            expr (wrap-expr expr)
+            expr (mp/overload expr)]
         (pemit/emit expr)))))

@@ -49,11 +49,3 @@
     (walk-expr [this f _]
       (let [FUNC* (map f (:func* this))]
         (Defn. (:name this) FUNC*))))
-
-(defn make-defn
-  "Takes a name (assumed to be an Atomic representing a variable) and one or
-  more function definitions (assumed to already be in the appropriate
-  representation), and returns a Defn type with those values."
-  [name ffunc & rfunc*]
-  (let [func* (vec (cons ffunc rfunc*))]
-    (Defn. name func*)))

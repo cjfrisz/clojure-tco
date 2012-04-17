@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 16 Apr 2012
+;; Last modified 15 Apr 2012
 ;; 
 ;; Implements the PExpr protocol functions for atomic expressions
 ;; (e.g. booleans, integers, symbols, etc.).
@@ -28,9 +28,3 @@
 
   pthunkify/PThunkify
     (thunkify [this] this))
-
-(defn make-atomic
-  "Takes the value for an atomic and returns an Atomic record type with that
-  value."
-  [val]
-  (Atomic. val))

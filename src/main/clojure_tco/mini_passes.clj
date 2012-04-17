@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 14 Apr 2012
-;; Last modified 16 Apr 2012
+;; Last modified 17 Apr 2012
 ;; 
 ;; Defines the small, one-time code transformations for the TCO
 ;; compiler. These include the following:
@@ -107,6 +107,6 @@
         conseq (DoSync. [(SimpleOpCps. 'ref-set 'false) thunk])
         alt (Recur. (App. thunk []))
         loop-body (IfCps. test conseq alt)
-        body (Loop [thunk thunk] loop-body)
+        body (Loop. [thunk thunk] loop-body)
         init (Fn. [thunk flag] body)]
     (Let. [tramp init] expr)))

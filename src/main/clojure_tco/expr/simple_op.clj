@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 16 Apr 2012
+;; Last modified 11 Apr 2012
 ;; 
 ;; Defines the SimpleOp record types for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -99,30 +99,3 @@
   
   pwalkable/PWalkable
     simple-op-walk)
-
-(defn- make-simple-op-base
-  "Base function for creating simple-op-type records. Takes a constructor,
-  operator, and zero or more arguments and returns a record type corresponding
-  to ctor."
-  [ctor op & opnd*]
-  (let [OPND* (vec opnd*)]
-    (ctor op OPND*)))
-
-(defn make-simple-op-cps
-  "Takes an operator and zero or more operands and returns a SimpleOpCps record
-  with those values."
-  [op & opnd*]
-  (make-simple-op-base ->SimpleOpCps op opnd*))
-
-(defn make-simple-op-srs
-  "Takes an operator and zero or more operands and returns a SimpleOpSrs record
-  with those values."
-  [op & opnd*]
-  (make-simple-op-base ->SimpleOpSrs op opnd*))
-
-(defn make-simple-op-triv
-  "Takes an operator and zero or more operands and returns a SimpleOpTriv record
-  with those values."
-  [op & opnd*]
-  (make-simple-op-base ->SimpleOpTriv op opnd*))
-

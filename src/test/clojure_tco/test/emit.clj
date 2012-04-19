@@ -11,7 +11,7 @@
   (:import [clojure_tco.expr.app
             App]
            [clojure_tco.expr.atomic
-            Bool Num Sym Var]
+            Atomic]
            [clojure_tco.expr.cont
             Cont AppCont AppContAbs]
            [clojure_tco.expr.defn
@@ -33,11 +33,11 @@
 (deftest atomic-test
   (is (= 5 (pemit/emit (parse 5))))
   (is (= 25883 (pemit/emit (parse 25883))))
-  (is (= 'stuff (pemit/emit (parse (quote 'stuff))))))
+  (is (= 'stuff (pemit/emit (parse '(quote stuff))))))
  
 (deftest cont-test
-  (is (= '(clojure.core/fn [x] x) (pemit/emit (Cont. (Var. 'x) (Var. 'x)))))
-  (is (= '((clojure.core/fn [x] x) (quote thonk)) (pemit/emit (AppCont. (Cont. (Var. 'x) (Var. 'x)) (Sym. (quote 'thonk)))))))
+  (is (= '(clojure.core/fn [x] x) (pemit/emit (Cont. (Atomic. 'x) (Atomic. 'x)))))
+  (is (= '((clojure.core/fn [x] x) (quote thonk)) (pemit/emit (AppCont. (Cont. (Atomic. 'x) (Atomic. 'x)) (Atomic. (quote 'thonk)))))))
 
 (deftest defn-test
   (is (= '(clojure.core/defn id [x] x) (pemit/emit (parse '(defn id [x] x)))))
@@ -51,4 +51,4 @@
 ;; (deftest simple-op-test)
 
 (deftest thunk-test
-  (is (= '(clojure.core/fn [] (quote stuff)) (pemit/emit (Thunk. (Sym. ''stuff))))))
+  (is (= '(clojure.core/fn [] (quote stuff)) (pemit/emit (Thunk. (Atomic. ''stuff))))))

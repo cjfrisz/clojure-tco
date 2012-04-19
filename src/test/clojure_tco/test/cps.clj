@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 15 Apr 2012
+;; Last modified 18 Apr 2012
 ;; 
 ;; Testing for the CPSer in the record+protocol'd version of the TCO
 ;; compiler.
@@ -40,19 +40,19 @@
     (is (not (extends? srs/PCpsSrs (type test-bool))))
     (is (= (triv/cps test-bool) test-bool))))
 
-(let [test-num (Atomic. true)]
+(let [test-num (Atomic. 5)]
   (deftest atomic-num
     (is (extends? triv/PCpsTriv (type test-num)))
     (is (not (extends? srs/PCpsSrs (type test-num))))
     (is (= (triv/cps test-num) test-num))))
 
-(let [test-sym (Atomic. true)]
+(let [test-sym (Atomic. '(quote s))]
   (deftest atomic-sym
     (is (extends? triv/PCpsTriv (type test-sym)))
     (is (not (extends? srs/PCpsSrs (type test-sym))))
     (is (= (triv/cps test-sym) test-sym))))
 
-(let [test-var (Atomic. true)]
+(let [test-var (Atomic. 'x)]
   (deftest atomic-var
     (is (extends? triv/PCpsTriv (type test-var)))
     (is (not (extends? srs/PCpsSrs (type test-var))))

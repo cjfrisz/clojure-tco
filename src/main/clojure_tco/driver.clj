@@ -54,7 +54,8 @@
             expr (pthunkify/thunkify expr)
             expr (wrap-expr expr)
             expr (mp/overload expr tramp flag)
-            ;expr (mp/make-flag expr flag)
-            ]
+            expr (mp/make-flag expr flag)
+            expr (mp/make-apply-k expr apply-k)
+            expr (mp/make-trampoline expr tramp)]
         (pemit/emit expr)))))
 

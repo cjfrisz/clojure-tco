@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified 18 Apr 2012
+;; Last modified 20 Apr 2012
 ;; 
 ;; Defines the driver for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -50,11 +50,11 @@
                     (Cont. k app))))]
       (let [expr (parse/parse expr)
             expr (apply-cps expr)
-            ;; expr (pabs-k/abstract-k expr apply-k)
-            ;; expr (pthunkify/thunkify expr)
-            ;; expr (wrap-expr expr)
-            ;; expr (mp/overload expr tramp flag)
-            ;; expr (mp/make-flag expr flag)
+            expr (pabs-k/abstract-k expr apply-k)
+            expr (pthunkify/thunkify expr)
+            expr (wrap-expr expr)
+            expr (mp/overload expr tramp flag)
+            ;expr (mp/make-flag expr flag)
             ]
-        expr))))
+        (pemit/emit expr)))))
 

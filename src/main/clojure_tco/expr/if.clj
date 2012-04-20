@@ -56,7 +56,7 @@
               CONSEQ (cps-if (:conseq this))
               ALT (cps-if (:alt this))]
           (if (extends? triv/PCpsTriv (type test))
-              (let [TEST (cps-if test)]
+              (let [TEST (triv/cps test)]
                 (IfCps. TEST CONSEQ ALT))
               (let [s (new-var/new-var 's)
                     K-body (IfCps. s CONSEQ ALT)

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified 16 Apr 2012
+;; Last modified 20 Apr 2012
 ;; 
 ;; Defines the record type for 'defn' expressions in the TCO compiler.
 ;;----------------------------------------------------------------------
@@ -47,5 +47,5 @@
 
   pwalkable/PWalkable
     (walk-expr [this f _]
-      (let [FUNC* (map f (:func* this))]
+      (let [FUNC* (vec (map f (:func* this)))]
         (Defn. (:name this) FUNC*))))

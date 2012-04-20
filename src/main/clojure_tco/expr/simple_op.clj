@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 11 Apr 2012
+;; Last modified 20 Apr 2012
 ;; 
 ;; Defines the SimpleOp record types for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -76,7 +76,7 @@
 
 (def simple-op-walk
   {:walk-expr (fn [this f ctor]
-                (let [OPND* (map #(f %) (:opnd* this))]
+                (let [OPND* (vec (map #(f %) (:opnd* this)))]
                   (ctor (:op this) OPND*)))})
 
 (extend SimpleOpCps

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 14 Apr 2012
-;; Last modified 17 Apr 2012
+;; Last modified 20 Apr 2012
 ;; 
 ;; Defines the small, one-time code transformations for the TCO
 ;; compiler. These include the following:
@@ -74,12 +74,12 @@
 
   At current, the flag is a ref initialized to 'false.'"
   [expr flag]
-  (let [init (SimpleOpCps. 'ref ['false])
+  (let [init (SimpleOpCps. 'ref [(Atomic. 'false)])
         bind* [flag init]]
-    (Let. init expr)))
+    (Let. bind* expr)))
 
 (defn make-apply-k
-  "Introduces the definition of the continuation application   function for expr
+  "Introduces the definition of the continuation application function for expr
   using apply-k as the name for the function.
 
   The function is let-bound, keeping it locally-scoped to expr when the
@@ -87,12 +87,13 @@
   [expr apply-k]
   (let [kont (nv/new-var 'k)
         arg (nv/new-var 'a)]
-    (let [test (SimpleOpCps. 'fn? kont)
+    (let [test (SimpleOpCps. 'fn? [kont])
           conseq (App. kont [arg])
-          alt (DoSync. [(SimpleOpCps. 'ref-set 'true) arg])
+          alt (DoSync. [(SimpleOpCps. 'ref-set [kont (Atomic. 'true)]) arg])
           body (IfCps. test conseq alt)
-          init (Fn. [kont arg] body)]
-      (Let. [apply-k init] expr))))
+          init (Fn. [kont arg] body)
+          bind* [apply-k init]]
+      (Let. bind* expr))))
 
 (defn make-trampoline
   "Introduces the definition of the trampoline function for expr using tramp as
@@ -104,8 +105,8 @@
   (let [thunk (nv/new-var 'thunk)
         flag (nv/new-var 'flag)
         test (SimpleOpCps. 'deref [flag])
-        conseq (DoSync. [(SimpleOpCps. 'ref-set 'false) thunk])
-        alt (Recur. (App. thunk []))
+        conseq (DoSync. [(SimpleOpCps. 'ref-set [flag (Atomic. 'false)]) thunk])
+        alt (Recur. [(App. thunk [])])
         loop-body (IfCps. test conseq alt)
         body (Loop. [thunk thunk] loop-body)
         init (Fn. [thunk flag] body)]

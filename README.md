@@ -19,7 +19,6 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-* * * * *
 
 ## Bouncing Baby Clojure (BBC)
 
@@ -91,13 +90,11 @@ This will define `fact` in terms of the code transformations used by
 BBC. Simply call `fact` as you would have without the BBC
 transformations, and the rest is done for you.
 
-* * * * *
 
 ## Contributing
 
 Simply fork and use pull requests.
 
-* * * * *
 
 ## Resources
 

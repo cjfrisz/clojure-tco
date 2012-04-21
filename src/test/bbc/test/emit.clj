@@ -1,28 +1,28 @@
-(ns clojure-tco.test.emit
+(ns bbc.test.emit
   (:use [clojure.test]
         [clojure.pprint]
-        [clojure-tco.parse :only (parse)])
-  (:require [clojure-tco.expr
+        [bbc.parse :only (parse)])
+  (:require [bbc.expr
              app atomic cont defn fn if simple-op]
-            [clojure-tco.protocol
+            [bbc.protocol
              [pemit :as pemit]]
-            [clojure-tco.util
+            [bbc.util
              [new-var :as nv]])
-  (:import [clojure_tco.expr.app
+  (:import [bbc.expr.app
             App]
-           [clojure_tco.expr.atomic
+           [bbc.expr.atomic
             Atomic]
-           [clojure_tco.expr.cont
+           [bbc.expr.cont
             Cont AppCont AppContAbs]
-           [clojure_tco.expr.defn
+           [bbc.expr.defn
             Defn]
-           [clojure_tco.expr.fn
+           [bbc.expr.fn
             Fn]
-           [clojure_tco.expr.if
+           [bbc.expr.if
             IfCps IfSrs IfTriv]
-           [clojure_tco.expr.simple_op
+           [bbc.expr.simple_op
             SimpleOpCps SimpleOpSrs SimpleOpTriv]
-           [clojure_tco.expr.thunk
+           [bbc.expr.thunk
             Thunk]))
 
 (deftest app-test

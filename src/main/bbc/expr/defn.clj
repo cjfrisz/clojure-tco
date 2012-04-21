@@ -3,23 +3,23 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified 20 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
 ;; Defines the record type for 'defn' expressions in the TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.expr.defn
-  (:require [clojure-tco.protocol
+(ns bbc.expr.defn
+  (:require [bbc.protocol
              [pabstract-k :as pabs-k]
              [pemit :as pemit]
              [pcps-triv :as triv]
              [pthunkify :as pthunkify]
              [pwalkable :as pwalkable]]
-            [clojure-tco.expr.fn]
-            [clojure-tco.expr.thunk])
-  (:import [clojure_tco.expr.fn
+            [bbc.expr.fn]
+            [bbc.expr.thunk])
+  (:import [bbc.expr.fn
             Fn]
-           [clojure_tco.expr.thunk
+           [bbc.expr.thunk
             Thunk]))
 
 (defrecord Defn [name func*]

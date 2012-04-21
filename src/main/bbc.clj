@@ -1,30 +1,30 @@
 ;;----------------------------------------------------------------------
-;; File driver.clj
+;; File bbc.clj
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified 20 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
 ;; Defines the driver for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.driver
-  (:require [clojure-tco.expr
+(ns bbc
+  (:require [bbc.expr
              [cont defn fn]]
-            [clojure-tco.mini-passes :as mp]
-            [clojure-tco.parse :as parse]
-            [clojure-tco.protocol
+            [bbc.mini-passes :as mp]
+            [bbc.parse :as parse]
+            [bbc.protocol
              [pabstract-k :as pabs-k]
              [pcps-srs :as srs]
              [pcps-triv :as triv]
              [pemit :as pemit]
              [pthunkify :as pthunkify]]
-            [clojure-tco.util.new-var :as nv])
-  (:import [clojure_tco.expr.cont
+            [bbc.util.new-var :as nv])
+  (:import [bbc.expr.cont
             Cont AppContAbs]
-           [clojure_tco.expr.defn
+           [bbc.expr.defn
             Defn]
-           [clojure_tco.expr.fn
+           [bbc.expr.fn
             Fn]))
 
 (defmacro tco

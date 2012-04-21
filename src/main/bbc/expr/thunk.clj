@@ -3,14 +3,14 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified 11 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
 ;; Specifies a record type for thunks in the TCO compiler. Note that
 ;; thunks are traditionally functions of no arguments
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.expr.thunk
-  (:require [clojure-tco.protocol
+(ns bbc.expr.thunk
+  (:require [bbc.protocol
              [pabstract-k :as pabs-k]
              [pemit :as pemit]]))
 

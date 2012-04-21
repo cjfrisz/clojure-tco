@@ -3,12 +3,12 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  5 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
 ;; Defines the protocol for TCO expressions which can be walked
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.protocol.pwalkable)
+(ns bbc.protocol.pwalkable)
 
 (defprotocol PWalkable
   "Protocol for TCO expressions that can be walked."

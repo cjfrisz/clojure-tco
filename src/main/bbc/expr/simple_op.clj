@@ -3,22 +3,22 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 20 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
 ;; Defines the SimpleOp record types for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.expr.simple-op
-  (:require [clojure-tco.protocol
+(ns bbc.expr.simple-op
+  (:require [bbc.protocol
              [pabstract-k :as pabs-k]
              [pemit :as pemit]
              [pcps-srs :as srs]
              [pcps-triv :as triv]
              [pthunkify :as pthunkify]
              [pwalkable :as pwalkable]]
-            [clojure-tco.expr.cont :as cont]
-            [clojure-tco.util.new-var :as new-var])
-  (:import [clojure_tco.expr.cont
+            [bbc.expr.cont :as cont]
+            [bbc.util.new-var :as new-var])
+  (:import [bbc.expr.cont
             Cont AppCont]))
 
 (defrecord SimpleOpCps [op opnd*]

@@ -3,15 +3,15 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Apr 2012
-;; Last modified 15 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
 ;; Defines the new-var function, which returns a new, unique variable
 ;; for the TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.util.new-var
-  (:require [clojure-tco.expr.atomic])
-  (:import  [clojure_tco.expr.atomic
+(ns bbc.util.new-var
+  (:require [bbc.expr.atomic])
+  (:import  [bbc.expr.atomic
              Atomic]))
 
 (defn new-var

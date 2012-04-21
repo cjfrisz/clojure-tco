@@ -3,23 +3,23 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 20 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
 ;; Defines the If record (triv, srs, and cps variants) for the Clojure
 ;; TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.expr.if
-  (:require [clojure-tco.protocol
+(ns bbc.expr.if
+  (:require [bbc.protocol
              [pabstract-k :as pabs-k]
              [pemit :as pemit]
              [pcps-triv :as triv]
              [pcps-srs :as srs]
              [pthunkify :as pthunkify]
              [pwalkable :as pwalkable]]
-            [clojure-tco.expr.cont :as cont]
-            [clojure-tco.util.new-var :as new-var])
-  (:import [clojure_tco.expr.cont
+            [bbc.expr.cont :as cont]
+            [bbc.util.new-var :as new-var])
+  (:import [bbc.expr.cont
             Cont AppCont]))
 
 (defrecord IfCps [test conseq alt]

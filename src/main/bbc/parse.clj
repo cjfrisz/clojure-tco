@@ -3,30 +3,30 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 16 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.parse
+(ns bbc.parse
   (:use [clojure.core.match
          :only (match)])
-  (:require [clojure-tco.expr
+  (:require [bbc.expr
              app atomic defn fn if simple-op]
-            [clojure-tco.protocol
+            [bbc.protocol
              [pcps-srs :as srs]
              [pcps-triv :as triv]])
-  (:import [clojure_tco.expr.app
+  (:import [bbc.expr.app
             App]
-           [clojure_tco.expr.atomic
+           [bbc.expr.atomic
             Atomic]
-           [clojure_tco.expr.defn
+           [bbc.expr.defn
             Defn]
-           [clojure_tco.expr.fn
+           [bbc.expr.fn
             Fn]
-           [clojure_tco.expr.if
+           [bbc.expr.if
             IfCps IfSrs IfTriv]
-           [clojure_tco.expr.simple_op
+           [bbc.expr.simple_op
             SimpleOpCps SimpleOpSrs SimpleOpTriv]))
 
 (declare parse parse-fn parse-defn parse-if parse-op parse-app simple-op?)

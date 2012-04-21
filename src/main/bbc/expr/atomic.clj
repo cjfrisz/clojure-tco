@@ -3,14 +3,14 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 15 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
 ;; Implements the PExpr protocol functions for atomic expressions
 ;; (e.g. booleans, integers, symbols, etc.).
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.expr.atomic
-  (:require [clojure-tco.protocol
+(ns bbc.expr.atomic
+  (:require [bbc.protocol
              [pabstract-k :as pabs-k]
              [pcps-triv :as triv]
              [pemit :as pemit]

@@ -3,12 +3,12 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Feb 2012
-;; Last modified 14 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
 ;; Project declaration for clojure-tco. 
 ;;----------------------------------------------------------------------
 
-(defproject clojure-tco "0.1.2"
+(defproject bbc "0.2.0"
   :description "Adding proper tail calls to Clojure."
   :url "https://github.iu.edu/cjfrisz/clojure-tco.git"
   :dependencies [[org.clojure/clojure
@@ -20,4 +20,4 @@
   :plugins [[lein-swank "1.4.3"]]
   :source-path "src/main"
   :test-path "src/test"
-  :repl-init clojure-tco.driver)
+  :repl-init bbc)

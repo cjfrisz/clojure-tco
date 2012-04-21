@@ -3,13 +3,13 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 16 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
 ;; Defines the record type for 'let' expressions in the TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.expr.let
-  (:require [clojure-tco.protocol
+(ns bbc.expr.let
+  (:require [bbc.protocol
              [pemit :as pemit]]))
 
 (defrecord Let [bind* body]

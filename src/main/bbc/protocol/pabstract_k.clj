@@ -3,13 +3,13 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified 11 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
 ;; Defines the protocol for Clojure TCO expressions for which
 ;; continuation application can be abstracted.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.protocol.pabstract-k)
+(ns bbc.protocol.pabstract-k)
 
 (defprotocol PAbstractK
   "Defines the 'abstract-k' function which abstracts over continutation

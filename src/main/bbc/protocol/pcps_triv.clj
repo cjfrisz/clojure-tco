@@ -1,19 +1,19 @@
 ;;----------------------------------------------------------------------
-;; File pcps-srs.clj
+;; File pcps-triv.clj
 ;; Written by Chris Frisz
 ;; 
 ;; Created  5 Apr 2012
-;; Last modified  5 Apr 2012
+;; Last modified 21 Apr 2012
 ;; 
-;; Defines the PCpsSrs protocol for applying the Olivier-style CPS
-;; transformation to "serious" Clojure expression record types.
+;; Defines the PCpsTriv protocol for applying the Olivier-style CPS
+;; transformation to "trivial" Clojure expression record types.
 ;;----------------------------------------------------------------------
 
-(ns clojure-tco.protocol.pcps-srs)
+(ns bbc.protocol.pcps-triv)
 
-(defprotocol PCpsSrs
-  "Protocol for applying the CPS transformation to serious expressions (a la
+(defprotocol PCpsTriv
+  "Protocol for applying the CPS transformations to trivial expressions (a la
   Olivier)."
-  (cps [this k]
+  (cps [this]
     "Applies the CPS transformation for serious expressions with respect to the
     Olivier-style CPS algorithm."))

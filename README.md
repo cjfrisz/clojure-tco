@@ -68,7 +68,7 @@ factorial:
       [n]
       (if (zero? n)
           1
-    	  (* n (fact (dec n)))))
+          (* n (fact (dec n)))))
 
 This can be compiled to use constant stack space recursive calls by
 simply wrapping it in a call to `ctco`:
@@ -78,7 +78,7 @@ simply wrapping it in a call to `ctco`:
         [n]
         (if (zero? n)
             1
-    	    (* n (fact (dec n))))))
+            (* n (fact (dec n))))))
 
 This will define `fact` in terms of the code transformations used by
 CTCO. Simply call `fact` as you would have without the CTCO

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 14 Apr 2012
-;; Last modified 21 Apr 2012
+;; Last modified 22 Apr 2012
 ;; 
 ;; Defines the small, one-time code transformations for the TCO
 ;; compiler. These include the following:
@@ -13,30 +13,30 @@
 ;;      make-trampoline
 ;;----------------------------------------------------------------------
 
-(ns bbc.mini-passes
-  (:require [bbc.expr
+(ns ctco.mini-passes
+  (:require [ctco.expr
              app atomic fn defn do if let loop recur simple-op]
-            [bbc.util
+            [ctco.util
              [new-var :as nv]])
-  (:import [bbc.expr.app
+  (:import [ctco.expr.app
             App]
-           [bbc.expr.atomic
+           [ctco.expr.atomic
             Atomic]
-           [bbc.expr.fn
+           [ctco.expr.fn
             Fn]
-           [bbc.expr.defn
+           [ctco.expr.defn
             Defn]
-           [bbc.expr.do
+           [ctco.expr.do
             DoSync]
-           [bbc.expr.if
+           [ctco.expr.if
             IfCps]
-           [bbc.expr.let
+           [ctco.expr.let
             Let]
-           [bbc.expr.loop
+           [ctco.expr.loop
             Loop]
-           [bbc.expr.recur
+           [ctco.expr.recur
             Recur]
-           [bbc.expr.simple_op
+           [ctco.expr.simple_op
             SimpleOpCps]))
 
 (defn overload

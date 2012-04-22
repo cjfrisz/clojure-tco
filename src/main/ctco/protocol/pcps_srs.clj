@@ -3,13 +3,13 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  5 Apr 2012
-;; Last modified 21 Apr 2012
+;; Last modified 22 Apr 2012
 ;; 
 ;; Defines the PCpsSrs protocol for applying the Olivier-style CPS
 ;; transformation to "serious" Clojure expression record types.
 ;;----------------------------------------------------------------------
 
-(ns bbc.protocol.pcps-srs)
+(ns ctco.protocol.pcps-srs)
 
 (defprotocol PCpsSrs
   "Protocol for applying the CPS transformation to serious expressions (a la

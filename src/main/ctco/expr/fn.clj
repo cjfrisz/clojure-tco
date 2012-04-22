@@ -3,24 +3,24 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 21 Apr 2012
+;; Last modified 22 Apr 2012
 ;; 
 ;; Defines the Fn record for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns bbc.expr.fn
-  (:require [bbc.protocol
+(ns ctco.expr.fn
+  (:require [ctco.protocol
              [pabstract-k :as pabs-k]
              [pemit :as pemit]
              [pcps-srs :as srs]
              [pcps-triv :as triv]
              [pthunkify :as pthunkify]]
-            [bbc.expr
+            [ctco.expr
              cont thunk]
-            [bbc.util.new-var :as nv])
-  (:import [bbc.expr.cont
+            [ctco.util.new-var :as nv])
+  (:import [ctco.expr.cont
             Cont AppCont]
-           [bbc.expr.thunk
+           [ctco.expr.thunk
             Thunk]))
 
 (defrecord Fn [fml* body]

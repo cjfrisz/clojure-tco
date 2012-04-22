@@ -3,14 +3,14 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 21 Apr 2012
+;; Last modified 22 Apr 2012
 ;; 
 ;; Implements the PExpr protocol functions for atomic expressions
 ;; (e.g. booleans, integers, symbols, etc.).
 ;;----------------------------------------------------------------------
 
-(ns bbc.expr.atomic
-  (:require [bbc.protocol
+(ns ctco.expr.atomic
+  (:require [ctco.protocol
              [pabstract-k :as pabs-k]
              [pcps-triv :as triv]
              [pemit :as pemit]

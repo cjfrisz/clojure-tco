@@ -3,14 +3,14 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified 21 Apr 2012
+;; Last modified 22 Apr 2012
 ;; 
 ;; Defines the record types for continuations and continuation
 ;; application.
 ;;----------------------------------------------------------------------
 
-(ns bbc.expr.cont
-  (:require [bbc.protocol
+(ns ctco.expr.cont
+  (:require [ctco.protocol
              [pabstract-k :as pabs-k]
              [pemit :as pemit]
              [pthunkify :as pthunkify]]))

@@ -20,7 +20,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-## Bouncing Baby Clojure (BBC)
+## Clojure Tail Call Optimizer (CTCO)
 
 An embedded source-to-source compiler for Clojure that provides the
 benefit of full tail-call optimization (TCO) to Clojure code.
@@ -35,33 +35,33 @@ function. The `recur` form is limited to self-recursion and using
 "thunk"). Additionally, `trampoline` doesn't allow functions to be
 return values.
 
-BBC aims to expand support for constant-space tail calls to include
+CTCO aims to expand support for constant-space tail calls to include
 self-recursion and arbitrary n-way mutual recursion returning any
 value type, including function expressions disallowed by
 `trampoline`.
 
-BBC works by applying a first-order one-pass CPS algorithm (via
+CTCO works by applying a first-order one-pass CPS algorithm (via
 [Danvy](http://www.cs.au.dk/~danvy/index-previous.html) 2007), then
 transforming the code to return thunks, and finally creating a custom
 trampoline to be used when the code is executed. Thanks to the
-properties of the CPS transformation, BBC will make all function calls
-into tail calls, thereby even making non-tail code compiled by BBC use
+properties of the CPS transformation, CTCO will make all function calls
+into tail calls, thereby even making non-tail code compiled by CTCO use
 constant space.
 
-**Note**: the subset of Clojure currently accepted by BBC is very
+**Note**: the subset of Clojure currently accepted by CTCO is very
 small and will continue to grow.
 
 ## Usage
 
-The key component of BBC is the `tco` macro. With BBC on your
+The key component of CTCO is the `ctco` macro. With CTCO on your
 classpath, include it with the following code:
 
 ```clojure
-(use '(bbc :only (tco)))
+(use '(ctco :only (ctco)))
 ```
 
 Then simply wrap any piece of code that you want transformed with
-`(tco ...)`. 
+`(ctco ...)`. 
 
 For example, consider the following (non-tail recursive) definition of
 factorial:
@@ -75,10 +75,10 @@ factorial:
 ```
 
 This can be compiled to use constant stack space recursive calls by
-simply wrapping it in a call to `tco`:
+simply wrapping it in a call to `ctco`:
 
 ```clojure
-(tco
+(ctco
   (defn fact
     [n]
     (if (zero? n)
@@ -87,7 +87,7 @@ simply wrapping it in a call to `tco`:
 ```
 
 This will define `fact` in terms of the code transformations used by
-BBC. Simply call `fact` as you would have without the BBC
+CTCO. Simply call `fact` as you would have without the CTCO
 transformations, and the rest is done for you.
 
 
@@ -98,7 +98,7 @@ Simply fork and use pull requests.
 
 ## Resources
 
-A list of the resources for BBC transformations is as follows:
+A list of the resources for CTCO transformations is as follows:
 
 *
   [A First-Order, One-Pass CPS Algorithm](http://www.brics.dk/RS/01/49/BRICS-RS-01-49.pdf)

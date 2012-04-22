@@ -3,15 +3,15 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  3 Apr 2012
-;; Last modified 21 Apr 2012
+;; Last modified 22 Apr 2012
 ;; 
 ;; Defines the new-var function, which returns a new, unique variable
 ;; for the TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns bbc.util.new-var
-  (:require [bbc.expr.atomic])
-  (:import  [bbc.expr.atomic
+(ns ctco.util.new-var
+  (:require [ctco.expr.atomic])
+  (:import  [ctco.expr.atomic
              Atomic]))
 
 (defn new-var

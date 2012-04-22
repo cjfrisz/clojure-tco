@@ -3,14 +3,14 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 21 Apr 2012
+;; Last modified 22 Apr 2012
 ;; 
 ;; Defines the record type and operations for 'loop' expressions in
 ;; the TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns bbc.expr.loop
-  (:require [bbc.protocol
+(ns ctco.expr.loop
+  (:require [ctco.protocol
              [pemit :as pemit]]))
 
 (defrecord Loop [bind* body]

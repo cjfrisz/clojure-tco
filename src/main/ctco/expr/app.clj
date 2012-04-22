@@ -3,24 +3,24 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 21 Apr 2012
+;; Last modified 22 Apr 2012
 ;; 
 ;; Defines the record types for function application in the Clojure
 ;; TCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns bbc.expr.app
-  (:require [bbc.expr.cont]
-            [bbc.protocol
+(ns ctco.expr.app
+  (:require [ctco.expr.cont]
+            [ctco.protocol
              [pabstract-k :as pabs-k]
              [pcps-srs :as srs]
              [pcps-triv :as triv]
              [pemit :as pemit]
              [pthunkify :as pthunkify]
              [pwalkable :as pwalkable]]
-            [bbc.util
+            [ctco.util
              [new-var :as nv]])
-  (:import [bbc.expr.cont
+  (:import [ctco.expr.cont
             Cont AppCont]))
 
 (defrecord App [rator rand*]

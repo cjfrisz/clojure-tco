@@ -3,12 +3,12 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 21 Apr 2012
+;; Last modified 22 Apr 2012
 ;; 
 ;; Defines the protocol for TCO expressions which can be walked
 ;;----------------------------------------------------------------------
 
-(ns bbc.protocol.pwalkable)
+(ns ctco.protocol.pwalkable)
 
 (defprotocol PWalkable
   "Protocol for TCO expressions that can be walked."

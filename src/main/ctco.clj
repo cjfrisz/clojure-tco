@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified 22 Apr 2012
+;; Last modified 23 Apr 2012
 ;; 
 ;; Defines the driver for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -27,7 +27,7 @@
            [ctco.expr.fn
             Fn]))
 
-(defmacro tco
+(defmacro ctco
   "Entry-point for the TCO compiler. Takes a Clojure expression and
   applies the tail-call optimization algorithm to it. Thus, the
   expression given to tco will be transformed such that it is

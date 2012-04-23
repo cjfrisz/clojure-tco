@@ -56,9 +56,7 @@ small and will continue to grow.
 The key component of CTCO is the `ctco` macro. With CTCO on your
 classpath, include it with the following code:
 
-```clojure
-(use '(ctco :only (ctco)))
-```
+    (use '(ctco :only (ctco)))
 
 Then simply wrap any piece of code that you want transformed with
 `(ctco ...)`. 
@@ -66,25 +64,21 @@ Then simply wrap any piece of code that you want transformed with
 For example, consider the following (non-tail recursive) definition of
 factorial:
 
-```clojure
-(defn fact
-  [n]
-  (if (zero? n)
-      1
-	  (* n (fact (dec n)))))
-```
+    (defn fact
+      [n]
+      (if (zero? n)
+          1
+          (* n (fact (dec n)))))
 
 This can be compiled to use constant stack space recursive calls by
 simply wrapping it in a call to `ctco`:
 
-```clojure
-(ctco
-  (defn fact
-    [n]
-    (if (zero? n)
-        1
-  	    (* n (fact (dec n))))))
-```
+    (ctco
+      (defn fact
+        [n]
+        (if (zero? n)
+            1
+            (* n (fact (dec n))))))
 
 This will define `fact` in terms of the code transformations used by
 CTCO. Simply call `fact` as you would have without the CTCO

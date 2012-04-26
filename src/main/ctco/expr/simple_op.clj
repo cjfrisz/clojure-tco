@@ -5,7 +5,67 @@
 ;; Created  2 Apr 2012
 ;; Last modified 26 Apr 2012
 ;; 
-;; Defines the SimpleOp record types for the Clojure TCO compiler.
+;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
+;; for representing operations using simple primitives, i.e.
+;; arithmetic and relational operators or simple type predicates.
+;; SimpleOpSrs and SimpleOpTriv correspond to primitive operations
+;; that are "serious" or "trivial" with respect to the Danvy-style CPS
+;; algorithm, respectively. The SimpleOpCps record type corresponds to
+;; primitive operations which have undergone the CPS transformation.
+;;
+;; IfCps implements the following protocols:
+;;
+;;      PAbstractK:
+;;              Maps abstract-k over the operands of the expression.
+;;
+;;      PThunkify:
+;;              Maps thunkify over the operands of the expression.
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(~op ~@opnd*), where opnd* is the vector of operands.
+;;
+;;      PWalkable:
+;;              Maps the given function over the operands of the
+;;              expression. 
+;;
+;; IfSrs implements the following protocols:
+;;
+;;      PCpsSrs:
+;;              Applies the Danvy-style CPS transformation to the
+;;              primitive operation. Essentially, for each trivial
+;;              subexpression, it is CPSed and left in place. For each
+;;              serious subexpression, it is pulled out of the
+;;              expression, evaluated, and the original application
+;;              expression is placed inside a continuation with the
+;;              subexpression replaced with a variable.
+;;
+;;      PThunkify:
+;;              Maps thunkify over the operands of the expression.
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(~op ~@opnd*)
+;;
+;;      PWalkable:
+;;              Maps the given function over the operands of the
+;;              expression. 
+;;
+;; IfTriv implements the following protocols:
+;;
+;;      PCpsTriv:
+;;              Maps cps-triv over the operands of the expression.
+;;
+;;      PThunkify:
+;;              Maps thunkify over the operands of the expression.
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(~op ~@opnd*)
+;;
+;;      PWalkable:
+;;              Maps the given function over the operands of the
+;;              expression. 
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.simple-op

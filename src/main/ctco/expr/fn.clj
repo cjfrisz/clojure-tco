@@ -5,7 +5,27 @@
 ;; Created 30 Mar 2012
 ;; Last modified 26 Apr 2012
 ;; 
-;; Defines the Fn record for the Clojure TCO compiler.
+;; Defines the Fn record type for representing 'fn' expressions in the
+;; Clojure TCO compiler.
+;;
+;; It implements the following protocols:
+;;
+;;      PAbstractK:
+;;              Recursively applies abstract-k to the body expression,
+;;              returning a new Fn record.
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(fn ~fml* body).
+;;
+;;      PCpsTriv:
+;;              Applies the CPS transformation to the body expression
+;;              and extends the formal parameters list with an
+;;              additional 'k' argument for the continuation.
+;;
+;;      PThunkify:
+;;              Simply calls thunkify on the body and returns a new Fn
+;;              record with that body value. 
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.fn
@@ -26,10 +46,9 @@
 
   proto/PEmit
     (emit [this]
-      (let [fml* (map proto/emit (:fml* this))
-            FML* (into [] fml*)
+      (let [fml* (vec (map proto/emit (:fml* this)))
             body (proto/emit (:body this))]
-        `(fn ~FML* ~body)))
+        `(fn ~fml* ~body)))
   
   proto/PCpsTriv
     (cps-triv [this]
@@ -42,5 +61,5 @@
 
   proto/PThunkify
     (thunkify [this]
-      (let [BODY (Thunk. (:body this))]
+      (let [BODY (proto/thunkify (:body this))]
         (Fn. (:fml* this) BODY))))

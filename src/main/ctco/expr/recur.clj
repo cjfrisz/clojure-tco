@@ -5,8 +5,16 @@
 ;; Created 16 Apr 2012
 ;; Last modified 26 Apr 2012
 ;; 
-;; Defines the record type and operations for 'recur' expressions in
-;; the TCO compiler.
+;; Defines the Recur record type and operations for representing
+;; 'recur' expressions in the Clojure TCO compiler.
+;;
+;; Recur implements the following protocols:
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(loop ~bind* ~body), where bind* is the vector of
+;;              variables and bindings, and body is the body
+;;              expression of the 'loop.'
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.recur

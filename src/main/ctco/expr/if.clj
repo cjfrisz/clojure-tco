@@ -5,8 +5,73 @@
 ;; Created 30 Mar 2012
 ;; Last modified 26 Apr 2012
 ;; 
-;; Defines the If record (triv, srs, and cps variants) for the Clojure
-;; TCO compiler.
+;; Defines the IfSrs, IfTriv, IfCps record types representing serious,
+;; trivial, and CPSed 'if' expressions, respectively. IfSrs and IfTriv
+;; correspond to 'if' expressions that have subexpressions which are
+;; "serious" or "trivial" with respect to the Danvy-style CPS algorithm.
+;; IfCps corresponds to an 'if' expression that has undergone the CPS
+;; transformation.
+;;
+;; IfCps implements the following protocols:
+;;
+;;      PAbstractK:
+;;              Maps abstract-k over the test, consequent, and
+;;              alternative of the expression.
+;;
+;;      PThunkify:
+;;              Maps thunkify over the test, consequent, and
+;;              alternative of the expression.
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(if ~test ~conseq ~alt)
+;;
+;;      PWalkable:
+;;              Maps the given function over the test, consequent, and
+;;              alternative of the expression. 
+;;
+;; IfSrs implements the following protocols:
+;;
+;;      PCpsSrs:
+;;              Applies the CPS transformation to the consequent and
+;;              alternative of the expression with respect to the
+;;              evaluation continuation. If the test is trivial with
+;;              respect to the Danvy-style CPS transformation, an
+;;              IfCps record is returned with the transformed test,
+;;              consequent, and alternative. Otherwise, the test is
+;;              pulled out and evaluated first, returning the result
+;;              of applying CPS to the test with the 'if' expression
+;;              as the continuation.
+;;
+;;      PThunkify:
+;;              Maps thunkify over the test, consequent, and
+;;              alternative of the expression.
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(if ~test ~conseq ~alt)
+;;
+;;      PWalkable:
+;;              Maps the given function over the test, consequent, and
+;;              alternative of the expression. 
+;;
+;; IfTriv implements the following protocols:
+;;
+;;      PCpsTriv:
+;;              Maps cps-triv over the test, consequent, and
+;;              alternative of the expression.
+;;
+;;      PThunkify:
+;;              Maps thunkify over the test, consequent, and
+;;              alternative of the expression.
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(if ~test ~conseq ~alt)
+;;
+;;      PWalkable:
+;;              Maps the given function over the test, consequent, and
+;;              alternative of the expression. 
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.if
@@ -19,24 +84,11 @@
 (defrecord IfCps [test conseq alt]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (let [ctor #(IfCps. %1 %2 %3)]
-        (proto/walk-expr this #(proto/abstract-k % app-k) ctor)))
+      (proto/walk-expr this #(proto/abstract-k % app-k) ->IfCps))
   
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(IfCps. %1 %2 %3)]
-        (proto/walk-expr this proto/thunkify ctor))))
-
-(defrecord IfTriv [test conseq alt]
-  proto/PCpsTriv
-  (cps-triv [this]
-    (let [ctor #(IfCps. %1 %2 %3)]
-      (proto/walk-expr this proto/cps-triv ctor)))
-
-  proto/PThunkify
-    (thunkify [this]
-      (let [ctor #(IfTriv. %1 %2 %3)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify ->IfCps)))
 
 (defrecord IfSrs [test conseq alt]
   proto/PCpsSrs
@@ -59,8 +111,16 @@
 
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(IfSrs. %1 %2 %3)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify ->IfSrs)))
+
+(defrecord IfTriv [test conseq alt]
+  proto/PCpsTriv
+  (cps-triv [this]
+    (proto/walk-expr this proto/cps-triv ->IfCps))
+
+  proto/PThunkify
+    (thunkify [this]
+      (proto/walk-expr this proto/thunkify ->IfTriv)))
 
 (def if-emit
   {:emit (fn [this]

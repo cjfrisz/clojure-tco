@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 22 Apr 2012
+;; Last modified 26 Apr 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -13,9 +13,7 @@
          :only (match)])
   (:require [ctco.expr
              app atomic defn fn if simple-op]
-            [ctco.protocol
-             [pcps-srs :as srs]
-             [pcps-triv :as triv]])
+            [ctco.protocol :as proto])
   (:import [ctco.expr.app
             App]
            [ctco.expr.atomic
@@ -78,7 +76,7 @@
   (let [TEST (parse test)
         CONSEQ (parse conseq)
         ALT (parse alt)]
-    (if (every? #(extends? triv/PCpsTriv (type %)) [TEST CONSEQ ALT])
+    (if (every? #(extends? proto/PCpsTriv (type %)) [TEST CONSEQ ALT])
         (IfTriv. TEST CONSEQ ALT)
         (IfSrs. TEST CONSEQ ALT))))
 
@@ -88,7 +86,7 @@
   [op opnd*]
   (let [OPND* (map parse opnd*)]
     (let [OPND* (into [] OPND*)]
-      (if (every? #(extends? triv/PCpsTriv (type %)) OPND*)
+      (if (every? #(extends? proto/PCpsTriv (type %)) OPND*)
           (SimpleOpTriv. op OPND*)
           (SimpleOpSrs. op OPND*)))))
 

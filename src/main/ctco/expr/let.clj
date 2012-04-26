@@ -3,18 +3,17 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 22 Apr 2012
+;; Last modified 26 Apr 2012
 ;; 
 ;; Defines the record type for 'let' expressions in the TCO compiler.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.let
-  (:require [ctco.protocol
-             [pemit :as pemit]]))
+  (:require [ctco.protocol :as proto]))
 
 (defrecord Let [bind* body]
-  pemit/PEmit
+  proto/PEmit
     (emit [this]
-      (let [bind* (vec (map pemit/emit (:bind* this)))
-            body (pemit/emit (:body this))]
+      (let [bind* (vec (map proto/emit (:bind* this)))
+            body (proto/emit (:body this))]
         `(let ~bind* ~body))))

@@ -3,28 +3,24 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 22 Apr 2012
+;; Last modified 26 Apr 2012
 ;; 
 ;; Implements the PExpr protocol functions for atomic expressions
 ;; (e.g. booleans, integers, symbols, etc.).
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.atomic
-  (:require [ctco.protocol
-             [pabstract-k :as pabs-k]
-             [pcps-triv :as triv]
-             [pemit :as pemit]
-             [pthunkify :as pthunkify]]))
+  (:require [ctco.protocol :as proto]))
 
 (defrecord Atomic [val]
-  pabs-k/PAbstractK
+  proto/PAbstractK
     (abstract-k [this _] this)
 
-  triv/PCpsTriv
-    (cps [this] this)
+  proto/PCpsTriv
+    (cps-triv [this] this)
 
-  pemit/PEmit
+  proto/PEmit
     (emit [this] (:val this))
 
-  pthunkify/PThunkify
+  proto/PThunkify
     (thunkify [this] this))

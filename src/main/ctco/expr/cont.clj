@@ -3,62 +3,59 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified 22 Apr 2012
+;; Last modified 26 Apr 2012
 ;; 
 ;; Defines the record types for continuations and continuation
 ;; application.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.cont
-  (:require [ctco.protocol
-             [pabstract-k :as pabs-k]
-             [pemit :as pemit]
-             [pthunkify :as pthunkify]]))
+  (:require [ctco.protocol :as proto]))
 
 (defrecord Cont [arg body]
-  pabs-k/PAbstractK
+  proto/PAbstractK
     (abstract-k [this app-k]
-      (let [BODY (pabs-k/abstract-k (:body this) app-k)]
+      (let [BODY (proto/abstract-k (:body this) app-k)]
         (Cont. (:arg this) BODY)))
   
-  pemit/PEmit
+  proto/PEmit
     (emit [this]
-      (let [arg (pemit/emit (:arg this))
-            body (pemit/emit (:body this))]
+      (let [arg (proto/emit (:arg this))
+            body (proto/emit (:body this))]
         `(fn [~arg] ~body))))
 
 (defrecord AppContAbs [app-k cont val]
-  pemit/PEmit
+  proto/PEmit
     (emit [this]
-      (let [app-k (pemit/emit (:app-k this))
-            cont (pemit/emit (:cont this))
-            val (pemit/emit (:val this))]
+      (let [app-k (proto/emit (:app-k this))
+            cont (proto/emit (:cont this))
+            val (proto/emit (:val this))]
         `(~app-k ~cont ~val))))
 
 (defrecord AppCont [cont val]
-  pabs-k/PAbstractK
+  proto/PAbstractK
     (abstract-k [this app-k]
-      (let [CONT (pabs-k/abstract-k (:cont this) app-k)
-            VAL (pabs-k/abstract-k (:val this) app-k)]
+      (let [CONT (proto/abstract-k (:cont this) app-k)
+            VAL (proto/abstract-k (:val this) app-k)]
         (AppContAbs. app-k CONT VAL)))
 
-  pemit/PEmit
+  proto/PEmit
     (emit [this]
-      (let [cont (pemit/emit (:cont this))
-            val (pemit/emit (:val this))]
+      (let [cont (proto/emit (:cont this))
+            val (proto/emit (:val this))]
         `(~cont ~val))))
 
 (def cont-thunkify
   {:thunkify identity})
 
 (extend Cont
-  pthunkify/PThunkify
+  proto/PThunkify
     cont-thunkify)
 
 (extend AppContAbs
-  pthunkify/PThunkify
+  proto/PThunkify
     cont-thunkify)
 
 (extend AppCont
-  pthunkify/PThunkify
+  proto/PThunkify
     cont-thunkify)

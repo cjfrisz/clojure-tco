@@ -5,16 +5,44 @@
 ;; Created  2 Apr 2012
 ;; Last modified 26 Apr 2012
 ;; 
-;; Defines the record types for function application in the Clojure
+;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
+;;
+;; It implements the following protocols:
+;;      PAbstractK:
+;;              Simply recurs over the rator and rand*
+;;
+;;      PEmit:
+;;              Emits (recursively) the expression as
+;;              `(~rator ~@rand*)
+;;
+;;      PCpsSrs:
+;;              Applies the Danvy-style CPS transformation to the
+;;              application expression. Essentially, for each trivial
+;;              subexpression, it is CPSed and left in place. For each
+;;              serious subexpression, it is pulled out of the
+;;              expression, evaluated, and the original application
+;;              expression is placed inside a continuation with the
+;;              subexpression replaced with a variable.
+;;
+;;      PThunkify:
+;;              Recursively thunkifies the rator and each rand* and
+;;              puts the result inside of a thunk.
+;;
+;;      PWalkable:
+;;              Applies the given function to the rator and each rand*
+;;              and returns a new App record.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.app
-  (:require [ctco.expr.cont]
+  (:require [ctco.expr
+             cont thunk]
             [ctco.protocol :as proto]
             [ctco.util.new-var :as nv])
   (:import [ctco.expr.cont
-            Cont AppCont]))
+            Cont AppCont]
+           [ctco.expr.thunk
+            Thunk]))
 
 (defrecord App [rator rand*]
   proto/PAbstractK
@@ -52,11 +80,12 @@
           (App. RATOR RAND*))))
 
   proto/PThunkify
-    (thunkify [this] (proto/walk-expr this proto/thunkify nil))
+    (thunkify [this]
+      (let [THIS (proto/walk-expr this proto/thunkify nil)]
+        (Thunk. THIS)))
 
   proto/PWalkable
     (walk-expr [this f _]
       (let [RATOR (f (:rator this))
-            RAND* (map f (:rand* this))
-            RAND* (into [] RAND*)]
+            RAND* (vec (map f (:rand* this)))]
         (App. RATOR RAND*))))

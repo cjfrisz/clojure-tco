@@ -5,8 +5,20 @@
 ;; Created 16 Apr 2012
 ;; Last modified 26 Apr 2012
 ;; 
-;; Defines the record type and operations for 'do' expressions in the
-;; TCO compiler.
+;; Defines the Do and DoSync record types and operations for 'do' and
+;; 'dosync'expressions in the Clojure TCO compiler.
+;;
+;; Do implements the following protocols:
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(do ~@expr*).
+;;
+;; DoSync implements the following protocols:
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(dosync ~@expr*).
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.do

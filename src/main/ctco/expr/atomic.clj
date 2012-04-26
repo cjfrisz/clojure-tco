@@ -5,8 +5,22 @@
 ;; Created 30 Mar 2012
 ;; Last modified 26 Apr 2012
 ;; 
-;; Implements the PExpr protocol functions for atomic expressions
-;; (e.g. booleans, integers, symbols, etc.).
+;; Defines the Atomic record type for atomic expressions (e.g.
+;; numbers, booleans, symbols, etc.) in the CTCO compiler.
+;;
+;; It implements the following records:
+;;
+;;      PAbstractK:
+;;              Simply returns the Atomic.
+;;
+;;      PCpsTriv:
+;;              Simply returns the Atomic.
+;;
+;;      PEmit:
+;;              Returns the syntax for the Atomic.
+;;
+;;      PThunkify:
+;;              Simply returns the Atomic.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.atomic

@@ -5,7 +5,31 @@
 ;; Created  4 Apr 2012
 ;; Last modified 26 Apr 2012
 ;; 
-;; Defines the record type for 'defn' expressions in the TCO compiler.
+;; Defines the Defn record type for 'defn' expressions in the TCO
+;; compiler. It supports multiple arity definitions and represents
+;; them as a vector of Fn records.
+;;
+;; Defn implements the following protocols:
+;;
+;;      PAbstractK:
+;;              Maps abstract-k over the enclosed function
+;;              definitions.
+;;
+;;      PEmit:
+;;              Emits (recursively) the expression as syntax i the
+;;              form `(defn ~name ~@body*) where body* is the list of
+;;              vector of emitted function definitions only including
+;;              the formal parameters lists and bodies.
+;;
+;;      PCpsTriv:
+;;              Maps cps-triv over the vector of function definitions.
+;;
+;;      PThunkify:
+;;              Maps thunkify over the vector of function definitions.
+;;
+;;      PWalkable:
+;;              Maps the given function over the vector of function
+;;              definitions, returning a new Defn record.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.defn

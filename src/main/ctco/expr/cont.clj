@@ -5,8 +5,45 @@
 ;; Created  1 Apr 2012
 ;; Last modified 26 Apr 2012
 ;; 
-;; Defines the record types for continuations and continuation
-;; application.
+;; Defines the Cont, AppCont, and AppContAbs record types for
+;; continuations, continuation application, and continuation
+;; application abstracted with respect to continuations, respectively.
+;;
+;; Cont implements the following protocols:
+;;
+;;      PAbstractK:
+;;              Applies abstract-k to the body.
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(fn [~arg] ~body). Thus it uses higher-order functions
+;;              to represent continuations.
+;;
+;;      PThunkify:
+;;              Simply returns the expression.
+;;
+;; AppCont implements the following protocols:
+;;
+;;      PAbstractK:
+;;              Recursively applies abstract-k to the continuation and
+;;              val, and returns an AppContAbs record with the given
+;;              app-k as the function for applying continuations.
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(~cont ~val).
+;;
+;;      PThunkify:
+;;              Simply returns the expression.
+;;
+;; AppContAbs implements the following protocols:
+;;
+;;      PEmit:
+;;              Emits (recursively) the syntax for the expression as
+;;              `(~app-k ~cont ~val).
+;;
+;;      PThunkify:
+;;              Simply returns the expression.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.cont

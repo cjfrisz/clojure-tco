@@ -79,7 +79,9 @@ Where:
 The key component of CTCO is the `ctco` macro. With CTCO on your
 classpath, include it with the following code:
 
-    (use '(ctco :only (ctco)))
+```clojure
+(use '(ctco :only (ctco)))
+```
 
 Then simply wrap any piece of code that you want transformed with
 `(ctco ...)`. 

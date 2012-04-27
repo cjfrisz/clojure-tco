@@ -14,7 +14,7 @@
             [ctco.mini-passes :as mp]
             [ctco.parse :as parse]
             [ctco.protocol :as proto]
-            [ctco.util.new-var :as nv])
+            [ctco.util :as util])
   (:import [ctco.expr.cont
             Cont AppContAbs]
            [ctco.expr.defn
@@ -29,18 +29,18 @@
   tail-recursive and will use a constant amount of stack memory in its
   execution."
   [expr]
-  (let [tramp (nv/new-var 'tramp)
-        apply-k (nv/new-var 'apply-k)
-        flag (nv/new-var 'flag)]
+  (let [tramp (util/new-var 'tramp)
+        apply-k (util/new-var 'apply-k)
+        flag (util/new-var 'flag)]
     (letfn [(apply-cps [expr]
               (if (extends? proto/PCpsSrs (type expr))
-                  (let [k (nv/new-var 'k)]
+                  (let [k (util/new-var 'k)]
                     (proto/cps-srs expr k))
                   (proto/cps-triv expr)))
             (wrap-expr [expr]
               (if (instance? Defn expr)
                   expr
-                  (let [k (nv/new-var 'k)
+                  (let [k (util/new-var 'k)
                         app (AppContAbs. apply-k k expr)]
                     (Cont. k app))))]
       (let [expr (parse/parse expr)

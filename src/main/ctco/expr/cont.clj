@@ -47,7 +47,10 @@
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.cont
-  (:require [ctco.protocol :as proto]))
+  (:require [ctco.expr.thunk]
+            [ctco.protocol :as proto])
+  (:import [ctco.expr.thunk
+            Thunk]))
 
 (defrecord Cont [arg body]
   proto/PAbstractK
@@ -59,7 +62,12 @@
     (emit [this]
       (let [arg (proto/emit (:arg this))
             body (proto/emit (:body this))]
-        `(fn [~arg] ~body))))
+        `(fn [~arg] ~body)))
+
+  proto/PThunkify
+    (thunkify [this]
+      (let [BODY (proto/thunkify (:body this))]
+        (Cont. (:arg this) BODY))))
 
 (defrecord AppContAbs [app-k cont val]
   proto/PEmit
@@ -67,7 +75,13 @@
       (let [app-k (proto/emit (:app-k this))
             cont (proto/emit (:cont this))
             val (proto/emit (:val this))]
-        `(~app-k ~cont ~val))))
+        `(~app-k ~cont ~val)))
+
+  proto/PThunkify
+    (thunkify [this]
+      (let [CONT (proto/thunkify (:cont this))
+            VAL (proto/thunkify (:val this))]
+        (Thunk. (AppContAbs. (:app-k this) CONT VAL)))))
 
 (defrecord AppCont [cont val]
   proto/PAbstractK
@@ -80,19 +94,10 @@
     (emit [this]
       (let [cont (proto/emit (:cont this))
             val (proto/emit (:val this))]
-        `(~cont ~val))))
+        `(~cont ~val)))
 
-(def cont-thunkify
-  {:thunkify identity})
-
-(extend Cont
   proto/PThunkify
-    cont-thunkify)
-
-(extend AppContAbs
-  proto/PThunkify
-    cont-thunkify)
-
-(extend AppCont
-  proto/PThunkify
-    cont-thunkify)
+    (thunkify [this]
+      (let [CONT (proto/thunkify (:cont this))
+            VAL (proto/thunkify (:val this))]
+        (Thunk. (AppCont. CONT VAL)))))

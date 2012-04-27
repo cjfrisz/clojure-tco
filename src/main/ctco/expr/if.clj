@@ -77,18 +77,20 @@
 (ns ctco.expr.if
   (:require [ctco.expr.cont :as cont]
             [ctco.protocol :as proto]
-            [ctco.util.new-var :as new-var])
+            [ctco.util :as util])
   (:import [ctco.expr.cont
             Cont AppCont]))
 
 (defrecord IfCps [test conseq alt]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (proto/walk-expr this #(proto/abstract-k % app-k) ->IfCps))
+      (let [ctor #(IfCps. %1 %2 %3)]
+        (proto/walk-expr this #(proto/abstract-k % app-k) ctor)))
   
   proto/PThunkify
     (thunkify [this]
-      (proto/walk-expr this proto/thunkify ->IfCps)))
+      (let [ctor #(IfCps. %1 %2 %3)]
+        (proto/walk-expr this proto/thunkify ctor))))
 
 (defrecord IfSrs [test conseq alt]
   proto/PCpsSrs
@@ -104,23 +106,26 @@
           (if (extends? proto/PCpsTriv (type test))
               (let [TEST (proto/cps-triv test)]
                 (IfCps. TEST CONSEQ ALT))
-              (let [s (new-var/new-var 's)
+              (let [s (util/new-var 's)
                     K-body (IfCps. s CONSEQ ALT)
                     K (Cont. s K-body)]
                 (proto/cps-srs test K))))))
 
   proto/PThunkify
     (thunkify [this]
-      (proto/walk-expr this proto/thunkify ->IfSrs)))
+      (let [ctor #(IfSrs. %1 %2 %3)]
+        (proto/walk-expr this proto/thunkify ctor))))
 
 (defrecord IfTriv [test conseq alt]
   proto/PCpsTriv
-  (cps-triv [this]
-    (proto/walk-expr this proto/cps-triv ->IfCps))
+    (cps-triv [this]
+      (let [ctor #(IfCps. %1 %2 %3)]
+        (proto/walk-expr this proto/cps-triv ctor)))
 
   proto/PThunkify
     (thunkify [this]
-      (proto/walk-expr this proto/thunkify ->IfTriv)))
+      (let [ctor #(IfTriv. %1 %2 %3)]
+        (proto/walk-expr this proto/thunkify ctor))))
 
 (def if-emit
   {:emit (fn [this]

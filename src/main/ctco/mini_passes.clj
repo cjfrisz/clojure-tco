@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 14 Apr 2012
-;; Last modified 22 Apr 2012
+;; Last modified 26 Apr 2012
 ;; 
 ;; Defines the small, one-time code transformations for the TCO
 ;; compiler. These include the following:
@@ -16,8 +16,7 @@
 (ns ctco.mini-passes
   (:require [ctco.expr
              app atomic fn defn do if let loop recur simple-op]
-            [ctco.util
-             [new-var :as nv]])
+            [ctco.util :as util])
   (:import [ctco.expr.app
             App]
            [ctco.expr.atomic
@@ -85,8 +84,8 @@
   The function is let-bound, keeping it locally-scoped to expr when the
   expression is emitted."
   [expr apply-k]
-  (let [kont (nv/new-var 'k)
-        arg (nv/new-var 'a)]
+  (let [kont (util/new-var 'k)
+        arg (util/new-var 'a)]
     (let [test (SimpleOpCps. 'fn? [kont])
           conseq (App. kont [arg])
           alt (DoSync. [(SimpleOpCps. 'ref-set [kont (Atomic. 'true)]) arg])
@@ -102,8 +101,8 @@
   The function is let-bound, keeping it locally-scoped to expr when the
   expression is emitted."
   [expr tramp]
-  (let [thunk (nv/new-var 'thunk)
-        flag (nv/new-var 'flag)
+  (let [thunk (util/new-var 'thunk)
+        flag (util/new-var 'flag)
         test (SimpleOpCps. 'deref [flag])
         conseq (DoSync. [(SimpleOpCps. 'ref-set [flag (Atomic. 'false)]) thunk])
         alt (Recur. [(App. thunk [])])

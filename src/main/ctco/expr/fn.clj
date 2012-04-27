@@ -32,7 +32,7 @@
   (:require [ctco.expr
              cont thunk]
             [ctco.protocol :as proto]
-            [ctco.util.new-var :as nv])
+            [ctco.util :as util])
   (:import [ctco.expr.cont
             Cont AppCont]
            [ctco.expr.thunk
@@ -52,7 +52,7 @@
   
   proto/PCpsTriv
     (cps-triv [this]
-      (let [k (nv/new-var 'k)]
+      (let [k (util/new-var 'k)]
         (let [FML* (conj (:fml* this) k)
               BODY (condp extends? (type (:body this))
                        proto/PCpsTriv (AppCont. k (proto/cps-triv body))

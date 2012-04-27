@@ -71,7 +71,7 @@
 (ns ctco.expr.simple-op
   (:require [ctco.protocol :as proto]
             [ctco.expr.cont :as cont]
-            [ctco.util.new-var :as new-var])
+            [ctco.util :as util])
   (:import [ctco.expr.cont
             Cont AppCont]))
 
@@ -110,7 +110,7 @@
                           (let [FST (proto/cps-triv fst)
                                 POST-OPND* (conj post-opnd* FST)]
                             (recur rst POST-OPND* k))
-                          (let [s (new-var/new-var 's)
+                          (let [s (util/new-var 's)
                                 POST-OPND* (conj post-opnd* s)
                                 RST (cps-op rst POST-OPND* k)
                                 K (Cont. s RST)]

@@ -38,7 +38,7 @@
   (:require [ctco.expr
              cont thunk]
             [ctco.protocol :as proto]
-            [ctco.util.new-var :as nv])
+            [ctco.util :as util])
   (:import [ctco.expr.cont
             Cont AppCont]
            [ctco.expr.thunk
@@ -70,7 +70,7 @@
                           (let [FST (proto/cps-triv fst)
                                 POST-RAND* (conj post-rand* FST)]
                             (recur nxt POST-RAND* k))
-                          (let [s (nv/new-var 's)
+                          (let [s (util/new-var 's)
                                 POST-RAND* (conj post-rand* s)
                                 NXT (cps-rand* nxt POST-RAND* k)
                                 K (Cont. s NXT)]

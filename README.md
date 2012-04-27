@@ -28,7 +28,7 @@ benefit of full tail-call optimization (TCO) to Clojure code.
 Due to Clojure's adherence to Java calling conventions, Clojure is
 unable to provide full support for constant-space tail calls as is
 guaranteed by languages like Scheme or Standard ML. Standard Clojure
-provides some support the `recur` form and the `trampoline`
+provides some support via the `recur` form and the `trampoline`
 function. The `recur` form is limited to self-recursion and using
 `trampoline` requires manual code modification such that each
 `trampoline`d piece of code returns a function of no arguments (or a
@@ -38,7 +38,9 @@ return values.
 CTCO aims to expand support for constant-space tail calls to include
 self-recursion and arbitrary n-way mutual recursion returning any
 value type, including function expressions disallowed by
-`trampoline`.
+`trampoline`. It has been designed from the ground up to interoperate
+with existing code, so it is a primary goal to allow non-CTCO-compiled
+code to be able to call into CTCO-compiled code and vice versa.
 
 CTCO works by applying a first-order one-pass CPS algorithm (via
 [Danvy](http://www.cs.au.dk/~danvy/index-previous.html) 2007), then
@@ -49,7 +51,28 @@ into tail calls, thereby even making non-tail code compiled by CTCO use
 constant space.
 
 **Note**: the subset of Clojure currently accepted by CTCO is very
-small and will continue to grow.
+small and will continue to grow. The grammar of the current language
+is as follows:
+
+    Expr    :=      Num  
+            |       Bool  
+            |       Sym  
+            |       Var  
+            |       (fn [Var*] Expr)  
+            |       (defn Name [Var*] Expr)  
+            |       (defn Name ([Var*] Expr)+)  
+            |       (if Expr Expr Expr)  
+            |       (Prim Expr*)  
+
+Where:
+
+* Num is a valid numeric type in Clojure  
+* Bool is a boolean (`true` or `false`)  
+* Sym is a quoted symbol  
+* Var is a legal Clojure variable identifier  
+* Prim is a primitive operator/predicate in the set   
+   (+ - * / mod < <= = >= > and or not inc dec zero? true? false? nil?
+   instance? fn? type ref ref-set deref)
 
 ## Usage
 
@@ -82,7 +105,30 @@ simply wrapping it in a call to `ctco`:
 
 This will define `fact` in terms of the code transformations used by
 CTCO. Simply call `fact` as you would have without the CTCO
-transformations, and the rest is done for you.
+transformations, and the rest is done for you. For reference, the
+(somewhat simplified) output of the `ctco` call above generates the
+following code:
+
+    (let [tramp (fn [thunk flag]
+                      (loop [thunk thunk]
+                        (if (deref flag)
+                            (dosync (ref-set flag false) thunk)
+                            (recur (thunk)))))]
+      (let [apply-k (fn [k a]
+                          (if (fn? k)
+                              (k4211 a)
+                              (dosync (ref-set k true) a)))]
+        (let [flag (ref false)]
+          (defn fact
+            ([n] (tramp (fact n flag) flag))
+            ([n k]
+               (if (zero? n)
+                   (fn [] (apply-k k 1))
+                   (fn []
+                     (fact (dec n)
+                           (fn [s]
+                             (fn []
+                               (apply-k k (* n s))))))))))))
 
 
 ## Contributing
@@ -94,8 +140,6 @@ Simply fork and use pull requests.
 
 A list of the resources for CTCO transformations is as follows:
 
-*
-  [A First-Order, One-Pass CPS Algorithm](http://www.brics.dk/RS/01/49/BRICS-RS-01-49.pdf)
+* [A First-Order, One-Pass CPS Algorithm](http://www.brics.dk/RS/01/49/BRICS-RS-01-49.pdf)
   
-*
-  [Using ParentheC to Transform Scheme Programs to C or How to Write Interesting Recurive Programs in a Spartan Host (Program Counter)](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0CCUQFjAA&url=https%3A%2F%2Fwww.cs.indiana.edu%2Fcgi-pub%2Fc311%2Flib%2Fexe%2Ffetch.php%3Fmedia%3Dparenthec.pdf&ei=LNaST93BO4i46QHnyMCcBA&usg=AFQjCNG-Chb76N9lNVHO2ymtnAjo9Fvt0g&sig2=SR2itLI00reGEjRCrw-edQ&cad=rja)
+* [Using ParentheC to Transform Scheme Programs to C or How to Write Interesting Recurive Programs in a Spartan Host (Program Counter)](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0CCUQFjAA&url=https%3A%2F%2Fwww.cs.indiana.edu%2Fcgi-pub%2Fc311%2Flib%2Fexe%2Ffetch.php%3Fmedia%3Dparenthec.pdf&ei=LNaST93BO4i46QHnyMCcBA&usg=AFQjCNG-Chb76N9lNVHO2ymtnAjo9Fvt0g&sig2=SR2itLI00reGEjRCrw-edQ&cad=rja)

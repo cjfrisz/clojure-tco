@@ -123,7 +123,7 @@ following code:
                         (recur (thunk)))))]
   (let [apply-k (fn [k a]
                       (if (fn? k)
-                          (k4211 a)
+                          (k a)
                           (dosync (ref-set k true) a)))]
     (let [flag (ref false)]
       (defn fact

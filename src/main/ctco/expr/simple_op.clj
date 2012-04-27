@@ -102,8 +102,8 @@
     (cps-srs [this k]
       (letfn [(cps-op [pre-opnd* post-opnd* k]
                 (if (nil? (seq pre-opnd*))
-                    (let [op (SimpleOpCps. (:op this) post-opnd*)]
-                      (AppCont. k op))
+                    (let [OP (SimpleOpCps. (:op this) post-opnd*)]
+                      (AppCont. k OP))
                     (let [fst (first pre-opnd*)
                           rst (rest pre-opnd*)]
                       (if (extends? proto/PCpsTriv (type fst))

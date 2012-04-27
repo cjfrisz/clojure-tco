@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 26 Apr 2012
+;; Last modified 27 Apr 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -27,7 +27,8 @@
            [ctco.expr.simple_op
             SimpleOpCps SimpleOpSrs SimpleOpTriv]))
 
-(declare parse parse-fn parse-defn parse-if parse-op parse-app simple-op?)
+(declare parse parse-fn parse-defn parse-if parse-cond parse-op parse-app
+         simple-op?)
 
 (defn parse
   "Takes a sequence representing a Clojure expression (generally passed from a
@@ -35,15 +36,18 @@
   records."
   [expr]
   (match [expr]
+    [nil] (Atomic. nil)
     [(:or true false)] (Atomic. expr)
     [(n :when number?)] (Atomic. n)
     [(['quote s] :seq)] (Atomic. `(quote ~s))
     [(v :when symbol?)] (Atomic. v)
+    [(k :when keyword?)] (Atomic. k)
     [(['fn fml* body] :seq)] (parse-fn fml* body)
     [(['defn name (fml* :when vector?) body] :seq)] (let [func* `((~fml* ~body))]
                                                       (parse-defn name func*)) 
     [(['defn name & func*] :seq)] (parse-defn name func*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)
+    [(['cond & clause*] :seq)] (parse-cond clause*)
     [([(op :when simple-op?) & opnd*] :seq)] (parse-op op opnd*)
     [([rator & rand*] :seq)] (parse-app rator rand*)
     :else (throw (Exception. (str "Invalid expression in parse: " expr)))))
@@ -79,6 +83,13 @@
     (if (every? #(extends? proto/PCpsTriv (type %)) [TEST CONSEQ ALT])
         (IfTriv. TEST CONSEQ ALT)
         (IfSrs. TEST CONSEQ ALT))))
+
+(defn- parse-cond
+  "Helper function for parse that handles 'cond' expressions. Currently
+  recursively macroexpands the expression into nested 'if' statements."
+  [clause*]
+  (let [expr (macroexpand `(cond ~@clause*))]
+    (parse expr)))
 
 (defn- parse-op
   "Helper function for parse that handles simple op expressions (e.g. +, -,

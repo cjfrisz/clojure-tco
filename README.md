@@ -87,21 +87,25 @@ Then simply wrap any piece of code that you want transformed with
 For example, consider the following (non-tail recursive) definition of
 factorial:
 
-    (defn fact
-      [n]
-      (if (zero? n)
-          1
-          (* n (fact (dec n)))))
+```clojure
+(defn fact
+  [n]
+  (if (zero? n)
+      1
+      (* n (fact (dec n)))))
+```
 
 This can be compiled to use constant stack space recursive calls by
 simply wrapping it in a call to `ctco`:
 
-    (ctco
-      (defn fact
-        [n]
-        (if (zero? n)
-            1
-            (* n (fact (dec n))))))
+```clojure
+(ctco
+  (defn fact
+    [n]
+    (if (zero? n)
+        1
+        (* n (fact (dec n))))))
+```
 
 This will define `fact` in terms of the code transformations used by
 CTCO. Simply call `fact` as you would have without the CTCO
@@ -109,26 +113,28 @@ transformations, and the rest is done for you. For reference, the
 (somewhat simplified) output of the `ctco` call above generates the
 following code:
 
-    (let [tramp (fn [thunk flag]
-                      (loop [thunk thunk]
-                        (if (deref flag)
-                            (dosync (ref-set flag false) thunk)
-                            (recur (thunk)))))]
-      (let [apply-k (fn [k a]
-                          (if (fn? k)
-                              (k4211 a)
-                              (dosync (ref-set k true) a)))]
-        (let [flag (ref false)]
-          (defn fact
-            ([n] (tramp (fact n flag) flag))
-            ([n k]
-               (if (zero? n)
-                   (fn [] (apply-k k 1))
-                   (fn []
-                     (fact (dec n)
-                           (fn [s]
-                             (fn []
-                               (apply-k k (* n s))))))))))))
+```clojure
+(let [tramp (fn [thunk flag]
+                  (loop [thunk thunk]
+                    (if (deref flag)
+                        (dosync (ref-set flag false) thunk)
+                        (recur (thunk)))))]
+  (let [apply-k (fn [k a]
+                      (if (fn? k)
+                          (k4211 a)
+                          (dosync (ref-set k true) a)))]
+    (let [flag (ref false)]
+      (defn fact
+        ([n] (tramp (fact n flag) flag))
+        ([n k]
+           (if (zero? n)
+               (fn [] (apply-k k 1))
+               (fn []
+                 (fact (dec n)
+                       (fn [s]
+                         (fn []
+                           (apply-k k (* n s))))))))))))
+```
 
 
 ## Contributing

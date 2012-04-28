@@ -80,34 +80,41 @@
   (let [TEST (parse test)
         CONSEQ (parse conseq)
         ALT (parse alt)]
-    (if (every? #(extends? proto/PCpsTriv (type %)) [TEST CONSEQ ALT])
-        (IfTriv. TEST CONSEQ ALT)
-        (IfSrs. TEST CONSEQ ALT))))
+    (if (util/some-srs? [TEST CONSEQ ALT])
+        (IfSrs. TEST CONSEQ ALT)
+        (IfTriv. TEST CONSEQ ALT))))
 
 (defn- parse-cond
   "Helper function for parse that handles 'cond' expressions. Currently
-  recursively macroexpands the expression into nested 'if' statements."
+  parses it in terms of 'if' expressions."
   [clause*]
-  (let [expr (macroexpand `(cond ~@clause*))]
-    (parse expr)))
+  (letfn [(parse-rclause* [rclause* rst]
+            (if (nil? (seq rclause*))
+                rst
+                (let [conseq (parse (first rclause*))
+                      test (parse (fnext rclause*))
+                      RST (if (util/some-srs? [test conseq rst])
+                              (IfSrs. test conseq rst)
+                              (IfTriv. test conseq rst))
+                      RCLAUSE* (nnext rclause*)]
+                  (recur RCLAUSE* RST))))]
+    (parse-rclause* (reverse clause*) (Atomic. nil))))
 
 (defn- parse-op
   "Helper function for parse that handles simple op expressions (e.g. +, -,
   zero?, nil?, etc."
   [op opnd*]
-  (let [OPND* (map parse opnd*)]
-    (let [OPND* (into [] OPND*)]
-      (if (every? #(extends? proto/PCpsTriv (type %)) OPND*)
-          (SimpleOpTriv. op OPND*)
-          (SimpleOpSrs. op OPND*)))))
+  (let [OPND* (vec (map parse opnd*))]
+    (if (util/some-srs? OPND*)
+        (SimpleOpSrs. op OPND*)
+        (SimpleOpTriv. op OPND*))))
 
 (defn- parse-app
   "Helper function for parse that handles application."
   [rator rand*]
   (let [RATOR (parse rator)
-        RAND* (map parse rand*)]
-    (let [RAND* (into [] RAND*)]
-      (App. RATOR RAND*))))
+        RAND* (vec (map parse rand*))]
+    (App. RATOR RAND*)))
 
 (defn- simple-op?
   "Predicate returning whether op is a simple, value-returning operator."

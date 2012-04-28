@@ -7,8 +7,8 @@
 ;; 
 ;; Defines miscellaneous utility functions for use in CTCO. These
 ;; include:
-;;      cps-expr
 ;;      new-var
+;;      some-srs?
 ;;----------------------------------------------------------------------
 
 (ns ctco.util
@@ -29,3 +29,10 @@
   ([]
      (let [base 'x]
        (new-var base))))
+
+(defn some-srs?
+  "Given a collection of Clojure TCO record expressions, returns whether one of
+  them is serious with respect to the Danvy-style CPS algorithm. That is, if at
+  least one of them extends the PCpsSrs protocol."
+  [expr*]
+  (some #(extends? proto/PCpsSrs (type %)) expr*))

@@ -3,13 +3,14 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified 27 Apr 2012
+;; Last modified 28 Apr 2012
 ;; 
 ;; Defines miscellaneous utility functions for use in CTCO. These
 ;; include:
 ;;      new-var
 ;;      simple-op?
-;;      some-srs?
+;;      serious?
+;;      trivial?
 ;;----------------------------------------------------------------------
 
 (ns ctco.util
@@ -39,9 +40,14 @@
           inc dec zero? true? false? nil?
           instance? fn? type ref ref-set deref)))
 
-(defn some-srs?
-  "Given a collection of Clojure TCO record expressions, returns whether one of
-  them is serious with respect to the Danvy-style CPS algorithm. That is, if at
-  least one of them extends the PCpsSrs protocol."
-  [expr*]
-  (some #(extends? proto/PCpsSrs (type %)) expr*))
+(defn serious?
+  "Given a Clojure TCO expression (as a record type), returns whether the
+  expression is serious with respect to the Danvy FOOP CPS transformation."
+  [expr]
+  (extends? proto/PCpsSrs (type expr)))
+
+(defn trivial?
+  "Given a Clojure TCO expression (as a record type), returns whether the
+  expression is trivial with respect to the Danvy FOOP CPS transformation."
+  [expr]
+  (extends? proto/PCpsTriv (type expr)))

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 27 Apr 2012
+;; Last modified 28 Apr 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -80,7 +80,7 @@
   (let [TEST (parse test)
         CONSEQ (parse conseq)
         ALT (parse alt)]
-    (if (util/some-srs? [TEST CONSEQ ALT])
+    (if (some util/serious? [TEST CONSEQ ALT])
         (IfSrs. TEST CONSEQ ALT)
         (IfTriv. TEST CONSEQ ALT))))
 
@@ -93,7 +93,7 @@
                 rst
                 (let [conseq (parse (first rclause*))
                       test (parse (fnext rclause*))
-                      RST (if (util/some-srs? [test conseq rst])
+                      RST (if (some serious? [test conseq rst])
                               (IfSrs. test conseq rst)
                               (IfTriv. test conseq rst))
                       RCLAUSE* (nnext rclause*)]
@@ -105,7 +105,7 @@
   zero?, nil?, etc."
   [op opnd*]
   (let [OPND* (vec (map parse opnd*))]
-    (if (util/some-srs? OPND*)
+    (if (some util/serious? OPND*)
         (SimpleOpSrs. op OPND*)
         (SimpleOpTriv. op OPND*))))
 

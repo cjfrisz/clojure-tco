@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 26 Apr 2012
+;; Last modified 28 Apr 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
@@ -66,7 +66,7 @@
                     (conj post-rand* k)
                     (let [fst (first pre-rand*)
                           nxt (next pre-rand*)]
-                      (if (extends? proto/PCpsTriv (type fst))
+                      (if (util/trivial? fst)
                           (let [FST (proto/cps-triv fst)
                                 POST-RAND* (conj post-rand* FST)]
                             (recur nxt POST-RAND* k))

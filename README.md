@@ -82,6 +82,7 @@ classpath, include it with the following code:
 
 ```clojure
 (use '(ctco :only (ctco)))
+```
 
 Then simply wrap any piece of code that you want transformed with
 `(ctco ...)`. 

@@ -26,7 +26,7 @@
            [ctco.expr.defn
             Defn]
            [ctco.expr.do
-            DoSync]
+            Do]
            [ctco.expr.if
             IfCps]
            [ctco.expr.let
@@ -88,7 +88,7 @@
         arg (util/new-var 'a)]
     (let [test (SimpleOpCps. 'fn? [kont])
           conseq (App. kont [arg])
-          alt (DoSync. [(SimpleOpCps. 'swap! [kont (Atomic. 'not)]) arg])
+          alt (Do. [(SimpleOpCps. 'swap! [kont (Atomic. 'not)]) arg])
           body (IfCps. test conseq alt)
           init (Fn. [kont arg] body)
           bind* [apply-k init]]
@@ -104,7 +104,7 @@
   (let [thunk (util/new-var 'thunk)
         flag (util/new-var 'flag)
         test (SimpleOpCps. 'deref [flag])
-        conseq (DoSync. [(SimpleOpCps. 'swap! [flag (Atomic. 'not)]) thunk])
+        conseq (Do. [(SimpleOpCps. 'swap! [flag (Atomic. 'not)]) thunk])
         alt (Recur. [(App. thunk [])])
         loop-body (IfCps. test conseq alt)
         body (Loop. [thunk thunk] loop-body)

@@ -120,12 +120,12 @@ following code:
 (let [tramp (fn [thunk flag]
                   (loop [thunk thunk]
                     (if (deref flag)
-                        (dosync (swap! flag not) thunk)
+                        (do (swap! flag not) thunk)
                         (recur (thunk)))))]
   (let [apply-k (fn [k a]
                       (if (fn? k)
                           (k a)
-                          (dosync (swap! k not) a)))]
+                          (do (swap! k not) a)))]
     (let [flag (atom false)]
       (defn fact
         ([n] (tramp (fact n flag) flag))

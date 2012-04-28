@@ -8,6 +8,7 @@
 ;; Defines miscellaneous utility functions for use in CTCO. These
 ;; include:
 ;;      new-var
+;;      simple-op?
 ;;      some-srs?
 ;;----------------------------------------------------------------------
 
@@ -29,6 +30,14 @@
   ([]
      (let [base 'x]
        (new-var base))))
+
+(defn simple-op?
+  "Predicate returning whether op is a simple, value-returning operator."
+  [op]
+  (some #{op}
+        '(+ - * / mod < <= = >= > and or not
+          inc dec zero? true? false? nil?
+          instance? fn? type ref ref-set deref)))
 
 (defn some-srs?
   "Given a collection of Clojure TCO record expressions, returns whether one of

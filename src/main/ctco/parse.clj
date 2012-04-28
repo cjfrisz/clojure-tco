@@ -13,7 +13,8 @@
          :only (match)])
   (:require [ctco.expr
              app atomic defn fn if simple-op]
-            [ctco.protocol :as proto])
+            [ctco.protocol :as proto]
+            [ctco.util :as util])
   (:import [ctco.expr.app
             App]
            [ctco.expr.atomic
@@ -27,8 +28,7 @@
            [ctco.expr.simple_op
             SimpleOpCps SimpleOpSrs SimpleOpTriv]))
 
-(declare parse parse-fn parse-defn parse-if parse-cond parse-op parse-app
-         simple-op?)
+(declare parse parse-fn parse-defn parse-if parse-cond parse-op parse-app)
 
 (defn parse
   "Takes a sequence representing a Clojure expression (generally passed from a
@@ -48,7 +48,7 @@
     [(['defn name & func*] :seq)] (parse-defn name func*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)
     [(['cond & clause*] :seq)] (parse-cond clause*)
-    [([(op :when simple-op?) & opnd*] :seq)] (parse-op op opnd*)
+    [([(op :when util/simple-op?) & opnd*] :seq)] (parse-op op opnd*)
     [([rator & rand*] :seq)] (parse-app rator rand*)
     :else (throw (Exception. (str "Invalid expression in parse: " expr)))))
 
@@ -116,10 +116,3 @@
         RAND* (vec (map parse rand*))]
     (App. RATOR RAND*)))
 
-(defn- simple-op?
-  "Predicate returning whether op is a simple, value-returning operator."
-  [op]
-  (some #{op}
-        '(+ - * / mod < <= = >= > and or not
-          inc dec zero? true? false? nil?
-          instance? fn? type ref ref-set deref)))

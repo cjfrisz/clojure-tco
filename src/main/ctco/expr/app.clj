@@ -13,7 +13,7 @@
 ;;              Simply recurs over the rator and rand*
 ;;
 ;;      PEmit:
-;;              Emits (recursively) the expression as
+;;              Emits (recursively) the sytax for the expression as
 ;;              `(~rator ~@rand*)
 ;;
 ;;      PCpsSrs:
@@ -53,31 +53,34 @@
     (emit [this]
       (let [rator (proto/emit (:rator this))
             rand* (map proto/emit (:rand* this))]
-          `(~rator ~@rand*)))
-  
+        `(~rator ~@rand*)))
+    
   proto/PCpsSrs
     (cps-srs [this k]
-      (letfn [(cps-rator [rator]
-                (condp extends? (type rator)
-                  proto/PCpsTriv (proto/cps-triv rator)
-                  proto/PCpsSrs (proto/cps-srs rator k)))
-              (cps-rand* [pre-rand* post-rand* k]
-                (if (nil? (seq pre-rand*))
-                    (conj post-rand* k)
-                    (let [fst (first pre-rand*)
-                          nxt (next pre-rand*)]
+      (letfn [(cps-rand* [rand*-in rand*-out rator k]
+                (if (nil? (seq rand*-in))
+                    (let [RAND*-OUT (conj rand*-out k)]
+                      (App. rator RAND*-OUT))
+                    (let [fst (first rand*-in)
+                          nxt (next rand*-in)]
                       (if (util/trivial? fst)
                           (let [FST (proto/cps-triv fst)
-                                POST-RAND* (conj post-rand* FST)]
-                            (recur nxt POST-RAND* k))
+                                RAND*-OUT (conj rand*-out FST)]
+                            (recur nxt RAND*-OUT rator k))
                           (let [s (util/new-var 's)
-                                POST-RAND* (conj post-rand* s)
-                                NXT (cps-rand* nxt POST-RAND* k)
+                                RAND*-OUT (conj rand*-out s)
+                                NXT (cps-rand* nxt RAND*-OUT rator k)
                                 K (Cont. s NXT)]
                             (proto/cps-srs fst K))))))]
-        (let [RATOR (cps-rator (:rator this))
-              RAND* (cps-rand* (:rand* this) [] k)]
-          (App. RATOR RAND*))))
+        (let [rator (:rator this)
+              rand* (:rand* this)]
+          (if (util/trivial? rator)
+              (let [RATOR (proto/PCpsTriv rator)]
+                (cps-rand* rand* [] rator k))
+              (let [s (util/new-var 's)
+                    app-k (cps-rand* rand* [] s k)
+                    cont (Cont. s app-k)]
+                (proto/PCpsSrs rator cont))))))
 
   proto/PThunkify
     (thunkify [this]

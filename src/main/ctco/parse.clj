@@ -93,7 +93,7 @@
                 rst
                 (let [conseq (parse (first rclause*))
                       test (parse (fnext rclause*))
-                      RST (if (some serious? [test conseq rst])
+                      RST (if (some util/serious? [test conseq rst])
                               (IfSrs. test conseq rst)
                               (IfTriv. test conseq rst))
                       RCLAUSE* (nnext rclause*)]

@@ -57,7 +57,7 @@
     
   proto/PCpsSrs
     (cps-srs [this k]
-      (letfn [(cps-rand* [rand*-in rand*-out rator k]
+      (letfn [(cps-rand* [rand*-in rand*-out rator]
                 (if (nil? (seq rand*-in))
                     (let [RAND*-OUT (conj rand*-out k)]
                       (App. rator RAND*-OUT))
@@ -66,19 +66,19 @@
                       (if (util/trivial? fst)
                           (let [FST (proto/cps-triv fst)
                                 RAND*-OUT (conj rand*-out FST)]
-                            (recur nxt RAND*-OUT rator k))
+                            (recur nxt RAND*-OUT rator))
                           (let [s (util/new-var 's)
                                 RAND*-OUT (conj rand*-out s)
-                                NXT (cps-rand* nxt RAND*-OUT rator k)
+                                NXT (cps-rand* nxt RAND*-OUT rator)
                                 K (Cont. s NXT)]
                             (proto/cps-srs fst K))))))]
         (let [rator (:rator this)
               rand* (:rand* this)]
           (if (util/trivial? rator)
               (let [RATOR (proto/PCpsTriv rator)]
-                (cps-rand* rand* [] rator k))
+                (cps-rand* rand* [] rator))
               (let [s (util/new-var 's)
-                    app-k (cps-rand* rand* [] s k)
+                    app-k (cps-rand* rand* [] s)
                     cont (Cont. s app-k)]
                 (proto/PCpsSrs rator cont))))))
 

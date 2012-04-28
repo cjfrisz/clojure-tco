@@ -62,6 +62,7 @@ is as follows:
             |       (defn Name [Var*] Expr)  
             |       (defn Name ([Var*] Expr)+)  
             |       (if Expr Expr Expr)  
+            |       (cond Expr*)
             |       (Prim Expr*)  
 
 Where:
@@ -81,7 +82,6 @@ classpath, include it with the following code:
 
 ```clojure
 (use '(ctco :only (ctco)))
-```
 
 Then simply wrap any piece of code that you want transformed with
 `(ctco ...)`. 
@@ -119,13 +119,13 @@ following code:
 (let [tramp (fn [thunk flag]
                   (loop [thunk thunk]
                     (if (deref flag)
-                        (dosync (ref-set flag false) thunk)
+                        (dosync (swap! flag not) thunk)
                         (recur (thunk)))))]
   (let [apply-k (fn [k a]
                       (if (fn? k)
                           (k a)
-                          (dosync (ref-set k true) a)))]
-    (let [flag (ref false)]
+                          (dosync (swap! k not) a)))]
+    (let [flag (atom false)]
       (defn fact
         ([n] (tramp (fact n flag) flag))
         ([n k]

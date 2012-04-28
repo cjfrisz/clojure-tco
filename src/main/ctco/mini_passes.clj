@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 14 Apr 2012
-;; Last modified 26 Apr 2012
+;; Last modified 28 Apr 2012
 ;; 
 ;; Defines the small, one-time code transformations for the TCO
 ;; compiler. These include the following:
@@ -49,7 +49,7 @@
   empty continuation and calling the version that takes n+1 arguments. The
   result of the initial call is then loaded onto the trampoline by calling the
   trampoline function named by the 'tramp' argument, passing 'flag' as the
-  reference for when the computation is finished.
+  atom for when the computation is finished.
 
   The version of the function that takes n+1 arguments takes a continuation as
   the (n+1)st argument and does the actual computational heavy lifting.
@@ -71,9 +71,9 @@
   "Initializes the flag value for expr with the name given by flag by
   introducing it through a 'let' binding.
 
-  At current, the flag is a ref initialized to 'false.'"
+  At current, the flag is a atom initialized to 'false.'"
   [expr flag]
-  (let [init (SimpleOpCps. 'ref [(Atomic. 'false)])
+  (let [init (SimpleOpCps. 'atom [(Atomic. 'false)])
         bind* [flag init]]
     (Let. bind* expr)))
 
@@ -88,7 +88,7 @@
         arg (util/new-var 'a)]
     (let [test (SimpleOpCps. 'fn? [kont])
           conseq (App. kont [arg])
-          alt (DoSync. [(SimpleOpCps. 'ref-set [kont (Atomic. 'true)]) arg])
+          alt (DoSync. [(SimpleOpCps. 'swap! [kont (Atomic. 'not)]) arg])
           body (IfCps. test conseq alt)
           init (Fn. [kont arg] body)
           bind* [apply-k init]]
@@ -104,7 +104,7 @@
   (let [thunk (util/new-var 'thunk)
         flag (util/new-var 'flag)
         test (SimpleOpCps. 'deref [flag])
-        conseq (DoSync. [(SimpleOpCps. 'ref-set [flag (Atomic. 'false)]) thunk])
+        conseq (DoSync. [(SimpleOpCps. 'swap! [flag (Atomic. 'not)]) thunk])
         alt (Recur. [(App. thunk [])])
         loop-body (IfCps. test conseq alt)
         body (Loop. [thunk thunk] loop-body)

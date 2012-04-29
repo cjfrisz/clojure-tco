@@ -3,14 +3,14 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Feb 2012
-;; Last modified 22 Apr 2012
+;; Last modified 28 Apr 2012
 ;; 
 ;; Project declaration for clojure-tco. 
 ;;----------------------------------------------------------------------
 
 (defproject ctco "0.2.0"
-  :description "Adding proper tail calls to Clojure."
-  :url "https://github.iu.edu/cjfrisz/clojure-tco.git"
+  :description "Improving Clojure's support for constant-space tail calls."
+  :url "https://github.com/cjfrisz/clojure-tco.git"
   :dependencies [[org.clojure/clojure
                   "1.3.0"]
                  [org.clojure/core.match

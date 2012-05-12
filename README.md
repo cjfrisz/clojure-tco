@@ -129,12 +129,14 @@ following code:
     ([n] (tramp (fact n nil)))
     ([n k]
        (if (zero? n)
-         (fn [] (apply-k k 1))
-         (fn []
-           (fact (dec n)
-                 (fn [s]
-                   (fn []
-                     (apply-k k (* n s))))))))))
+         (fn [] (with-meta (apply-k k 1) {:thunk true}))
+         (with-meta
+           (fn []
+             (fact (dec n)
+                   (fn [s]
+                     (fn []
+                       (apply-k k (* n s))))))
+           {:thunk true})))))
 ```
 
 

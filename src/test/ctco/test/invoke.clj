@@ -35,7 +35,5 @@
     (is (= :done (countdown 10)))))
 
 (deftest function-returning
-  
-(deftest function-returning
   (testing "functions with simple expressions that return functions"
-    (is (= :done ((countdown-fn 10)))))))
+    (is (= :done ((countdown-fn 10))))))

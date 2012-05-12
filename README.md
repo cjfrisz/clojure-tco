@@ -118,10 +118,9 @@ following code:
 
 ```clojure
 (let [tramp (fn [thunk]
-              (loop [thunk thunk]
-                (if (get (meta thunk) :thunk)
-                  (recur (thunk))
-                  thunk)))]
+              (if (get (meta thunk) :thunk)
+                (recur (thunk))
+                thunk))]
   (let [apply-k (fn [k a]
                   (if (fn? k)
                     (k a)

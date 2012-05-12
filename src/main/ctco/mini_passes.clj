@@ -14,7 +14,7 @@
 
 (ns ctco.mini-passes
   (:require [ctco.expr
-             app atomic fn defn do if let loop recur simple-op]
+             app atomic fn defn do if let recur simple-op]
             [ctco.util :as util])
   (:import [ctco.expr.app
             App]
@@ -30,8 +30,6 @@
             IfCps]
            [ctco.expr.let
             Let]
-           [ctco.expr.loop
-            Loop]
            [ctco.expr.recur
             Recur]
            [ctco.expr.simple_op
@@ -92,7 +90,6 @@
   (let [thunk (util/new-var 'thunk)
         test (SimpleOpCps. 'get [(SimpleOpCps. 'meta [thunk]) (Atomic. :thunk)])
         conseq (Recur. [(App. thunk [])])
-        loop-body (IfCps. test conseq thunk)
-        body (Loop. [thunk thunk] loop-body)
+        body (IfCps. test conseq thunk)
         init (Fn. [thunk] body)]
     (Let. [tramp init] expr)))

@@ -30,8 +30,7 @@
   execution."
   [expr]
   (let [tramp (util/new-var 'tramp)
-        apply-k (util/new-var 'apply-k)
-        flag (util/new-var 'flag)]
+        apply-k (util/new-var 'apply-k)]
     (letfn [(apply-cps [expr]
               (if (extends? proto/PCpsSrs (type expr))
                   (let [k (util/new-var 'k)]
@@ -43,14 +42,11 @@
                   (let [k (util/new-var 'k)
                         app (AppContAbs. apply-k k expr)]
                     (Cont. k app))))]
-      (let [expr (parse/parse expr)
-            expr (apply-cps expr)
-            expr (proto/abstract-k expr apply-k)
-            expr (proto/thunkify expr)
-            expr (wrap-expr expr)
-            expr (mp/overload expr tramp flag)
-            expr (mp/make-flag expr flag)
-            expr (mp/make-apply-k expr apply-k)
-            expr (mp/make-trampoline expr tramp)]
-        (proto/emit expr)))))
-
+      (proto/emit (-> (parse/parse expr)
+                      apply-cps
+                      (proto/abstract-k apply-k)
+                      proto/thunkify
+                      wrap-expr
+                      (mp/overload tramp)
+                      (mp/make-apply-k apply-k)
+                      (mp/make-trampoline tramp))))))

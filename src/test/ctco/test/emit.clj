@@ -65,5 +65,5 @@
 ;; (deftest simple-op-test)
 
 (deftest thunk-test
-  (is (= '(clojure.core/fn [] (quote stuff))
+  (is (= '(clojure.core/with-meta (clojure.core/fn [] (quote stuff)) {:thunk true})
          (proto/emit (Thunk. (Atomic. ''stuff))))))

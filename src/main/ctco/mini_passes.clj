@@ -62,7 +62,7 @@
             fml-bl* (vec (butlast fml*))
             rand* (conj fml-bl* flag)
             init-call (App. (:name expr) rand*)
-            tramp-call (App. tramp [init-call flag])
+            tramp-call (App. tramp [init-call])
             func* (vec (cons (Fn. fml-bl* tramp-call) (:func* expr)))]
         (Defn. (:name expr) func*))
       expr))
@@ -102,11 +102,9 @@
   expression is emitted."
   [expr tramp]
   (let [thunk (util/new-var 'thunk)
-        flag (util/new-var 'flag)
-        test (SimpleOpCps. 'deref [flag])
-        conseq (Do. [(SimpleOpCps. 'swap! [flag (Atomic. 'not)]) thunk])
-        alt (Recur. [(App. thunk [])])
-        loop-body (IfCps. test conseq alt)
+        test (SimpleOpCps. 'get [(SimpleOpCps. 'meta [thunk]) (Atomic. :thunk)])
+        conseq (Recur. [(App. thunk [])])
+        loop-body (IfCps. test conseq thunk)
         body (Loop. [thunk thunk] loop-body)
-        init (Fn. [thunk flag] body)]
+        init (Fn. [thunk] body)]
     (Let. [tramp init] expr)))

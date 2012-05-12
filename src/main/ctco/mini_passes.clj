@@ -8,14 +8,13 @@
 ;; Defines the small, one-time code transformations for the TCO
 ;; compiler. These include the following:
 ;;      overload
-;;      make-flag
 ;;      make-apply-k
 ;;      make-trampoline
 ;;----------------------------------------------------------------------
 
 (ns ctco.mini-passes
   (:require [ctco.expr
-             app atomic fn defn do if let loop recur simple-op]
+             app atomic fn defn do if let recur simple-op]
             [ctco.util :as util])
   (:import [ctco.expr.app
             App]
@@ -31,8 +30,6 @@
             IfCps]
            [ctco.expr.let
             Let]
-           [ctco.expr.loop
-            Loop]
            [ctco.expr.recur
             Recur]
            [ctco.expr.simple_op
@@ -48,34 +45,24 @@
   be run on the trampoline introduced by the TCO compiler by initializing the
   empty continuation and calling the version that takes n+1 arguments. The
   result of the initial call is then loaded onto the trampoline by calling the
-  trampoline function named by the 'tramp' argument, passing 'flag' as the
-  atom for when the computation is finished.
+  trampoline function named by the 'tramp' argument, passing an additional nil
+  argument to call the overloaded arity.
 
   The version of the function that takes n+1 arguments takes a continuation as
   the (n+1)st argument and does the actual computational heavy lifting.
 
   If the input expression doesn't represent a function type then the expression
   is simply returned."
-  [expr tramp flag]
+  [expr tramp]
   (if (instance? Defn expr)
       (let [fml* (:fml* (first (:func* expr)))
             fml-bl* (vec (butlast fml*))
-            rand* (conj fml-bl* flag)
+            rand* (conj fml-bl* (Atomic. 'nil))
             init-call (App. (:name expr) rand*)
-            tramp-call (App. tramp [init-call flag])
+            tramp-call (App. tramp [init-call])
             func* (vec (cons (Fn. fml-bl* tramp-call) (:func* expr)))]
         (Defn. (:name expr) func*))
       expr))
-
-(defn make-flag
-  "Initializes the flag value for expr with the name given by flag by
-  introducing it through a 'let' binding.
-
-  At current, the flag is a atom initialized to 'false.'"
-  [expr flag]
-  (let [init (SimpleOpCps. 'atom [(Atomic. 'false)])
-        bind* [flag init]]
-    (Let. bind* expr)))
 
 (defn make-apply-k
   "Introduces the definition of the continuation application function for expr
@@ -88,8 +75,7 @@
         arg (util/new-var 'a)]
     (let [test (SimpleOpCps. 'fn? [kont])
           conseq (App. kont [arg])
-          alt (Do. [(SimpleOpCps. 'swap! [kont (Atomic. 'not)]) arg])
-          body (IfCps. test conseq alt)
+          body (IfCps. test conseq arg)
           init (Fn. [kont arg] body)
           bind* [apply-k init]]
       (Let. bind* expr))))
@@ -102,11 +88,8 @@
   expression is emitted."
   [expr tramp]
   (let [thunk (util/new-var 'thunk)
-        flag (util/new-var 'flag)
-        test (SimpleOpCps. 'deref [flag])
-        conseq (Do. [(SimpleOpCps. 'swap! [flag (Atomic. 'not)]) thunk])
-        alt (Recur. [(App. thunk [])])
-        loop-body (IfCps. test conseq alt)
-        body (Loop. [thunk thunk] loop-body)
-        init (Fn. [thunk flag] body)]
+        test (SimpleOpCps. 'get [(SimpleOpCps. 'meta [thunk]) (Atomic. :thunk)])
+        conseq (Recur. [(App. thunk [])])
+        body (IfCps. test conseq thunk)
+        init (Fn. [thunk] body)]
     (Let. [tramp init] expr)))

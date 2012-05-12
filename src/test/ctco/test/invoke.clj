@@ -1,9 +1,9 @@
 ;;----------------------------------------------------------------------
 ;; File invoke.clj
 ;; Written by Alan Dipert
-;; 
+;;
 ;; Created 27 May 2012
-;; 
+;;
 ;; Testing for general behavior correctness.
 ;;----------------------------------------------------------------------
 
@@ -20,7 +20,7 @@
 
 (ctco
  (defn countdown-fn [i]
-   (if (zero? i) done (countdown (dec i)))))
+   (if (zero? i) done (countdown-fn (dec i)))))
 
 (ctco
  (defn fact

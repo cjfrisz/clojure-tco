@@ -63,7 +63,7 @@ is as follows:
             |       (defn Name ([Var*] Expr)+)  
             |       (if Expr Expr Expr)  
             |       (cond Expr*)
-	    |       (let [Var Expr ...] Expr)
+            |       (let [Var Expr ...] Expr)
             |       (Prim Expr*)  
 
 Where:

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 28 Apr 2012
+;; Last modified 16 May 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
@@ -57,31 +57,28 @@
     
   proto/PCpsSrs
     (cps-srs [this k]
-      (letfn [(cps-rand* [rand*-in rand*-out rator]
-                (if (nil? (seq rand*-in))
-                    (let [RAND*-OUT (conj rand*-out k)]
-                      (App. rator RAND*-OUT))
-                    (let [fst (first rand*-in)
-                          nxt (next rand*-in)]
+      (letfn [(cps-rand* [rand-in* rand-out*]
+                (if (nil? (seq rand-in*))
+                    (conj rand-out* k)
+                    (let [fst (first rand-in*)
+                          nxt (next rand-in*)]
                       (if (util/trivial? fst)
                           (let [FST (proto/cps-triv fst)
-                                RAND*-OUT (conj rand*-out FST)]
-                            (recur nxt RAND*-OUT rator))
+                                RAND-OUT* (conj rand-out* FST)]
+                            (recur nxt RAND-OUT*))
                           (let [s (util/new-var 's)
-                                RAND*-OUT (conj rand*-out s)
-                                NXT (cps-rand* nxt RAND*-OUT rator)
+                                RAND-OUT* (conj rand-out* s)
+                                NXT (cps-rand* nxt RAND-OUT*)
                                 K (Cont. s NXT)]
                             (proto/cps-srs fst K))))))]
-        (let [rator (:rator this)
-              rand* (:rand* this)]
-          (if (util/trivial? rator)
-              (let [RATOR (proto/PCpsTriv rator)]
-                (cps-rand* rand* [] rator))
+        (let [RAND* (cps-rand* (:rand* this) [])]
+          (if (util/trivial? (:rator this))
+              (let [RATOR (proto/cps-triv (:rator this))]
+                (App. RATOR RAND*))
               (let [s (util/new-var 's)
-                    app-k (cps-rand* rand* [] s)
-                    cont (Cont. s app-k)]
-                (proto/PCpsSrs rator cont))))))
-
+                    cont (Cont. s RAND*)]
+                (proto/PCpsSrs (:rator this) cont))))))
+    
   proto/PThunkify
     (thunkify [this]
       (let [THIS (proto/walk-expr this proto/thunkify nil)]

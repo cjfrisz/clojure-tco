@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 14 Apr 2012
-;; Last modified 28 Apr 2012
+;; Last modified 14 May 2012
 ;; 
 ;; Defines the small, one-time code transformations for the TCO
 ;; compiler. These include the following:
@@ -30,7 +30,7 @@
            [ctco.expr.if
             IfCps]
            [ctco.expr.let
-            Let]
+            LetCps]
            [ctco.expr.loop
             Loop]
            [ctco.expr.recur
@@ -75,7 +75,7 @@
   [expr flag]
   (let [init (SimpleOpCps. 'atom [(Atomic. 'false)])
         bind* [flag init]]
-    (Let. bind* expr)))
+    (LetCps. bind* expr)))
 
 (defn make-apply-k
   "Introduces the definition of the continuation application function for expr
@@ -92,7 +92,7 @@
           body (IfCps. test conseq alt)
           init (Fn. [kont arg] body)
           bind* [apply-k init]]
-      (Let. bind* expr))))
+      (LetCps. bind* expr))))
 
 (defn make-trampoline
   "Introduces the definition of the trampoline function for expr using tramp as
@@ -109,4 +109,4 @@
         loop-body (IfCps. test conseq alt)
         body (Loop. [thunk thunk] loop-body)
         init (Fn. [thunk flag] body)]
-    (Let. [tramp init] expr)))
+    (LetCps. [tramp init] expr)))

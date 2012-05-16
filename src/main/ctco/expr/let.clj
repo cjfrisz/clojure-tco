@@ -107,7 +107,22 @@
   proto/PThunkify
     (thunkify [this]
       (let [ctor #(LetCps. %1 %2)]
-        (proto/walk-expr this proto/thunkify ctor))))
+        (proto/walk-expr this proto/thunkify ctor)))
+
+  proto/PWalkable
+    (walk-expr [this f ctor]
+                (letfn [(walk-bind* [bind-in* bind-out*]
+                          (if (nil? (seq bind-in*))
+                              bind-out*
+                              (let [var (first bind-in*)
+                                    init (fnext bind-in*)
+                                    INIT (f init)
+                                    BIND-IN* (nnext bind-in*)
+                                    BIND-OUT* (conj bind-out* var INIT)]
+                                (recur BIND-IN* BIND-OUT*))))]
+                  (let [BIND* (walk-bind* (:bind* this) [])
+                        BODY (f (:body this))]
+                    (ctor BIND* BODY)))))
 
 (defrecord LetSrs [bind* body]
   proto/PCpsSrs
@@ -149,27 +164,9 @@
                  body (proto/emit (:body this))]
              `(let ~bind* ~body)))})
 
-(def let-walkable
-  {:walk-expr (fn [this f ctor]
-                (letfn [(walk-bind* [bind-in* bind-out*]
-                          (if (nil? (seq bind-in*))
-                              bind-out*
-                              (let [var (first bind-in*)
-                                    init (fnext bind-in*)
-                                    INIT (f init)
-                                    BIND-IN* (nnext bind-in*)
-                                    BIND-OUT* (conj bind-out* var INIT)]
-                                (recur BIND-IN* BIND-OUT*))))]
-                  (let [BIND* (walk-bind* (:bind* this) [])
-                        BODY (f (:body this))]
-                    (ctor BIND* BODY))))})
-
 (extend LetCps
   proto/PEmit
-    let-emit
-
-  proto/PWalkable
-    let-walkable)
+    let-emit)
 
 (extend LetSrs
   proto/PEmit

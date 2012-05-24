@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified 26 Apr 2012
+;; Last modified 24 May 2012
 ;; 
 ;; Defines the driver for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -31,18 +31,17 @@
   [expr]
   (let [tramp (util/new-var 'tramp)
         apply-k (util/new-var 'apply-k)
-        flag (util/new-var 'flag)]
+        flag (util/new-var 'flag)
+        init-k (util/new-var 'k)]
     (letfn [(apply-cps [expr]
               (if (extends? proto/PCpsSrs (type expr))
-                  (let [k (util/new-var 'k)]
-                    (proto/cps-srs expr k))
+                  (proto/cps-srs expr init-k)
                   (proto/cps-triv expr)))
             (wrap-expr [expr]
               (if (instance? Defn expr)
                   expr
-                  (let [k (util/new-var 'k)
-                        app (AppContAbs. apply-k k expr)]
-                    (Cont. k app))))]
+                  (let [app (AppContAbs. apply-k init-k expr)]
+                    (Cont. init-k app))))]
       (let [expr (parse/parse expr)
             expr (apply-cps expr)
             expr (proto/abstract-k expr apply-k)

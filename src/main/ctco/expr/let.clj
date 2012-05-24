@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 16 May 2012
+;; Last modified 24 May 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing serious,
 ;; trivial, and CPSed 'let' expressions, respectively. LetSrs and LetTriv
@@ -87,6 +87,10 @@
 ;;      PEmit:
 ;;              Emits (recursively) the syntax for the expression as
 ;;              `(let ~bind* ~body)
+;;
+;;      PWalkable:
+;;              Maps the given function over the init values of each binding and
+;;              the 'let' body.
 ;;
 ;;----------------------------------------------------------------------
 
@@ -177,4 +181,7 @@
 
 (extend LetTriv
   proto/PEmit
-    let-emit)
+    let-emit
+
+  proto/PWalkable
+    let-walkable)

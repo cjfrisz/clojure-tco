@@ -16,11 +16,8 @@
                  [org.clojure/core.match
                   "0.2.0-alpha9"]]
   :dev-dependencies [[swank-clojure
-                      "1.4.2"]
-                     [vimclojure/server
-                      "2.3.1"]]
+                      "1.4.2"]]
   :plugins [[lein-swank "1.4.3"]]
   :source-path "src/main"
   :test-path "src/test"
   :repl-init ctco)
-

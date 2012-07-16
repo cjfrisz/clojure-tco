@@ -44,6 +44,7 @@
     [(n :when number?)] (Atomic. n)
     [(['quote s] :seq)] (Atomic. `(quote ~s))
     [(v :when symbol?)] (Atomic. v)
+    [(s :when string?)] (Atomic. s)
     [(k :when keyword?)] (Atomic. k)
     [(['fn fml* body] :seq)] (parse-fn fml* body)
     [(['defn name (fml* :when vector?) body] :seq)] (let [func* `((~fml* ~body))]

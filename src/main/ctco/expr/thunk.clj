@@ -34,4 +34,4 @@
   proto/PEmit
     (emit [this]
       (let [BODY (proto/emit (:body this))]
-        `(fn [] ~BODY))))
+        `(with-meta (fn [] ~BODY) {:thunk true}))))

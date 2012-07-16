@@ -118,26 +118,26 @@ transformations, and the rest is done for you. For reference, the
 following code:
 
 ```clojure
-(let [tramp (fn [thunk flag]
-                  (loop [thunk thunk]
-                    (if (deref flag)
-                        (do (swap! flag not) thunk)
-                        (recur (thunk)))))]
+(let [tramp (fn [thunk]
+              (if (get (meta thunk) :thunk)
+                (recur (thunk))
+                thunk))]
   (let [apply-k (fn [k a]
-                      (if (fn? k)
-                          (k a)
-                          (do (swap! k not) a)))]
-    (let [flag (atom false)]
-      (defn fact
-        ([n] (tramp (fact n flag) flag))
-        ([n k]
-           (if (zero? n)
-               (fn [] (apply-k k 1))
-               (fn []
-                 (fact (dec n)
-                       (fn [s]
-                         (fn []
-                           (apply-k k (* n s))))))))))))
+                  (if (fn? k)
+                    (k a)
+                    a)))]
+  (defn fact
+    ([n] (tramp (fact n nil)))
+    ([n k]
+       (if (zero? n)
+         (fn [] (with-meta (apply-k k 1) {:thunk true}))
+         (with-meta
+           (fn []
+             (fact (dec n)
+                   (fn [s]
+                     (fn []
+                       (apply-k k (* n s))))))
+           {:thunk true})))))
 ```
 
 

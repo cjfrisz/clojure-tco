@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified 24 May 2012
+;; Last modified 15 Jul 2012
 ;; 
 ;; Defines the ctco macro which acts as the driver for the Clojure TCO
 ;; compiler. The macro parses the initial expression, and applies the
@@ -42,9 +42,8 @@
   closures created to represent continuations."
   [expr]
   (let [tramp (util/new-var 'tramp)
-        apply-k (util/new-var 'apply-k)
-        flag (util/new-var 'flag)
-        init-k (util/new-var 'k)]
+        init-k (util/new-var 'init-k)
+        apply-k (util/new-var 'apply-k)]
     (letfn [(apply-cps [expr]
               (if (extends? proto/PCpsSrs (type expr))
                   (proto/cps-srs expr init-k)
@@ -52,16 +51,14 @@
             (wrap-expr [expr]
               (if (instance? Defn expr)
                   expr
-                  (let [app (AppContAbs. apply-k init-k expr)]
-                    (Cont. init-k app))))]
-      (let [expr (parse/parse expr)
-            expr (apply-cps expr)
-            expr (proto/abstract-k expr apply-k)
-            expr (proto/thunkify expr)
-            expr (wrap-expr expr)
-            expr (mp/overload expr tramp flag)
-            expr (mp/make-flag expr flag)
-            expr (mp/make-apply-k expr apply-k)
-            expr (mp/make-trampoline expr tramp)]
-        (proto/emit expr)))))
-
+                  (let [k (util/new-var 'k)
+                        app (AppContAbs. apply-k k expr)]
+                    (Cont. k app))))]
+      (proto/emit (-> (parse/parse expr)
+                      apply-cps
+                      (proto/abstract-k apply-k)
+                      proto/thunkify
+                      wrap-expr
+                      (mp/overload tramp)
+                      (mp/make-apply-k apply-k)
+                      (mp/make-trampoline tramp))))))

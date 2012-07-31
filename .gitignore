@@ -1,3 +1,4 @@
+# Emacs backup files (for primitive hosts without custom Emacs setups)
 *~
 
 # Leiningen files
@@ -13,3 +14,6 @@ classes/
 
 # Ignore .lein-failures
 .lein-failures
+
+# Target directory (why did this suddenly appear?)
+target/

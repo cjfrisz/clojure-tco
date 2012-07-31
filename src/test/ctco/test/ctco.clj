@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 28 Apr 2012
-;; Last modified 01 Jul 2012
+;; Last modified 30 Jul 2012
 ;; 
 ;; Test programs for the full CTCO compiler.
 ;;----------------------------------------------------------------------
@@ -17,15 +17,6 @@
         [ctco
          :only (ctco)]))
 
-;; Global variables for aggregate execution time of tests
-#_(def *ctco-total-exec-time* 0)
-#_(def *non-ctco-total-exec-time* 0)
-
-;; Global variables for logging
-#_(def log-output #{:aggregate :individual :full})
-#_(def log-level (zipmap log-output (iterate inc 1)))
-#_(def *ctco-test-log-level* (log-level :aggregate))
-
 (defn- time-eval 
   "Takes a sequence (assumed to be syntax) and returns a sequence that 
   represents an expression that times the evaluation of the input expression
@@ -34,7 +25,7 @@
   `(let [start-time# (. java.lang.System (nanoTime))
          eval-it# ~e 
          end-time# (. java.lang.System (nanoTime))]
-     [eval-it# (/ (- start-time# end-time#) 1000.0)]))
+     [eval-it# (/ (- end-time# start-time#) 1000.0)]))
 
 (defmacro ctco-test-eval
   "Takes a CTCO expression and tests whether the result of evaluating the 
@@ -60,8 +51,11 @@
                                                 (prewalk-replace {name new-name} 
                                                                  e)) 
               :else e))]
-    `(fn [args#]
-       (let [[old-apply# old-time#] ~(time-eval `(apply ~(rename expr) args#))
-             [new-apply# new-time#] ~(time-eval `(apply ~(macroexpand `(ctco ~(rename expr)))))]
+    (let [args (gensym 'args)]
+    `(fn [~args]
+       (let [[old-apply# old-time#]
+             ~(time-eval `(apply ~(rename expr) ~args))
+             [new-apply# new-time#]
+             ~(time-eval `(apply ~(macroexpand `(ctco ~(rename expr))) ~args))]
          (and (is (= old-apply# new-apply#))
-              (println "Old time: " old-time# "\nNew time: " new-time#))))))
+              (println "Old time: " old-time# "\nNew time: " new-time#)))))))

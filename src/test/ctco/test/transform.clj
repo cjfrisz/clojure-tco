@@ -42,7 +42,7 @@
   "Takes a CTCO expression that evaluates to a function (i.e. 'fn' or 'defn')
   and expands into a function that takes a list of arguments and applies the 
   function (both unmodified and CTCO-modified) to the arguments. The results
-  are tested for equivalence. Additionally, the timing for both applications 
+  are tested for equivalence. Additionally, the timings for both applications 
   are printed."
   [expr]
   (letfn [(rename [e]
@@ -51,11 +51,34 @@
                                                 (prewalk-replace {name new-name} 
                                                                  e)) 
               :else e))]
-    (let [args (gensym 'args)]
-    `(fn [~args]
+    (let [arg* (gensym 'arg*)]
+    `(fn [~arg*]
        (let [[old-apply# old-time#]
-             ~(time-eval `(apply ~(rename expr) ~args))
+             ~(time-eval `(apply ~(rename expr) ~arg*))
              [new-apply# new-time#]
-             ~(time-eval `(apply ~(macroexpand `(ctco ~(rename expr))) ~args))]
+             ~(time-eval `(apply ~(macroexpand `(ctco ~(rename expr))) ~arg*))]
          (and (is (= old-apply# new-apply#))
-              (println "Old time: " old-time# "\nNew time: " new-time#)))))))
+              (do
+                (println "Old time: " old-time# "ms")
+                (println "New time: " new-time# "ms"))))))))
+
+(deftest id
+  "Testing the identity function"
+  (println "Identity test")
+  (let [id-test (ctco-test-apply (defn id [x] x))
+        int-arg* (map list (take 10 (iterate inc 0)))]
+    (doseq [a int-arg*] (id-test a))))
+
+(deftest fact
+  "Testing tail-recursive factorial"
+  (println "Factorial test")
+  (let [fact-test (ctco-test-apply
+                   (defn fact-acc [n a]
+                     (if (zero? n)
+                         a
+                         (fact-acc (dec n) (* n a)))))
+        small-arg* (map #(list % 1) (take 10 (iterate inc 0)))
+        big-arg* (map #(list (bigint %) 1)
+                      (take-while #(<= % 50) (iterate #(+ 10 %) 10)))]
+    (doseq [a small-arg*] (fact-test a))
+    (doseq [a big-arg*] (fact-test a))))

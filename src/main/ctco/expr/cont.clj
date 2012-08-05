@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified 26 Apr 2012
+;; Last modified  5 Aug 2012
 ;; 
 ;; Defines the Cont, AppCont, and AppContAbs record types for
 ;; continuations, continuation application, and continuation
@@ -81,7 +81,7 @@
     (thunkify [this]
       (let [CONT (proto/thunkify (:cont this))
             VAL (proto/thunkify (:val this))]
-        (Thunk. (AppContAbs. (:app-k this) CONT VAL)))))
+        (AppContAbs. (:app-k this) CONT VAL))))
 
 (defrecord AppCont [cont val]
   proto/PAbstractK
@@ -100,4 +100,4 @@
     (thunkify [this]
       (let [CONT (proto/thunkify (:cont this))
             VAL (proto/thunkify (:val this))]
-        (Thunk. (AppCont. CONT VAL)))))
+        (AppCont. CONT VAL))))

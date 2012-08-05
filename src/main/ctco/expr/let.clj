@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 24 May 2012
+;; Last modified  5 Aug 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing serious,
 ;; trivial, and CPSed 'let' expressions, respectively. LetSrs and LetTriv
@@ -38,10 +38,10 @@
 ;;              "serious" init value, it is pulled out and evaluated before the
 ;;              remainder of the 'let' expression. Given the static scoping
 ;;              rules of 'let,' we can apply a slight optimization in the
-;;              generated continuation for a "serious" init value need not use a
-;;              fresh variable and then perform an unnecessary binding to the
-;;              original variable name. Rather, we can simply reuse the original
-;;              binding name as the parameter name to the continuation. 
+;;              generated continuation for a "serious" init value, as it need
+;;              not use a fresh variable and then perform an unnecessary binding
+;;              to the original variable name. Rather, we can simply reuse the
+;;              original binding name as the parameter name to the continuation.
 ;;
 ;;              For each "trivial" init value, the CPS transformation is appplied
 ;;              and the result is emitted with its original binding in the order

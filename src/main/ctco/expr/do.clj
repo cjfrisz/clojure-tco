@@ -3,10 +3,10 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 26 Apr 2012
+;; Last modified  5 Aug 2012
 ;; 
 ;; Defines the Do and DoSync record types and operations for 'do' and
-;; 'dosync'expressions in the Clojure TCO compiler.
+;; 'dosync' expressions in the Clojure TCO compiler.
 ;;
 ;; Do implements the following protocols:
 ;;

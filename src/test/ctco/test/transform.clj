@@ -1,14 +1,14 @@
 ;;----------------------------------------------------------------------
-;; File ctco.clj
+;; File transform.clj
 ;; Written by Chris Frisz
 ;; 
 ;; Created 28 Apr 2012
-;; Last modified 30 Jul 2012
+;; Last modified  5 Aug 2012
 ;; 
 ;; Test programs for the full CTCO compiler.
 ;;----------------------------------------------------------------------
 
-(ns ctco.test.ctco
+(ns ctco.test.transform
   (:use [clojure.test]
         [clojure.core.match
          :only (match)]

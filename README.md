@@ -58,8 +58,8 @@ is as follows:
             |       Bool  
             |       Sym  
             |       Var  
-	    |	    String
-	    |	    Keyword
+            |       String
+            |       Keyword
             |       (fn [Var*] Expr)  
             |       (defn Name [Var*] Expr)  
             |       (defn Name ([Var*] Expr)+)  
@@ -89,7 +89,7 @@ classpath, include it with the following code:
 (use '(ctco.core :only (ctco)))
 ```
 
-NOTE: This is different than previous versions (and is a breaking
+**Note**: This is different than previous versions (and is a breaking
 change), but avoids using a single-segment namespace as before.
 
 Then simply wrap any piece of code that you want transformed with

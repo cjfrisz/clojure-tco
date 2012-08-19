@@ -1,9 +1,9 @@
 ;;----------------------------------------------------------------------
-;; File ctco.clj
+;; File core.clj
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified 15 Jul 2012
+;; Last modified 17 Aug 2012
 ;; 
 ;; Defines the ctco macro which acts as the driver for the Clojure TCO
 ;; compiler. The macro parses the initial expression, and applies the
@@ -15,7 +15,7 @@
 ;; the transformed expression.
 ;;----------------------------------------------------------------------
 
-(ns ctco
+(ns ctco.core
   (:require [ctco.expr
              [cont defn fn]]
             [ctco.mini-passes :as mp]

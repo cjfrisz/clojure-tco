@@ -10,7 +10,7 @@
 (ns ctco.test.invoke
   (:use [clojure.test]
         [clojure.pprint]
-        [ctco :only (ctco)]))
+        [ctco.core :only (ctco)]))
 
 (ctco
  (defn countdown [i]

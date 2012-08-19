@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 14 May 2012
+;; Last modified 18 Aug 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -41,19 +41,19 @@
   (match [expr]
     [nil] (Atomic. nil)
     [(:or true false)] (Atomic. expr)
-    [(n :when number?)] (Atomic. n)
+    [(n :guard number?)] (Atomic. n)
     [(['quote s] :seq)] (Atomic. `(quote ~s))
-    [(v :when symbol?)] (Atomic. v)
-    [(s :when string?)] (Atomic. s)
-    [(k :when keyword?)] (Atomic. k)
+    [(v :guard symbol?)] (Atomic. v)
+    [(s :guard string?)] (Atomic. s)
+    [(k :guard keyword?)] (Atomic. k)
     [(['fn fml* body] :seq)] (parse-fn fml* body)
-    [(['defn name (fml* :when vector?) body] :seq)] (let [func* `((~fml* ~body))]
+    [(['defn name (fml* :guard vector?) body] :seq)] (let [func* `((~fml* ~body))]
                                                       (parse-defn name func*)) 
     [(['defn name & func*] :seq)] (parse-defn name func*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)
     [(['cond & clause*] :seq)] (parse-cond clause*)
     [(['let bind* body] :seq)] (parse-let bind* body)
-    [([(op :when util/simple-op?) & opnd*] :seq)] (parse-op op opnd*)
+    [([(op :guard util/simple-op?) & opnd*] :seq)] (parse-op op opnd*)
     [([rator & rand*] :seq)] (parse-app rator rand*)
     :else (throw (Exception. (str "Invalid expression in parse: " expr)))))
 

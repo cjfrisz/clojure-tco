@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 28 Apr 2012
-;; Last modified  5 Aug 2012
+;; Last modified 17 Aug 2012
 ;; 
 ;; Test programs for the full CTCO compiler.
 ;;----------------------------------------------------------------------
@@ -14,7 +14,7 @@
          :only (match)]
         [clojure.walk
          :only (prewalk-replace)]
-        [ctco
+        [ctco.core
          :only (ctco)]))
 
 (defn- time-eval 

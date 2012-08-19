@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 26 Apr 2012
+;; Last modified 17 Aug 2012
 ;; 
 ;; Defines the IfSrs, IfTriv, IfCps record types representing serious,
 ;; trivial, and CPSed 'if' expressions, respectively. IfSrs and IfTriv
@@ -150,7 +150,10 @@
 
 (extend IfSrs
   proto/PEmit
-    if-emit)
+    if-emit
+
+  proto/PWalkable
+    if-walkable)
 
 (extend IfTriv
   proto/PEmit
@@ -158,5 +161,3 @@
 
   proto/PWalkable
     if-walkable)
-
-

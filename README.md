@@ -58,6 +58,8 @@ is as follows:
             |       Bool  
             |       Sym  
             |       Var  
+	    |	    String
+	    |	    Keyword
             |       (fn [Var*] Expr)  
             |       (defn Name [Var*] Expr)  
             |       (defn Name ([Var*] Expr)+)  
@@ -71,7 +73,9 @@ Where:
 * Num is a valid numeric type in Clojure  
 * Bool is a boolean (`true` or `false`)  
 * Sym is a quoted symbol  
-* Var is a legal Clojure variable identifier  
+* Var is a legal Clojure variable identifier 
+* String is a Clojure string
+* Keyword is a Clojure keyword
 * Prim is a primitive operator/predicate in the set   
    (+ - * / mod < <= = >= > and or not inc dec zero? true? false? nil?
    instance? fn? type ref ref-set deref)
@@ -82,8 +86,11 @@ The key component of CTCO is the `ctco` macro. With CTCO on your
 classpath, include it with the following code:
 
 ```clojure
-(use '(ctco :only (ctco)))
+(use '(ctco.core :only (ctco)))
 ```
+
+NOTE: This is different than previous versions (and is a breaking
+change), but avoids using a single-segment namespace as before.
 
 Then simply wrap any piece of code that you want transformed with
 `(ctco ...)`. 
@@ -153,3 +160,7 @@ A list of the resources for CTCO transformations is as follows:
 * [A First-Order, One-Pass CPS Algorithm](http://www.brics.dk/RS/01/49/BRICS-RS-01-49.pdf)
   
 * [Using ParentheC to Transform Scheme Programs to C or How to Write Interesting Recurive Programs in a Spartan Host (Program Counter)](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0CCUQFjAA&url=https%3A%2F%2Fwww.cs.indiana.edu%2Fcgi-pub%2Fc311%2Flib%2Fexe%2Ffetch.php%3Fmedia%3Dparenthec.pdf&ei=LNaST93BO4i46QHnyMCcBA&usg=AFQjCNG-Chb76N9lNVHO2ymtnAjo9Fvt0g&sig2=SR2itLI00reGEjRCrw-edQ&cad=rja)
+
+## Contributors
+
+* Alan Dipert (@alandipert)

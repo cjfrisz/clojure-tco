@@ -6,14 +6,8 @@
 .lein-failures
 .lein-plugins
 
-# Dependencies
-lib/
-
 # Compiled files
 classes/
-
-# Ignore .lein-failures
-.lein-failures
 
 # Target directory (why did this suddenly appear?)
 target/

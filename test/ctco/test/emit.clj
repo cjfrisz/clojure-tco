@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 15 Apr 2012
-;; Last modified 28 Apr 2012
+;; Last modified 26 Aug 2012
 ;; 
 ;; Testing for the correctness of emit
 ;;----------------------------------------------------------------------
@@ -13,18 +13,18 @@
         [clojure.pprint]
         [ctco.parse :only (parse)])
   (:require [ctco.expr
-             app atomic cont defn fn if simple-op]
+             app simple cont defn fn if simple-op]
             [ctco.protocol :as proto])
   (:import [ctco.expr.app
             App]
-           [ctco.expr.atomic
-            Atomic]
+           [ctco.expr.simple
+            Simple]
            [ctco.expr.cont
             Cont AppCont AppContAbs]
            [ctco.expr.defn
             Defn]
            [ctco.expr.fn
-            Fn]
+            FnBody]
            [ctco.expr.if
             IfCps IfSrs IfTriv]
            [ctco.expr.simple_op
@@ -38,17 +38,17 @@
   (is (= '((clojure.core/fn [x y z] (* x 3)) 7 3 12)
          (proto/emit (parse '((fn [x y z] (* x 3)) 7 3 12))))))
 
-(deftest atomic-test
+(deftest simple-test
   (is (= 5 (proto/emit (parse 5))))
   (is (= 25883 (proto/emit (parse 25883))))
   (is (= '(quote stuff) (proto/emit (parse '(quote stuff))))))
  
 (deftest cont-test
   (is (= '(clojure.core/fn [x] x)
-         (proto/emit (Cont. (Atomic. 'x) (Atomic. 'x)))))
+         (proto/emit (Cont. (Simple. 'x) (Simple. 'x)))))
   (is (= '((clojure.core/fn [x] x) (quote thonk))
-         (proto/emit (AppCont. (Cont. (Atomic. 'x) (Atomic. 'x))
-                               (Atomic. (quote 'thonk)))))))
+         (proto/emit (AppCont. (Cont. (Simple. 'x) (Simple. 'x))
+                               (Simple. (quote 'thonk)))))))
 
 (deftest defn-test
   (is (= '(clojure.core/defn id [x] x)
@@ -66,4 +66,4 @@
 
 (deftest thunk-test
   (is (= '(clojure.core/with-meta (clojure.core/fn [] (quote stuff)) {:thunk true})
-         (proto/emit (Thunk. (Atomic. ''stuff))))))
+         (proto/emit (Thunk. (Simple. ''stuff))))))

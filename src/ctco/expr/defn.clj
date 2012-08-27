@@ -3,11 +3,11 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified 26 Apr 2012
+;; Last modified 21 Aug 2012
 ;; 
 ;; Defines the Defn record type for 'defn' expressions in the TCO
 ;; compiler. It supports multiple arity definitions and represents
-;; them as a vector of Fn records.
+;; them as a vector of FnBody records.
 ;;
 ;; Defn implements the following protocols:
 ;;
@@ -37,7 +37,7 @@
              fn thunk]
             [ctco.protocol :as proto])
   (:import [ctco.expr.fn
-            Fn]
+            FnBody]
            [ctco.expr.thunk
             Thunk]))
 

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified 26 Apr 2012
+;; Last modified 26 Aug 2012
 ;; 
 ;; Includes the protocols used in the CTCO compiler. These include the
 ;; following:
@@ -22,7 +22,7 @@
 ;; PCpsTriv:
 ;;      Implemented by expressions which can undergo a CPS
 ;;      transformation and are considered "trivial." As a rule of
-;;      thumb, this includes atomic expressions (numbers, booleans,
+;;      thumb, this includes simple expressions (numbers, booleans,
 ;;      etc.) and non-function application expressions that contain
 ;;      no serious subexpressions.
 ;;

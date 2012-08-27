@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified 28 Apr 2012
+;; Last modified 26 Aug 2012
 ;; 
 ;; Defines miscellaneous utility functions for use in CTCO. These
 ;; include:
@@ -15,10 +15,10 @@
 
 (ns ctco.util
   (:require [ctco.expr
-             atomic cont]
+             simple cont]
             [ctco.protocol :as proto])
-  (:import  [ctco.expr.atomic
-             Atomic]
+  (:import  [ctco.expr.simple
+             Simple]
             [ctco.expr.cont
              Cont AppCont]))
 
@@ -27,7 +27,7 @@
   base symbol or a default base symbol."
   ([base]
      (let [new-var (gensym base)]
-       (Atomic. new-var)))
+       (Simple. new-var)))
   ([]
      (let [base 'x]
        (new-var base))))

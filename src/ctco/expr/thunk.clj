@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified 26 Apr 2012
+;; Last modified 21 Aug 2012
 ;; 
 ;; Defines the Thunk record type for representing thunks (functions of
 ;; zero arguments) in the Clojure TCO compiler. These are used to
@@ -18,8 +18,8 @@
 ;;
 ;;      PEmit:
 ;;              Emits (recursively) the syntax for the expression as
-;;              `(fn [] ~body), using anonymous 'fn' expressions to
-;;              represent thunks.
+;;              `(with-meta (fn [] ~body) {:thunk true}), using
+;;              anonymous 'fn' expressions to represent thunks.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.thunk

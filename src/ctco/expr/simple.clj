@@ -1,32 +1,32 @@
 ;;----------------------------------------------------------------------
-;; File atomic.clj
+;; File simple.clj
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 26 Apr 2012
+;; Last modified 26 Aug 2012
 ;; 
-;; Defines the Atomic record type for atomic expressions (e.g.
+;; Defines the Simple record type for simple expressions (e.g.
 ;; numbers, booleans, symbols, etc.) in the CTCO compiler.
 ;;
 ;; It implements the following records:
 ;;
 ;;      PAbstractK:
-;;              Simply returns the Atomic.
+;;              Simply returns the Simple.
 ;;
 ;;      PCpsTriv:
-;;              Simply returns the Atomic.
+;;              Simply returns the Simple.
 ;;
 ;;      PEmit:
-;;              Returns the syntax for the Atomic.
+;;              Returns the syntax for the Simple.
 ;;
 ;;      PThunkify:
-;;              Simply returns the Atomic.
+;;              Simply returns the Simple.
 ;;----------------------------------------------------------------------
 
-(ns ctco.expr.atomic
+(ns ctco.expr.simple
   (:require [ctco.protocol :as proto]))
 
-(defrecord Atomic [val]
+(defrecord Simple [val]
   proto/PAbstractK
     (abstract-k [this _] this)
 

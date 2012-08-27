@@ -11,3 +11,7 @@ classes/
 
 # Target directory (why did this suddenly appear?)
 target/
+
+# pom files created by deploying jars
+pom.xml
+pom.xml.asc

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 18 Aug 2012
+;; Last modified 26 Aug 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -12,17 +12,17 @@
   (:use [clojure.core.match
          :only (match)])
   (:require [ctco.expr
-             app atomic defn fn if let simple-op]
+             app simple defn fn if let simple-op]
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.app
             App]
-           [ctco.expr.atomic
-            Atomic]
+           [ctco.expr.simple
+            Simple]
            [ctco.expr.defn
             Defn]
            [ctco.expr.fn
-            Fn]
+            FnBody]
            [ctco.expr.if
             IfCps IfSrs IfTriv]
            [ctco.expr.let
@@ -39,16 +39,16 @@
   records."
   [expr]
   (match [expr]
-    [nil] (Atomic. nil)
-    [(:or true false)] (Atomic. expr)
-    [(n :guard number?)] (Atomic. n)
-    [(['quote s] :seq)] (Atomic. `(quote ~s))
-    [(v :guard symbol?)] (Atomic. v)
-    [(s :guard string?)] (Atomic. s)
-    [(k :guard keyword?)] (Atomic. k)
+    [nil] (Simple. nil)
+    [(:or true false)] (Simple. expr)
+    [(n :guard number?)] (Simple. n)
+    [(['quote s] :seq)] (Simple. `(quote ~s))
+    [(v :guard symbol?)] (Simple. v)
+    [(s :guard string?)] (Simple. s)
+    [(k :guard keyword?)] (Simple. k)
     [(['fn fml* body] :seq)] (parse-fn fml* body)
-    [(['defn name (fml* :guard vector?) body] :seq)] (let [func* `((~fml* ~body))]
-                                                      (parse-defn name func*)) 
+    [(['defn name (fml* :guard vector?) body] :seq)] (parse-defn name
+                                                       `((~fml* ~body)))
     [(['defn name & func*] :seq)] (parse-defn name func*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)
     [(['cond & clause*] :seq)] (parse-cond clause*)
@@ -60,10 +60,7 @@
 (defn- parse-fn
   "Helper function for parse that handles 'fn' expressions."
   [fml* body]
-  (let [FML* (map parse fml*)
-        FML* (into [] FML*)
-        BODY (parse body)]
-    (Fn. FML* BODY)))
+  (FnBody. (vec (map parse fml*)) (parse body)))
 
 (defn- parse-defn
   "Helper function for parse that handles 'defn' expression."
@@ -75,7 +72,7 @@
                       body (first (nfirst func*))
                       func (parse-fn fml* body)]
                   (recur (next func*) (conj out* func)))))]
-    (let [NAME (Atomic. name)
+    (let [NAME (Simple. name)
           FUNC* (parse-func* func* [])]
       (Defn. NAME FUNC*))))
 
@@ -103,7 +100,7 @@
                               (IfTriv. test conseq rst))
                       RCLAUSE* (nnext rclause*)]
                   (recur RCLAUSE* RST))))]
-    (parse-rclause* (reverse clause*) (Atomic. nil))))
+    (parse-rclause* (reverse clause*) (Simple. nil))))
 
 (defn- parse-let
   "Helper function for parse that handles 'let' expressions."
@@ -127,7 +124,6 @@
 (defn- parse-app
   "Helper function for parse that handles application."
   [rator rand*]
-  (let [RATOR (parse rator)
-        RAND* (vec (map parse rand*))]
-    (App. RATOR RAND*)))
+  (App. (parse rator) (vec (map parse rand*))))
+    
 

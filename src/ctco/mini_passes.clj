@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 14 Apr 2012
-;; Last modified 15 Jul 2012
+;; Last modified 26 Aug 2012
 ;; 
 ;; Defines the small, one-time code transformations for the TCO
 ;; compiler. These include the following:
@@ -14,14 +14,14 @@
 
 (ns ctco.mini-passes
   (:require [ctco.expr
-             app atomic fn defn do if let recur simple-op]
+             app simple fn defn do if let recur simple-op]
             [ctco.util :as util])
   (:import [ctco.expr.app
             App]
-           [ctco.expr.atomic
-            Atomic]
+           [ctco.expr.simple
+            Simple]
            [ctco.expr.fn
-            Fn]
+            FnBody]
            [ctco.expr.defn
             Defn]
            [ctco.expr.do
@@ -57,10 +57,10 @@
   (if (instance? Defn expr)
       (let [fml* (:fml* (first (:func* expr)))
             fml-bl* (vec (butlast fml*))
-            rand* (conj fml-bl* (Atomic. 'nil))
+            rand* (conj fml-bl* (Simple. 'nil))
             init-call (App. (:name expr) rand*)
             tramp-call (App. tramp [init-call])
-            func* (vec (cons (Fn. fml-bl* tramp-call) (:func* expr)))]
+            func* (vec (cons (FnBody. fml-bl* tramp-call) (:func* expr)))]
         (Defn. (:name expr) func*))
       expr))
 
@@ -76,7 +76,7 @@
     (let [test (SimpleOpCps. 'fn? [kont])
           conseq (App. kont [arg])
           body (IfCps. test conseq arg)
-          init (Fn. [kont arg] body)
+          init (FnBody. [kont arg] body)
           bind* [apply-k init]]
       (LetCps. bind* expr))))
 
@@ -88,8 +88,8 @@
   expression is emitted."
   [expr tramp]
   (let [thunk (util/new-var 'thunk)
-        test (SimpleOpCps. 'get [(SimpleOpCps. 'meta [thunk]) (Atomic. :thunk)])
+        test (SimpleOpCps. 'get [(SimpleOpCps. 'meta [thunk]) (Simple. :thunk)])
         conseq (Recur. [(App. thunk [])])
         body (IfCps. test conseq thunk)
-        init (Fn. [thunk] body)]
+        init (FnBody. [thunk] body)]
     (LetCps. [tramp init] expr)))

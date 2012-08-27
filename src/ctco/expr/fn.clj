@@ -3,16 +3,16 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 26 Apr 2012
+;; Last modified 21 Aug 2012
 ;; 
-;; Defines the Fn record type for representing 'fn' expressions in the
+;; Defines the FnBody record type for representing 'fn' expressions in the
 ;; Clojure TCO compiler.
 ;;
 ;; It implements the following protocols:
 ;;
 ;;      PAbstractK:
 ;;              Recursively applies abstract-k to the body expression,
-;;              returning a new Fn record.
+;;              returning a new FnBody record.
 ;;
 ;;      PEmit:
 ;;              Emits (recursively) the syntax for the expression as
@@ -24,7 +24,7 @@
 ;;              additional 'k' argument for the continuation.
 ;;
 ;;      PThunkify:
-;;              Simply calls thunkify on the body and returns a new Fn
+;;              Simply calls thunkify on the body and returns a new FnBody
 ;;              record with that body value. 
 ;;----------------------------------------------------------------------
 
@@ -38,11 +38,11 @@
            [ctco.expr.thunk
             Thunk]))
 
-(defrecord Fn [fml* body]
+(defrecord FnBody [fml* body]
   proto/PAbstractK
     (abstract-k [this app-k]
       (let [BODY (proto/abstract-k (:body this) app-k)]
-        (Fn. (:fml* this) BODY)))
+        (FnBody. (:fml* this) BODY)))
 
   proto/PEmit
     (emit [this]
@@ -57,9 +57,9 @@
               BODY (condp extends? (type (:body this))
                        proto/PCpsTriv (AppCont. k (proto/cps-triv body))
                        proto/PCpsSrs (proto/cps-srs body k))]
-          (Fn. FML* BODY))))
+          (FnBody. FML* BODY))))
 
   proto/PThunkify
     (thunkify [this]
       (let [BODY (proto/thunkify (:body this))]
-        (Fn. (:fml* this) BODY))))
+        (FnBody. (:fml* this) BODY))))

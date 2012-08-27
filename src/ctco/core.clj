@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified 17 Aug 2012
+;; Last modified 21 Aug 2012
 ;; 
 ;; Defines the ctco macro which acts as the driver for the Clojure TCO
 ;; compiler. The macro parses the initial expression, and applies the
@@ -16,8 +16,7 @@
 ;;----------------------------------------------------------------------
 
 (ns ctco.core
-  (:require [ctco.expr
-             [cont defn fn]]
+  (:require #_[ctco.expr [cont defn]]
             [ctco.mini-passes :as mp]
             [ctco.parse :as parse]
             [ctco.protocol :as proto]
@@ -25,9 +24,7 @@
   (:import [ctco.expr.cont
             Cont AppContAbs]
            [ctco.expr.defn
-            Defn]
-           [ctco.expr.fn
-            Fn]))
+            Defn]))
 
 (defmacro ctco
   "Entry-point for the TCO compiler. Takes a Clojure expression and
@@ -51,14 +48,14 @@
             (wrap-expr [expr]
               (if (instance? Defn expr)
                   expr
-                  (let [k (util/new-var 'k)
-                        app (AppContAbs. apply-k k expr)]
-                    (Cont. k app))))]
-      (proto/emit (-> (parse/parse expr)
-                      apply-cps
-                      (proto/abstract-k apply-k)
-                      proto/thunkify
-                      wrap-expr
-                      (mp/overload tramp)
-                      (mp/make-apply-k apply-k)
-                      (mp/make-trampoline tramp))))))
+                  (let [k (util/new-var 'k)]
+                    (Cont. k (AppContAbs. apply-k k expr)))))]
+      (-> (parse/parse expr)
+          apply-cps
+          (proto/abstract-k apply-k)
+          proto/thunkify
+          wrap-expr
+          (mp/overload tramp)
+          (mp/make-apply-k apply-k)
+          (mp/make-trampoline tramp)
+          proto/emit))))

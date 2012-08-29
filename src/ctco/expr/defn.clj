@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified 21 Aug 2012
+;; Last modified 28 Aug 2012
 ;; 
 ;; Defines the Defn record type for 'defn' expressions in the TCO
 ;; compiler. It supports multiple arity definitions and represents
@@ -18,7 +18,7 @@
 ;;      PEmit:
 ;;              Emits (recursively) the expression as syntax i the
 ;;              form `(defn ~name ~@body*) where body* is the list of
-;;              vector of emitted function definitions only including
+;;              vectors of emitted function definitions only including
 ;;              the formal parameters lists and bodies.
 ;;
 ;;      PCpsTriv:
@@ -49,14 +49,7 @@
 
   proto/PEmit
     (emit [this]
-      (let [name (proto/emit (:name this))
-            fml** (map #(map proto/emit (:fml* %)) (:func* this))
-            body* (map #(proto/emit (:body %)) (:func* this))
-            func* (map #(list (into [] %1) %2) fml** body*)]
-        (if (> (count func*) 1)
-            `(defn ~name ~@func*)
-            (let [FUNC* (apply concat func*)]
-              `(defn ~name ~@FUNC*)))))
+      `(defn ~(proto/emit (:name this)) ~@(map proto/emit (:func* this))))
   
   proto/PCpsTriv
     (cps-triv [this] (proto/walk-expr this proto/cps-triv nil))
@@ -66,5 +59,4 @@
 
   proto/PWalkable
     (walk-expr [this f _]
-      (let [FUNC* (vec (map f (:func* this)))]
-        (Defn. (:name this) FUNC*))))
+      (Defn. (:name this) (vec (map f (:func* this))))))

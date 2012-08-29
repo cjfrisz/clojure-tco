@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 26 Aug 2012
+;; Last modified 28 Aug 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -30,51 +30,29 @@
            [ctco.expr.simple_op
             SimpleOpCps SimpleOpSrs SimpleOpTriv]))
 
-(declare parse parse-fn parse-defn parse-if parse-cond parse-let parse-op
-         parse-app)
+(declare parse)
 
-(defn parse
+(defn- parse-simple
   "Takes a sequence representing a Clojure expression (generally passed from a
-  macro) and returns the expression represented in terms of Clojure TCO
-  records."
+  macro) and returns the parsed representation of the expression if it is a
+  simple expression (e.g. number, boolean, nil, etc.). Otherwise, the function
+  returns false."
   [expr]
-  (match [expr]
-    [nil] (Simple. nil)
-    [(:or true false)] (Simple. expr)
-    [(n :guard number?)] (Simple. n)
-    [(['quote s] :seq)] (Simple. `(quote ~s))
-    [(v :guard symbol?)] (Simple. v)
-    [(s :guard string?)] (Simple. s)
-    [(k :guard keyword?)] (Simple. k)
-    [(['fn fml* body] :seq)] (parse-fn fml* body)
-    [(['defn name (fml* :guard vector?) body] :seq)] (parse-defn name
-                                                       `((~fml* ~body)))
-    [(['defn name & func*] :seq)] (parse-defn name func*)
-    [(['if test conseq alt] :seq)] (parse-if test conseq alt)
-    [(['cond & clause*] :seq)] (parse-cond clause*)
-    [(['let bind* body] :seq)] (parse-let bind* body)
-    [([(op :guard util/simple-op?) & opnd*] :seq)] (parse-op op opnd*)
-    [([rator & rand*] :seq)] (parse-app rator rand*)
-    :else (throw (Exception. (str "Invalid expression in parse: " expr)))))
+  (and
+   ((some-fn nil?
+             true?
+             false?
+             number?
+             symbol?
+             string?
+             keyword?)
+    expr)
+   (Simple. expr)))
 
-(defn- parse-fn
+(defn- parse-fn-body
   "Helper function for parse that handles 'fn' expressions."
-  [fml* body]
-  (FnBody. (vec (map parse fml*)) (parse body)))
-
-(defn- parse-defn
-  "Helper function for parse that handles 'defn' expression."
-  [name func*]
-  (letfn [(parse-func* [func* out*]
-            (if (nil? (seq func*))
-                out*
-                (let [fml* (ffirst func*)
-                      body (first (nfirst func*))
-                      func (parse-fn fml* body)]
-                  (recur (next func*) (conj out* func)))))]
-    (let [NAME (Simple. name)
-          FUNC* (parse-func* func* [])]
-      (Defn. NAME FUNC*))))
+  [fml* bexpr*]
+  (FnBody. (vec (map parse fml*)) nil (vec (map parse bexpr*))))
 
 (defn- parse-if
   "Helper function for parse that handles 'if' expressions."
@@ -85,6 +63,39 @@
     (if (some util/serious? [TEST CONSEQ ALT])
         (IfSrs. TEST CONSEQ ALT)
         (IfTriv. TEST CONSEQ ALT))))
+
+(defn- parse-let
+  "Helper function for parse that handles 'let' expressions."
+  [bind* body]
+  (let [BIND* (vec (map parse bind*))
+        BODY (parse body)]
+    (assert (even? (count BIND*)))
+    (if (or (some util/serious? (take-nth 2 (next BIND*)))
+            (util/serious? BODY))
+        (LetSrs. BIND* BODY)
+        (LetTriv. BIND* BODY))))
+
+(defn- parse-core
+  "Takes a sequence representing a Clojure expression (generally passed from a
+  macro) and returns the parsed representation of the expression if it is a core
+  Clojure language expression. Otherwise, the function returns false."
+  [expr]
+  (match [expr]
+    [(['fn fml* & bexpr*] :seq)] (parse-fn-body fml* bexpr*)
+    [(['if test conseq alt] :seq)] (parse-if test conseq alt)
+    [(['let bind* body] :seq)] (parse-let bind* body)
+    :else false))
+
+(defn- parse-defn
+  "Helper function for parse that handles 'defn' expression."
+  [name func*]
+  (letfn [(parse-func* [func* out*]
+            (if (nil? (seq func*))
+                out*
+                (recur (next func*)
+                       (conj out* (parse-fn-body (ffirst func*)
+                                                 (nfirst func*))))))]
+    (Defn. (Simple. name) (parse-func* func* []))))
 
 (defn- parse-cond
   "Helper function for parse that handles 'cond' expressions. Currently
@@ -102,15 +113,19 @@
                   (recur RCLAUSE* RST))))]
     (parse-rclause* (reverse clause*) (Simple. nil))))
 
-(defn- parse-let
-  "Helper function for parse that handles 'let' expressions."
-  [bind* body]
-  (let [BIND* (vec (map parse bind*))
-        BODY (parse body)]
-    ;; Technically only need check inits, but no point in separating them
-    (if (or (some util/serious? BIND*) (util/serious? BODY))
-        (LetSrs. BIND* BODY)
-        (LetTriv. BIND* BODY))))
+(defn- parse-composite
+  "Takes a sequence representing a Clojure expression (generally passed from a
+  macro) and returns the parsed representation of the expression if it is a
+  composite expression. That is, if it is a Clojure expression composed of core
+  expressions. If the expression is not a composite expression, the function
+  returns false."
+  [expr]
+  (match [expr]
+    [(['defn name (fml* :guard vector?) body] :seq)]
+     (parse-defn name `((~fml* ~body)))
+    [(['defn name & func*] :seq)] (parse-defn name func*)
+    [(['cond & clause*] :seq)] (parse-cond clause*)
+    :else false))
 
 (defn- parse-op
   "Helper function for parse that handles simple op expressions (e.g. +, -,
@@ -121,9 +136,30 @@
         (SimpleOpSrs. op OPND*)
         (SimpleOpTriv. op OPND*))))
 
-(defn- parse-app
-  "Helper function for parse that handles application."
+(defn- parse-function-application
+  "Helper function for parse that handles function application."
   [rator rand*]
   (App. (parse rator) (vec (map parse rand*))))
-    
 
+(defn- parse-application
+  "Takes a sequence representing a Clojure expression (generally passed from a
+  macro) and returns the parsed representation of the expression if it is a form
+  of application (e.g. function application, primitive operation a la +, -, *,
+  etc.). Otherwise, the function returns false."
+  [expr]
+  (match [expr]
+    [([(op :guard util/simple-op?) & opnd*] :seq)] (parse-op op opnd*)
+    [([rator & rand*] :seq)] (parse-function-application rator rand*)
+    :else false))
+
+(defn parse
+  "Takes a sequence representing a Clojure expression (generally passed from a
+  macro) and returns the expression represented in terms of Clojure TCO
+  records."
+  [expr]
+  (or ((some-fn parse-simple
+                parse-core
+                parse-composite
+                parse-application)
+       expr)
+      (throw (Exception. (str "Invalid expression in parse: " expr)))))

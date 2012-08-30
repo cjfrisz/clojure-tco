@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 15 Apr 2012
-;; Last modified 26 Aug 2012
+;; Last modified 29 Aug 2012
 ;; 
 ;; Testing for the correctness of emit
 ;;----------------------------------------------------------------------
@@ -34,8 +34,8 @@
 
 (deftest app-test
   (is (= '(x y z) (proto/emit (parse '(x y z)))))
-  (is (= '((clojure.core/fn [x] x) 5) (proto/emit (parse '((fn [x] x) 5)))))
-  (is (= '((clojure.core/fn [x y z] (* x 3)) 7 3 12)
+  (is (= '((clojure.core/fn ([x] x)) 5) (proto/emit (parse '((fn [x] x) 5)))))
+  (is (= '((clojure.core/fn ([x y z] (* x 3))) 7 3 12)
          (proto/emit (parse '((fn [x y z] (* x 3)) 7 3 12))))))
 
 (deftest simple-test
@@ -51,7 +51,7 @@
                                (Simple. (quote 'thonk)))))))
 
 (deftest defn-test
-  (is (= '(clojure.core/defn id [x] x)
+  (is (= '(clojure.core/defn id ([x] x))
          (proto/emit (parse '(defn id [x] x)))))
   (is (= '(clojure.core/defn id ([x] x) ([x y] x))
          (proto/emit (parse '(defn id ([x] x) ([x y] x)))))))
@@ -59,10 +59,8 @@
 
 (deftest if-test
   (is (= '(if 3 4 5) (proto/emit (parse '(if 3 4 5)))))
-  (is (= '(if ((clojure.core/fn [x] x) 3) 4 5)
+  (is (= '(if ((clojure.core/fn ([x] x)) 3) 4 5)
          (proto/emit (parse '(if ((fn [x] x) 3) 4 5))))))
-
-;; (deftest simple-op-test)
 
 (deftest thunk-test
   (is (= '(clojure.core/with-meta (clojure.core/fn [] (quote stuff)) {:thunk true})

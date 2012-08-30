@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 26 Aug 2012
+;; Last modified 29 Aug 2012
 ;; 
 ;; Testing for the CPSer in the record+protocol'd version of the TCO
 ;; compiler.
@@ -25,7 +25,7 @@
            [ctco.expr.defn
             Defn]
            [ctco.expr.fn
-            FnBody]
+            Fn FnBody]
            [ctco.expr.if
             IfCps IfSrs IfTriv]
            [ctco.expr.simple_op
@@ -55,15 +55,15 @@
     (is (not (extends? proto/PCpsSrs (type test-var))))
     (is (= (proto/cps-triv test-var) test-var))))
 
-(let [test-fn-triv (FnBody. [(Simple. 'x)] (Simple. 'x))]
+(let [test-fn-triv (Fn. nil [(FnBody. [(Simple. 'x)] nil [(Simple. 'x)])])]
   (deftest fn-triv
     (is (extends? proto/PCpsTriv (type test-fn-triv)))
     (is (not (extends? proto/PCpsSrs (type test-fn-triv))))
-    (is (= (count (:fml* test-fn-triv)) 1))
+    (is (= (count (:fml* (first (:body* test-fn-triv)))) 1))
     (let [test-fn-cps (proto/cps-triv test-fn-triv)]
       (is (not (= test-fn-triv test-fn-cps)))
-      (is (= (count (:fml* test-fn-cps)) 2))
-      (is (instance? AppCont (:body test-fn-cps))))))
+      (is (= (count (:fml* (first (:body* test-fn-cps)))) 2))
+      (is (instance? AppCont (first (:bexpr* (first (:body* test-fn-cps)))))))))
 
 (let [test-if-triv (IfTriv. (Simple. 3) (Simple. 4) (Simple. 5))]
   (deftest if-triv
@@ -75,12 +75,12 @@
       (is (= (:alt test-if-triv) (:alt test-if-cps)))
       (is (instance? IfCps test-if-cps)))))
 
-(let [test-defn (Defn. 'id [(FnBody. [(Simple. 'x)] (Simple. 'x))])]
+(let [test-defn (Defn. 'id [(FnBody. [(Simple. 'x)] nil [(Simple. 'x)])])]
   (deftest defn-triv
     (is (extends? proto/PCpsTriv (type test-defn)))
     (is (not (extends? proto/PCpsSrs (type test-defn))))
     (let [test-defn-cps (proto/cps-triv test-defn)]
-      (is (instance? AppCont (:body (first (:func* test-defn-cps))))))))
+      (is (instance? AppCont (first (:bexpr* (first (:func* test-defn-cps)))))))))
 
 (let [test-op (SimpleOpTriv. '+ [(Simple. 3) (Simple. 4) (Simple. 5)])]
   (deftest simple-op-triv
@@ -91,7 +91,10 @@
             opnd-cps (:opnd* test-op-cps)]
         (is (= opnd opnd-cps))))))
 
-(let [test-app (App. (FnBody. [(Simple. 'x)] (Simple. 'x)) [(Simple. 5)])]
+(let [test-app (App. (Fn. nil [(FnBody. [(Simple. 'x)]
+                                        nil
+                                        [(Simple. 'x)])])
+                     [(Simple. 5)])]
   (deftest app
     (is (extends? proto/PCpsSrs (type test-app)))
     (let [k (util/new-var 'k)
@@ -99,7 +102,10 @@
       (is (instance? App app-cps)))))
 
 (let [test-if-srs (IfSrs. (SimpleOpTriv. 'zero? [(Simple. 'x)])
-                          (App. (FnBody. [(Simple. 'x)] (Simple. 'x)) [(Simple. 5)])
+                          (App. (Fn. nil [(FnBody. [(Simple. 'x)]
+                                                   nil
+                                                   [(Simple. 'x)])])
+                                [(Simple. 5)])
                           (Simple. 12))]
   (deftest if-srs
     (is (extends? proto/PCpsSrs (type test-if-srs)))
@@ -107,10 +113,16 @@
     (is (extends? proto/PCpsSrs (type (:conseq test-if-srs))))
     (is (extends? proto/PCpsTriv (type (:alt test-if-srs))))))
 
-(let [test-if-srs (IfSrs. (App. (FnBody. [(Simple. 'x)]
-                                     (SimpleOpTriv. 'zero? [(Simple. 'x)]))
+(let [test-if-srs (IfSrs. (App. (Fn. nil [(FnBody. [(Simple. 'x)]
+                                                   nil
+                                                   [(SimpleOpTriv.
+                                                    'zero?
+                                                    [(Simple. 'x)])])])
                                 [(Simple. 35)])
-                          (App. (FnBody. [(Simple. 'x)] (Simple. 'x)) [(Simple. 5)])
+                          (App. (Fn. nil [(FnBody. [(Simple. 'x)]
+                                                   nil
+                                                   [(Simple. 'x)])])
+                                [(Simple. 5)])
                           (Simple. 12))]
   (deftest if-srs2
     (is (extends? proto/PCpsSrs (type test-if-srs)))
@@ -119,7 +131,9 @@
     (is (extends? proto/PCpsTriv (type (:alt test-if-srs))))))
 
 (let [test-op-srs (SimpleOpSrs. '+ [(Simple. 3)
-                                    (App. (FnBody. [(Simple. 'x)] (Simple. 'x))
+                                    (App. (Fn. nil [(FnBody. [(Simple. 'x)]
+                                                             nil
+                                                             [(Simple. 'x)])])
                                           [(Simple. 5)])
                                     (Simple. 5)])]
   (deftest simple-op-srs

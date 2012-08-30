@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 28 Aug 2012
+;; Last modified 29 Aug 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -22,7 +22,7 @@
            [ctco.expr.defn
             Defn]
            [ctco.expr.fn
-            FnBody]
+            Fn FnBody]
            [ctco.expr.if
             IfCps IfSrs IfTriv]
            [ctco.expr.let
@@ -50,9 +50,20 @@
    (Simple. expr)))
 
 (defn- parse-fn-body
+  [fml* cmap bexpr*]
+  (FnBody. (vec (map parse fml*)) cmap (vec (map parse bexpr*))))
+
+(defn- parse-fn
   "Helper function for parse that handles 'fn' expressions."
-  [fml* bexpr*]
-  (FnBody. (vec (map parse fml*)) nil (vec (map parse bexpr*))))
+  [body*]
+  (Fn. nil (vec (map
+                 (fn [b]
+                   (condp = (count b)
+                     2 (parse-fn-body (first b) nil (next b))
+                     3 (parse-fn-body (first b) (fnext b) (nnext b))
+                     :else (throw (Exception.
+                                   (str "invalid function body" b)))))
+                 body*))))
 
 (defn- parse-if
   "Helper function for parse that handles 'if' expressions."
@@ -81,7 +92,8 @@
   Clojure language expression. Otherwise, the function returns false."
   [expr]
   (match [expr]
-    [(['fn fml* & bexpr*] :seq)] (parse-fn-body fml* bexpr*)
+    [(['fn fml* & bexpr*] :seq)] (parse-fn `((~fml* ~@bexpr*)))
+    [(['fn & body*] :seq)] (parse-fn body*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)
     [(['let bind* body] :seq)] (parse-let bind* body)
     :else false))
@@ -94,6 +106,7 @@
                 out*
                 (recur (next func*)
                        (conj out* (parse-fn-body (ffirst func*)
+                                                 nil
                                                  (nfirst func*))))))]
     (Defn. (Simple. name) (parse-func* func* []))))
 

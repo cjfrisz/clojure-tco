@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 21 Aug 2012
+;; Last modified 29 Aug 2012
 ;; 
 ;; Defines the FnBody record type for representing 'fn' expressions in the
 ;; Clojure TCO compiler.
@@ -38,28 +38,55 @@
            [ctco.expr.thunk
             Thunk]))
 
-(defrecord FnBody [fml* body]
+(defrecord FnBody [fml* cmap bexpr*]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (let [BODY (proto/abstract-k (:body this) app-k)]
-        (FnBody. (:fml* this) BODY)))
+      (proto/walk-expr this #(proto/abstract-k % app-k) nil))
 
   proto/PEmit
     (emit [this]
-      (let [fml* (vec (map proto/emit (:fml* this)))
-            body (proto/emit (:body this))]
-        `(fn ~fml* ~body)))
+      `(~(vec (map proto/emit (:fml* this)))
+        ~@(let [cmap (:cmap this)]
+            (if cmap (list cmap) '()))
+        ~@(map proto/emit (:bexpr* this))))
   
   proto/PCpsTriv
     (cps-triv [this]
       (let [k (util/new-var 'k)]
-        (let [FML* (conj (:fml* this) k)
-              BODY (condp extends? (type (:body this))
-                       proto/PCpsTriv (AppCont. k (proto/cps-triv body))
-                       proto/PCpsSrs (proto/cps-srs body k))]
-          (FnBody. FML* BODY))))
+        (FnBody. (conj (:fml* this) k)
+                 (:cmap this)
+                 (vec (map #(condp extends? (type %)
+                              proto/PCpsTriv (AppCont. k (proto/cps-triv %))
+                              proto/PCpsSrs (proto/cps-srs % k))
+                           (:bexpr* this))))))
 
   proto/PThunkify
     (thunkify [this]
-      (let [BODY (proto/thunkify (:body this))]
-        (FnBody. (:fml* this) BODY))))
+      (proto/walk-expr this proto/thunkify nil))
+
+  proto/PWalkable
+    (walk-expr [this f _]
+      (FnBody. (:fml* this) (:cmap this) (vec (map f (:bexpr* this))))))
+
+(defrecord Fn [name body*]
+   proto/PAbstractK
+     (abstract-k [this app-k]
+       (proto/walk-expr this #(proto/abstract-k % app-k) nil))
+
+   proto/PCpsTriv
+     (cps-triv [this]
+       (proto/walk-expr this proto/cps-triv nil))
+
+   proto/PEmit
+     (emit [this]
+       (let [name (:name this)]
+         `(fn ~@(if name (list (proto/emit name)) '())
+            ~@(map proto/emit (:body* this)))))
+
+   proto/PThunkify
+     (thunkify [this]
+       (proto/walk-expr this proto/thunkify nil))
+
+   proto/PWalkable
+     (walk-expr [this f _]
+       (Fn. (:name this) (vec (map f (:body* this))))))

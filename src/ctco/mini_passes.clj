@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 14 Apr 2012
-;; Last modified 26 Aug 2012
+;; Last modified 29 Aug 2012
 ;; 
 ;; Defines the small, one-time code transformations for the TCO
 ;; compiler. These include the following:
@@ -13,28 +13,12 @@
 ;;----------------------------------------------------------------------
 
 (ns ctco.mini-passes
-  (:require [ctco.expr
-             app simple fn defn do if let recur simple-op]
-            [ctco.util :as util])
-  (:import [ctco.expr.app
-            App]
-           [ctco.expr.simple
-            Simple]
-           [ctco.expr.fn
-            FnBody]
-           [ctco.expr.defn
-            Defn]
-           [ctco.expr.do
-            Do]
-           [ctco.expr.if
-            IfCps]
-           [ctco.expr.let
-            LetCps]
-           [ctco.expr.recur
-            Recur]
-           [ctco.expr.simple_op
-            SimpleOpCps]))
+  (:use [clojure.core.match
+         :only (match)]))
 
+;; NB: This only overloads one of the variadic forms for a "defn" expression.
+;; NB: Need to iterate over all forms to properly transform the whole
+;; NB: definition. 
 (defn overload
   "Takes an expression in the TCO compiler (in record representation) and, if it
   represents a function type (i.e. 'defn'), overloads the expression.
@@ -54,15 +38,17 @@
   If the input expression doesn't represent a function type then the expression
   is simply returned."
   [expr tramp]
-  (if (instance? Defn expr)
-      (let [fml* (:fml* (first (:func* expr)))
-            fml-bl* (vec (butlast fml*))
-            rand* (conj fml-bl* (Simple. 'nil))
-            init-call (App. (:name expr) rand*)
-            tramp-call (App. tramp [init-call])
-            func* (vec (cons (FnBody. fml-bl* tramp-call) (:func* expr)))]
-        (Defn. (:name expr) func*))
-      expr))
+  ;; NB: You will notice that this is horrible code that no man in his right
+  ;; NB: mind should have written. First, this is transitional code before
+  ;; NB: getting rid of overloading for defn expressions entirely. Second, why
+  ;; NB: would you say things like that about me?
+  (match [expr]
+    [(['clojure.core/defn name ([fml* & bexpr*] :seq)] :seq)]
+      (let [fml-bl* (vec (butlast fml*))]
+        `(defn ~name
+           (~fml-bl* (~tramp (~name ~@fml-bl* nil)))
+           (~fml* ~@bexpr*)))
+    :else expr))
 
 (defn make-apply-k
   "Introduces the definition of the continuation application function for expr
@@ -71,14 +57,13 @@
   The function is let-bound, keeping it locally-scoped to expr when the
   expression is emitted."
   [expr apply-k]
-  (let [kont (util/new-var 'k)
-        arg (util/new-var 'a)]
-    (let [test (SimpleOpCps. 'fn? [kont])
-          conseq (App. kont [arg])
-          body (IfCps. test conseq arg)
-          init (FnBody. [kont arg] body)
-          bind* [apply-k init]]
-      (LetCps. bind* expr))))
+  (let [kont (gensym 'kont)
+        arg (gensym 'arg)]
+    `(letfn [(~apply-k [~kont ~arg]
+               (if (fn? ~kont)
+                   (~kont ~arg)
+                   ~arg))]
+       ~expr)))
 
 (defn make-trampoline
   "Introduces the definition of the trampoline function for expr using tramp as
@@ -87,9 +72,9 @@
   The function is let-bound, keeping it locally-scoped to expr when the
   expression is emitted."
   [expr tramp]
-  (let [thunk (util/new-var 'thunk)
-        test (SimpleOpCps. 'get [(SimpleOpCps. 'meta [thunk]) (Simple. :thunk)])
-        conseq (Recur. [(App. thunk [])])
-        body (IfCps. test conseq thunk)
-        init (FnBody. [thunk] body)]
-    (LetCps. [tramp init] expr)))
+  (let [thunk (gensym 'thunk)]
+    `(letfn [(~tramp [~thunk]
+               (if (get (meta ~thunk) :thunk)
+                   (recur (~thunk))
+                   ~thunk))]
+       ~expr)))

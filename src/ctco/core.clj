@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified 21 Aug 2012
+;; Last modified 29 Aug 2012
 ;; 
 ;; Defines the ctco macro which acts as the driver for the Clojure TCO
 ;; compiler. The macro parses the initial expression, and applies the
@@ -16,15 +16,10 @@
 ;;----------------------------------------------------------------------
 
 (ns ctco.core
-  (:require #_[ctco.expr [cont defn]]
-            [ctco.mini-passes :as mp]
+  (:require [ctco.mini-passes :as mp]
             [ctco.parse :as parse]
             [ctco.protocol :as proto]
-            [ctco.util :as util])
-  (:import [ctco.expr.cont
-            Cont AppContAbs]
-           [ctco.expr.defn
-            Defn]))
+            [ctco.util :as util]))
 
 (defmacro ctco
   "Entry-point for the TCO compiler. Takes a Clojure expression and
@@ -38,24 +33,19 @@
   space, but recursive calls will necessitate more heap memory for the
   closures created to represent continuations."
   [expr]
-  (let [tramp (util/new-var 'tramp)
-        init-k (util/new-var 'init-k)
-        apply-k (util/new-var 'apply-k)]
+  (let [tramp (gensym 'tramp)
+        init-k (gensym 'init-k)
+        apply-k (gensym 'apply-k)]
     (letfn [(apply-cps [expr]
-              (if (extends? proto/PCpsSrs (type expr))
-                  (proto/cps-srs expr init-k)
-                  (proto/cps-triv expr)))
-            (wrap-expr [expr]
-              (if (instance? Defn expr)
-                  expr
-                  (let [k (util/new-var 'k)]
-                    (Cont. k (AppContAbs. apply-k k expr)))))]
+              (condp extends? (type expr)
+                proto/PCpsTriv (proto/cps-triv expr)
+                proto/PCpsSrs  (proto/cps-srs expr init-k)
+                :else (throw (Exception. (str "unexpected expression " expr)))))]
       (-> (parse/parse expr)
           apply-cps
-          (proto/abstract-k apply-k)
+          (proto/abstract-k (parse/parse apply-k))
           proto/thunkify
-          wrap-expr
+          proto/emit
           (mp/overload tramp)
           (mp/make-apply-k apply-k)
-          (mp/make-trampoline tramp)
-          proto/emit))))
+          (mp/make-trampoline tramp)))))

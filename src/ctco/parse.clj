@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 29 Aug 2012
+;; Last modified 31 Aug 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -12,13 +12,15 @@
   (:use [clojure.core.match
          :only (match)])
   (:require [ctco.expr
-             app simple defn fn if let simple-op]
+             app simple def defn fn if let simple-op]
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.app
             App]
            [ctco.expr.simple
             Simple]
+           [ctco.expr.def
+            DefSrs DefTriv]
            [ctco.expr.defn
             Defn]
            [ctco.expr.fn
@@ -48,6 +50,15 @@
              keyword?)
     expr)
    (Simple. expr)))
+
+(defn- parse-def
+  [sym init]
+  (let [SYM (parse sym)
+        INIT (parse init)]
+    (condp extends? (type INIT)
+      proto/PCpsTriv (DefTriv. SYM INIT)
+      proto/PCpsSrs  (DefSrs. SYM INIT)
+      :else (throw (Exception. (str "unexpected expression in def " init))))))
 
 (defn- parse-fn-body
   [fml* cmap bexpr*]
@@ -92,6 +103,8 @@
   Clojure language expression. Otherwise, the function returns false."
   [expr]
   (match [expr]
+    [(['def sym] :seq)] (parse-def sym nil)
+    [(['def sym init] :seq)] (parse-def sym init)
     [(['fn fml* & bexpr*] :seq)] (parse-fn `((~fml* ~@bexpr*)))
     [(['fn & body*] :seq)] (parse-fn body*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)

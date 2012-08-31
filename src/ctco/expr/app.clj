@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 16 May 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
@@ -12,8 +12,8 @@
 ;;      PAbstractK:
 ;;              Simply recurs over the rator and rand*
 ;;
-;;      PEmit:
-;;              Emits (recursively) the sytax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the sytax for the expression as
 ;;              `(~rator ~@rand*)
 ;;
 ;;      PCpsSrs:
@@ -49,10 +49,10 @@
     (abstract-k [this app-k]
       (proto/walk-expr this #(proto/abstract-k % app-k) nil))
 
-  proto/PEmit
-    (emit [this]
-      (let [rator (proto/emit (:rator this))
-            rand* (map proto/emit (:rand* this))]
+  proto/PUnparse
+    (unparse [this]
+      (let [rator (proto/unparse (:rator this))
+            rand* (map proto/unparse (:rand* this))]
         `(~rator ~@rand*)))
     
   proto/PCpsSrs

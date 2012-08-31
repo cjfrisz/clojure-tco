@@ -1,14 +1,14 @@
 ;;----------------------------------------------------------------------
-;; File emit.clj
+;; File unparse.clj
 ;; Written by Chris Frisz
 ;; 
 ;; Created 15 Apr 2012
-;; Last modified 29 Aug 2012
+;; Last modified 30 Aug 2012
 ;; 
-;; Testing for the correctness of emit
+;; Testing for the correctness of unparse
 ;;----------------------------------------------------------------------
 
-(ns ctco.test.emit
+(ns ctco.test.unparse
   (:use [clojure.test]
         [clojure.pprint]
         [ctco.parse :only (parse)])
@@ -33,35 +33,35 @@
             Thunk]))
 
 (deftest app-test
-  (is (= '(x y z) (proto/emit (parse '(x y z)))))
-  (is (= '((clojure.core/fn ([x] x)) 5) (proto/emit (parse '((fn [x] x) 5)))))
+  (is (= '(x y z) (proto/unparse (parse '(x y z)))))
+  (is (= '((clojure.core/fn ([x] x)) 5) (proto/unparse (parse '((fn [x] x) 5)))))
   (is (= '((clojure.core/fn ([x y z] (* x 3))) 7 3 12)
-         (proto/emit (parse '((fn [x y z] (* x 3)) 7 3 12))))))
+         (proto/unparse (parse '((fn [x y z] (* x 3)) 7 3 12))))))
 
 (deftest simple-test
-  (is (= 5 (proto/emit (parse 5))))
-  (is (= 25883 (proto/emit (parse 25883))))
-  (is (= '(quote stuff) (proto/emit (parse '(quote stuff))))))
+  (is (= 5 (proto/unparse (parse 5))))
+  (is (= 25883 (proto/unparse (parse 25883))))
+  (is (= '(quote stuff) (proto/unparse (parse '(quote stuff))))))
  
 (deftest cont-test
   (is (= '(clojure.core/fn [x] x)
-         (proto/emit (Cont. (Simple. 'x) (Simple. 'x)))))
+         (proto/unparse (Cont. (Simple. 'x) (Simple. 'x)))))
   (is (= '((clojure.core/fn [x] x) (quote thonk))
-         (proto/emit (AppCont. (Cont. (Simple. 'x) (Simple. 'x))
+         (proto/unparse (AppCont. (Cont. (Simple. 'x) (Simple. 'x))
                                (Simple. (quote 'thonk)))))))
 
 (deftest defn-test
   (is (= '(clojure.core/defn id ([x] x))
-         (proto/emit (parse '(defn id [x] x)))))
+         (proto/unparse (parse '(defn id [x] x)))))
   (is (= '(clojure.core/defn id ([x] x) ([x y] x))
-         (proto/emit (parse '(defn id ([x] x) ([x y] x)))))))
+         (proto/unparse (parse '(defn id ([x] x) ([x y] x)))))))
 
 
 (deftest if-test
-  (is (= '(if 3 4 5) (proto/emit (parse '(if 3 4 5)))))
+  (is (= '(if 3 4 5) (proto/unparse (parse '(if 3 4 5)))))
   (is (= '(if ((clojure.core/fn ([x] x)) 3) 4 5)
-         (proto/emit (parse '(if ((fn [x] x) 3) 4 5))))))
+         (proto/unparse (parse '(if ((fn [x] x) 3) 4 5))))))
 
 (deftest thunk-test
   (is (= '(clojure.core/with-meta (clojure.core/fn [] (quote stuff)) {:thunk true})
-         (proto/emit (Thunk. (Simple. ''stuff))))))
+         (proto/unparse (Thunk. (Simple. ''stuff))))))

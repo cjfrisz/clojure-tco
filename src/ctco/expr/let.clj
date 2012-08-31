@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified  5 Aug 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing serious,
 ;; trivial, and CPSed 'let' expressions, respectively. LetSrs and LetTriv
@@ -18,8 +18,8 @@
 ;;              Maps abstract-k over the init values of each binding and the
 ;;              'let' body.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(let ~bind* ~body)
 ;;
 ;;      PThunkify:
@@ -44,7 +44,7 @@
 ;;              original binding name as the parameter name to the continuation.
 ;;
 ;;              For each "trivial" init value, the CPS transformation is appplied
-;;              and the result is emitted with its original binding in the order
+;;              and the result is unparseted with its original binding in the order
 ;;              in which it appeared in the 'let' expression.
 ;;
 ;;              For example, consider the following expression:
@@ -72,10 +72,10 @@
 ;;			     (k4353 (+ x z)))))
 ;;
 ;;              Additionally, the transformation elides empty binding vectors,
-;;              such as (let [] 5), instead emitting only the body, i.e. 5.
+;;              such as (let [] 5), instead unparsing only the body, i.e. 5.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(let ~bind* ~body)
 ;;
 ;; LetTriv implements the following protocols:
@@ -84,8 +84,8 @@
 ;;              Maps cps-triv over the init values for each binding as well as
 ;;              the body of the 'let' expression.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(let ~bind* ~body)
 ;;
 ;;      PWalkable:
@@ -147,11 +147,11 @@
       (let [ctor #(LetCps. %1 %2)]
         (proto/walk-expr this proto/cps-triv ctor))))
 
-(def let-emit
-  {:emit (fn [this]
-           (let [bind* (vec (map proto/emit (:bind* this)))
-                 body (proto/emit (:body this))]
-             `(let ~bind* ~body)))})
+(def let-unparse
+  {:unparse (fn [this]
+              (let [bind* (vec (map proto/unparse (:bind* this)))
+                    body (proto/unparse (:body this))]
+                `(let ~bind* ~body)))})
 
 (def let-walkable
   {:walk-expr (fn [this f ctor]
@@ -169,19 +169,19 @@
                     (ctor BIND* BODY))))})
 
 (extend LetCps
-  proto/PEmit
-    let-emit
+  proto/PUnparse
+    let-unparse
 
   proto/PWalkable
     let-walkable)
 
 (extend LetSrs
-  proto/PEmit
-    let-emit)
+  proto/PUnparse
+    let-unparse)
 
 (extend LetTriv
-  proto/PEmit
-    let-emit
+  proto/PUnparse
+    let-unparse
 
   proto/PWalkable
     let-walkable)

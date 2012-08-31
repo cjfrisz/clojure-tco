@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 26 Aug 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Defines the Simple record type for simple expressions (e.g.
 ;; numbers, booleans, symbols, etc.) in the CTCO compiler.
@@ -16,7 +16,7 @@
 ;;      PCpsTriv:
 ;;              Simply returns the Simple.
 ;;
-;;      PEmit:
+;;      PUnparse:
 ;;              Returns the syntax for the Simple.
 ;;
 ;;      PThunkify:
@@ -33,8 +33,8 @@
   proto/PCpsTriv
     (cps-triv [this] this)
 
-  proto/PEmit
-    (emit [this] (:val this))
+  proto/PUnparse
+    (unparse [this] (:val this))
 
   proto/PThunkify
     (thunkify [this] this))

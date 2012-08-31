@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 26 Apr 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
 ;; for representing operations using simple primitives, i.e.
@@ -21,8 +21,8 @@
 ;;      PThunkify:
 ;;              Maps thunkify over the operands of the expression.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(~op ~@opnd*), where opnd* is the vector of operands.
 ;;
 ;;      PWalkable:
@@ -43,8 +43,8 @@
 ;;      PThunkify:
 ;;              Maps thunkify over the operands of the expression.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(~op ~@opnd*)
 ;;
 ;;      PWalkable:
@@ -59,8 +59,8 @@
 ;;      PThunkify:
 ;;              Maps thunkify over the operands of the expression.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(~op ~@opnd*)
 ;;
 ;;      PWalkable:
@@ -122,11 +122,11 @@
       (let [ctor #(SimpleOpSrs. %1 %2)]
         (proto/walk-expr this proto/thunkify ctor))))
 
-(def simple-op-emit
-  {:emit (fn [this]
-           (let [op (:op this)
-                 opnd* (map proto/emit (:opnd* this))]
-             `(~op ~@opnd*)))})
+(def simple-op-unparse
+  {:unparse (fn [this]
+              (let [op (:op this)
+                    opnd* (map proto/unparse (:opnd* this))]
+                `(~op ~@opnd*)))})
 
 (def simple-op-walk
   {:walk-expr (fn [this f ctor]
@@ -134,22 +134,22 @@
                   (ctor (:op this) OPND*)))})
 
 (extend SimpleOpCps
-  proto/PEmit
-    simple-op-emit
+  proto/PUnparse
+    simple-op-unparse
   
   proto/PWalkable
     simple-op-walk)
 
 (extend SimpleOpSrs
-  proto/PEmit
-    simple-op-emit
+  proto/PUnparse
+    simple-op-unparse
   
   proto/PWalkable
     simple-op-walk)
 
 (extend SimpleOpTriv
-  proto/PEmit
-    simple-op-emit
+  proto/PUnparse
+    simple-op-unparse
   
   proto/PWalkable
     simple-op-walk)

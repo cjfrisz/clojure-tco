@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified  5 Aug 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Defines the Cont, AppCont, and AppContAbs record types for
 ;; continuations, continuation application, and continuation
@@ -14,8 +14,8 @@
 ;;      PAbstractK:
 ;;              Applies abstract-k to the body.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(fn [~arg] ~body). Thus it uses higher-order functions
 ;;              to represent continuations.
 ;;
@@ -29,8 +29,8 @@
 ;;              val, and returns an AppContAbs record with the given
 ;;              app-k as the function for applying continuations.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(~cont ~val).
 ;;
 ;;      PThunkify:
@@ -38,8 +38,8 @@
 ;;
 ;; AppContAbs implements the following protocols:
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(~app-k ~cont ~val).
 ;;
 ;;      PThunkify:
@@ -58,10 +58,10 @@
       (let [BODY (proto/abstract-k (:body this) app-k)]
         (Cont. (:arg this) BODY)))
   
-  proto/PEmit
-    (emit [this]
-      (let [arg (proto/emit (:arg this))
-            body (proto/emit (:body this))]
+  proto/PUnparse
+    (unparse [this]
+      (let [arg (proto/unparse (:arg this))
+            body (proto/unparse (:body this))]
         `(fn [~arg] ~body)))
 
   proto/PThunkify
@@ -70,11 +70,11 @@
         (Cont. (:arg this) BODY))))
 
 (defrecord AppContAbs [app-k cont val]
-  proto/PEmit
-    (emit [this]
-      (let [app-k (proto/emit (:app-k this))
-            cont (proto/emit (:cont this))
-            val (proto/emit (:val this))]
+  proto/PUnparse
+    (unparse [this]
+      (let [app-k (proto/unparse (:app-k this))
+            cont (proto/unparse (:cont this))
+            val (proto/unparse (:val this))]
         `(~app-k ~cont ~val)))
 
   proto/PThunkify
@@ -90,10 +90,10 @@
             VAL (proto/abstract-k (:val this) app-k)]
         (AppContAbs. app-k CONT VAL)))
 
-  proto/PEmit
-    (emit [this]
-      (let [cont (proto/emit (:cont this))
-            val (proto/emit (:val this))]
+  proto/PUnparse
+    (unparse [this]
+      (let [cont (proto/unparse (:cont this))
+            val (proto/unparse (:val this))]
         `(~cont ~val)))
 
   proto/PThunkify

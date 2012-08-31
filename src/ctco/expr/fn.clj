@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 29 Aug 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Defines the FnBody record type for representing 'fn' expressions in the
 ;; Clojure TCO compiler.
@@ -14,8 +14,8 @@
 ;;              Recursively applies abstract-k to the body expression,
 ;;              returning a new FnBody record.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(fn ~fml* body).
 ;;
 ;;      PCpsTriv:
@@ -43,12 +43,12 @@
     (abstract-k [this app-k]
       (proto/walk-expr this #(proto/abstract-k % app-k) nil))
 
-  proto/PEmit
-    (emit [this]
-      `(~(vec (map proto/emit (:fml* this)))
+  proto/PUnparse
+    (unparse [this]
+      `(~(vec (map proto/unparse (:fml* this)))
         ~@(let [cmap (:cmap this)]
             (if cmap (list cmap) '()))
-        ~@(map proto/emit (:bexpr* this))))
+        ~@(map proto/unparse (:bexpr* this))))
   
   proto/PCpsTriv
     (cps-triv [this]
@@ -77,11 +77,11 @@
      (cps-triv [this]
        (proto/walk-expr this proto/cps-triv nil))
 
-   proto/PEmit
-     (emit [this]
+   proto/PUnparse
+     (unparse [this]
        (let [name (:name this)]
-         `(fn ~@(if name (list (proto/emit name)) '())
-            ~@(map proto/emit (:body* this)))))
+         `(fn ~@(if name (list (proto/unparse name)) '())
+            ~@(map proto/unparse (:body* this)))))
 
    proto/PThunkify
      (thunkify [this]

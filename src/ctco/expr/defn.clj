@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified 28 Aug 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Defines the Defn record type for 'defn' expressions in the TCO
 ;; compiler. It supports multiple arity definitions and represents
@@ -15,10 +15,10 @@
 ;;              Maps abstract-k over the enclosed function
 ;;              definitions.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the expression as syntax i the
+;;      PUnparse:
+;;              Unparses (recursively) the expression as syntax i the
 ;;              form `(defn ~name ~@body*) where body* is the list of
-;;              vectors of emitted function definitions only including
+;;              vectors of unparsed function definitions only including
 ;;              the formal parameters lists and bodies.
 ;;
 ;;      PCpsTriv:
@@ -47,9 +47,10 @@
       (let [f #(proto/abstract-k % app-k)]
         (proto/walk-expr this f nil)))
 
-  proto/PEmit
-    (emit [this]
-      `(defn ~(proto/emit (:name this)) ~@(map proto/emit (:func* this))))
+  proto/PUnparse
+    (unparse [this]
+      `(defn ~(proto/unparse (:name this)) 
+         ~@(map proto/unparse (:func* this))))
   
   proto/PCpsTriv
     (cps-triv [this] (proto/walk-expr this proto/cps-triv nil))

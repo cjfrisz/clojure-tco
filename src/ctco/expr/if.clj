@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 17 Aug 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Defines the IfSrs, IfTriv, IfCps record types representing serious,
 ;; trivial, and CPSed 'if' expressions, respectively. IfSrs and IfTriv
@@ -22,8 +22,8 @@
 ;;              Maps thunkify over the test, consequent, and
 ;;              alternative of the expression.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(if ~test ~conseq ~alt)
 ;;
 ;;      PWalkable:
@@ -47,8 +47,8 @@
 ;;              Maps thunkify over the test, consequent, and
 ;;              alternative of the expression.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(if ~test ~conseq ~alt)
 ;;
 ;;      PWalkable:
@@ -65,8 +65,8 @@
 ;;              Maps thunkify over the test, consequent, and
 ;;              alternative of the expression.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(if ~test ~conseq ~alt)
 ;;
 ;;      PWalkable:
@@ -127,12 +127,12 @@
       (let [ctor #(IfTriv. %1 %2 %3)]
         (proto/walk-expr this proto/thunkify ctor))))
 
-(def if-emit
-  {:emit (fn [this]
-           (let [test (proto/emit (:test this))
-                 conseq (proto/emit (:conseq this))
-                 alt (proto/emit (:alt this))]
-             `(if ~test ~conseq ~alt)))})
+(def if-unparse
+  {:unparse (fn [this]
+              (let [test (proto/unparse (:test this))
+                    conseq (proto/unparse (:conseq this))
+                    alt (proto/unparse (:alt this))]
+                `(if ~test ~conseq ~alt)))})
 
 (def if-walkable
   {:walk-expr (fn [this f ctor]
@@ -142,22 +142,22 @@
                   (ctor TEST CONSEQ ALT)))})
 
 (extend IfCps
-  proto/PEmit
-    if-emit
+  proto/PUnparse
+    if-unparse
 
   proto/PWalkable
     if-walkable)
 
 (extend IfSrs
-  proto/PEmit
-    if-emit
+  proto/PUnparse
+    if-unparse
 
   proto/PWalkable
     if-walkable)
 
 (extend IfTriv
-  proto/PEmit
-    if-emit
+  proto/PUnparse
+    if-unparse
 
   proto/PWalkable
     if-walkable)

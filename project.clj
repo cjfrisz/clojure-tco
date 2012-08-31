@@ -17,8 +17,5 @@
                   "1.5.0-alpha3"]
                  [org.clojure/core.match
                   "0.2.0-alpha11"]]
-  :dev-dependencies [[swank-clojure
-                      "1.4.2"]]
-  :plugins [[lein-swank "1.4.3"]]
   :repl-options {:init-ns ctco.core
                  :init (println "It's TCO time, boys and girls")})

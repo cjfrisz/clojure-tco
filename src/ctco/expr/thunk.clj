@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified 21 Aug 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Defines the Thunk record type for representing thunks (functions of
 ;; zero arguments) in the Clojure TCO compiler. These are used to
@@ -16,8 +16,8 @@
 ;;              Applies abstract-k to the body expression of the
 ;;              Thunk.
 ;;
-;;      PEmit:
-;;              Emits (recursively) the syntax for the expression as
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
 ;;              `(with-meta (fn [] ~body) {:thunk true}), using
 ;;              anonymous 'fn' expressions to represent thunks.
 ;;----------------------------------------------------------------------
@@ -31,7 +31,7 @@
       (let [BODY (proto/abstract-k (:body this) app-k)]
         (Thunk. BODY)))
 
-  proto/PEmit
-    (emit [this]
-      (let [BODY (proto/emit (:body this))]
+  proto/PUnparse
+    (unparse [this]
+      (let [BODY (proto/unparse (:body this))]
         `(with-meta (fn [] ~BODY) {:thunk true}))))

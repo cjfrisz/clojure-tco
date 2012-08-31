@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified 26 Aug 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Includes the protocols used in the CTCO compiler. These include the
 ;; following:
@@ -26,8 +26,8 @@
 ;;      etc.) and non-function application expressions that contain
 ;;      no serious subexpressions.
 ;;
-;; PEmit:
-;;      Implemented by expressions that need to be emitted as code
+;; PUnparse:
+;;      Implemented by expressions that need to be unparseted as code
 ;;      from the intermediate representation used in CTCO.
 ;;
 ;; PThunkify:
@@ -68,10 +68,11 @@
     "Applies the CPS transformation for serious expressions with respect to the
     Olivier-style CPS algorithm."))
 
-(defprotocol PEmit
+(defprotocol PUnparse
   "Protocol for TCO expressions that can be represented as a sequence."
-  (emit [this]
-    "Emits a sequence representing the Clojure syntax for the TCO expression."))
+  (unparse [this]
+    "Unparses a sequence representing the Clojure syntax for the TCO 
+    expression."))
 
 (defprotocol PThunkify
   "Protocol for expressions that can be thunkified in the TCO compiler."

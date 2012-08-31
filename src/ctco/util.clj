@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified 26 Aug 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Defines miscellaneous utility functions for use in CTCO. These
 ;; include:
@@ -51,3 +51,9 @@
   expression is trivial with respect to the Danvy FOOP CPS transformation."
   [expr]
   (extends? proto/PCpsTriv (type expr)))
+
+(defmacro extend-group
+  "Like extend, but takes a set of types/classes which will all be extended with
+  the given protocol and method map pairs."
+  [atype* & proto+mmap*]
+  `(do ~@(map (fn [a] `(extend ~a ~@proto+mmap*)) atype*)))

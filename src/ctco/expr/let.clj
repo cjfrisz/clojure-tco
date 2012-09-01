@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 30 Aug 2012
+;; Last modified 31 Aug 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing serious,
 ;; trivial, and CPSed 'let' expressions, respectively. LetSrs and LetTriv
@@ -168,20 +168,10 @@
                         BODY (f (:body this))]
                     (ctor BIND* BODY))))})
 
-(extend LetCps
-  proto/PUnparse
-    let-unparse
-
-  proto/PWalkable
-    let-walkable)
-
-(extend LetSrs
+(util/extend-group (LetCps LetSrs LetTriv)
   proto/PUnparse
     let-unparse)
 
-(extend LetTriv
-  proto/PUnparse
-    let-unparse
-
+(util/extend-group (LetCps LetTriv)
   proto/PWalkable
     let-walkable)

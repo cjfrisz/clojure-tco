@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 30 Aug 2012
+;; Last modified 31 Aug 2012
 ;; 
 ;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
 ;; for representing operations using simple primitives, i.e.
@@ -133,21 +133,7 @@
                 (let [OPND* (vec (map #(f %) (:opnd* this)))]
                   (ctor (:op this) OPND*)))})
 
-(extend SimpleOpCps
-  proto/PUnparse
-    simple-op-unparse
-  
-  proto/PWalkable
-    simple-op-walk)
-
-(extend SimpleOpSrs
-  proto/PUnparse
-    simple-op-unparse
-  
-  proto/PWalkable
-    simple-op-walk)
-
-(extend SimpleOpTriv
+(util/extend-group (SimpleOpCps SimpleOpSrs SimpleOpTriv)
   proto/PUnparse
     simple-op-unparse
   

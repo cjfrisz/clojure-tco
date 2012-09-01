@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 30 Aug 2012
+;; Last modified 31 Aug 2012
 ;; 
 ;; Defines the IfSrs, IfTriv, IfCps record types representing serious,
 ;; trivial, and CPSed 'if' expressions, respectively. IfSrs and IfTriv
@@ -141,23 +141,11 @@
                       ALT (f (:alt this))]
                   (ctor TEST CONSEQ ALT)))})
 
-(extend IfCps
+(util/extend-group (IfCps IfSrs IfTriv)
   proto/PUnparse
     if-unparse
 
   proto/PWalkable
-    if-walkable)
+  if-walkable)
 
-(extend IfSrs
-  proto/PUnparse
-    if-unparse
 
-  proto/PWalkable
-    if-walkable)
-
-(extend IfTriv
-  proto/PUnparse
-    if-unparse
-
-  proto/PWalkable
-    if-walkable)

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 14 Apr 2012
-;; Last modified 29 Aug 2012
+;; Last modified 31 Aug 2012
 ;; 
 ;; Defines the small, one-time code transformations for the TCO
 ;; compiler. These include the following:
@@ -16,9 +16,6 @@
   (:use [clojure.core.match
          :only (match)]))
 
-;; NB: This only overloads one of the variadic forms for a "defn" expression.
-;; NB: Need to iterate over all forms to properly transform the whole
-;; NB: definition. 
 (defn overload
   "Takes an expression in the TCO compiler (in record representation) and, if it
   represents a function type (i.e. 'defn'), overloads the expression.
@@ -43,11 +40,19 @@
   ;; NB: getting rid of overloading for defn expressions entirely. Second, why
   ;; NB: would you say things like that about me?
   (match [expr]
-    [(['clojure.core/defn name ([fml* & bexpr*] :seq)] :seq)]
-      (let [fml-bl* (vec (butlast fml*))]
-        `(defn ~name
-           (~fml-bl* (~tramp (~name ~@fml-bl* nil)))
-           (~fml* ~@bexpr*)))
+    [(['def sym (['clojure.core/fn & func*] :seq)] :seq)]
+      `(def ~sym
+         (fn
+           ~@(reduce
+              (fn [v* v]
+                (let [fml* (first v)
+                      bexpr* (next v)
+                      fml-bl* (vec (butlast fml*))]
+                  (concat v*
+                        `((~fml-bl* (~tramp (~sym ~@fml-bl* nil)))
+                          (~fml* ~@bexpr*)))))
+              '()
+              func*)))
     :else expr))
 
 (defn make-apply-k

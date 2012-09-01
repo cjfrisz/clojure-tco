@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 15 Apr 2012
-;; Last modified 30 Aug 2012
+;; Last modified 31 Aug 2012
 ;; 
 ;; Testing for the correctness of unparse
 ;;----------------------------------------------------------------------
@@ -13,7 +13,7 @@
         [clojure.pprint]
         [ctco.parse :only (parse)])
   (:require [ctco.expr
-             app simple cont defn fn if simple-op]
+             app simple cont def fn if simple-op]
             [ctco.protocol :as proto])
   (:import [ctco.expr.app
             App]
@@ -21,8 +21,8 @@
             Simple]
            [ctco.expr.cont
             Cont AppCont AppContAbs]
-           [ctco.expr.defn
-            Defn]
+           [ctco.expr.def
+            DefCps DefSrs DefTriv]
            [ctco.expr.fn
             FnBody]
            [ctco.expr.if
@@ -51,9 +51,9 @@
                                (Simple. (quote 'thonk)))))))
 
 (deftest defn-test
-  (is (= '(clojure.core/defn id ([x] x))
+  (is (= '(def id (clojure.core/fn ([x] x)))
          (proto/unparse (parse '(defn id [x] x)))))
-  (is (= '(clojure.core/defn id ([x] x) ([x y] x))
+  (is (= '(def id (clojure.core/fn ([x] x) ([x y] x)))
          (proto/unparse (parse '(defn id ([x] x) ([x y] x)))))))
 
 

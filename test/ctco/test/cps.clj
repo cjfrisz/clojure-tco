@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 29 Aug 2012
+;; Last modified 31 Aug 2012
 ;; 
 ;; Testing for the CPSer in the record+protocol'd version of the TCO
 ;; compiler.
@@ -13,7 +13,7 @@
   (:use [clojure.test]
         [clojure.pprint])
   (:require [ctco.expr
-             app simple cont defn fn if simple-op]
+             app simple cont def fn if simple-op]
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.app
@@ -22,8 +22,8 @@
             Simple]
            [ctco.expr.cont
             Cont AppCont]
-           [ctco.expr.defn
-            Defn]
+           [ctco.expr.def
+            DefCps DefSrs DefTriv]
            [ctco.expr.fn
             Fn FnBody]
            [ctco.expr.if
@@ -75,12 +75,17 @@
       (is (= (:alt test-if-triv) (:alt test-if-cps)))
       (is (instance? IfCps test-if-cps)))))
 
-(let [test-defn (Defn. 'id [(FnBody. [(Simple. 'x)] nil [(Simple. 'x)])])]
+;; Since changing the internal representation of defn, this is kind of a pun
+;; now. 
+(let [test-defn (DefTriv. (Simple. 'id) (Fn. nil [(FnBody. [(Simple. 'x)] nil
+                                                           [(Simple. 'x)])]))]
   (deftest defn-triv
     (is (extends? proto/PCpsTriv (type test-defn)))
     (is (not (extends? proto/PCpsSrs (type test-defn))))
     (let [test-defn-cps (proto/cps-triv test-defn)]
-      (is (instance? AppCont (first (:bexpr* (first (:func* test-defn-cps)))))))))
+      (is (instance?
+           AppCont
+           (first (:bexpr* (first (:body* (:init test-defn-cps))))))))))
 
 (let [test-op (SimpleOpTriv. '+ [(Simple. 3) (Simple. 4) (Simple. 5)])]
   (deftest simple-op-triv

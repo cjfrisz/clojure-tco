@@ -12,7 +12,7 @@
   (:use [clojure.core.match
          :only (match)])
   (:require [ctco.expr
-             app simple def defn fn if let simple-op]
+             app simple def fn if let simple-op]
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.app
@@ -21,8 +21,6 @@
             Simple]
            [ctco.expr.def
             DefSrs DefTriv]
-           [ctco.expr.defn
-            Defn]
            [ctco.expr.fn
             Fn FnBody]
            [ctco.expr.if
@@ -33,6 +31,11 @@
             SimpleOpCps SimpleOpSrs SimpleOpTriv]))
 
 (declare parse)
+
+(defn- conj-parse
+  "Helper function used in 'reduce' calls throughout parsing."  
+  [base val]
+  (conj base (parse val)))
 
 (defn- parse-simple
   "Takes a sequence representing a Clojure expression (generally passed from a
@@ -52,6 +55,7 @@
    (Simple. expr)))
 
 (defn- parse-def
+  "Helper function for parsing 'def' expressions."
   [sym init]
   (let [SYM (parse sym)
         INIT (parse init)]
@@ -62,19 +66,20 @@
 
 (defn- parse-fn-body
   [fml* cmap bexpr*]
-  (FnBody. (vec (map parse fml*)) cmap (vec (map parse bexpr*))))
+  (FnBody. (reduce conj-parse [] fml*) cmap (reduce conj-parse [] bexpr*)))
 
 (defn- parse-fn
   "Helper function for parse that handles 'fn' expressions."
   [body*]
-  (Fn. nil (vec (map
-                 (fn [b]
-                   (condp = (count b)
-                     2 (parse-fn-body (first b) nil (next b))
-                     3 (parse-fn-body (first b) (fnext b) (nnext b))
-                     :else (throw (Exception.
-                                   (str "invalid function body" b)))))
-                 body*))))
+  (Fn. nil (reduce
+            (fn [v* b]
+              (conj v* (condp = (count b)
+                        2 (parse-fn-body (first b) nil (next b))
+                        3 (parse-fn-body (first b) (fnext b) (nnext b))
+                        :else (throw (Exception.
+                                      (str "invalid function body" b))))))
+            []
+            body*)))
 
 (defn- parse-if
   "Helper function for parse that handles 'if' expressions."
@@ -89,7 +94,7 @@
 (defn- parse-let
   "Helper function for parse that handles 'let' expressions."
   [bind* body]
-  (let [BIND* (vec (map parse bind*))
+  (let [BIND* (reduce conj-parse [] bind*)
         BODY (parse body)]
     (assert (even? (count BIND*)))
     (if (or (some util/serious? (take-nth 2 (next BIND*)))
@@ -112,16 +117,9 @@
     :else false))
 
 (defn- parse-defn
-  "Helper function for parse that handles 'defn' expression."
+  "Helper function for parse that handles 'defn' expressions."
   [name func*]
-  (letfn [(parse-func* [func* out*]
-            (if (nil? (seq func*))
-                out*
-                (recur (next func*)
-                       (conj out* (parse-fn-body (ffirst func*)
-                                                 nil
-                                                 (nfirst func*))))))]
-    (Defn. (Simple. name) (parse-func* func* []))))
+  (DefTriv. (parse name) (parse-fn func*)))
 
 (defn- parse-cond
   "Helper function for parse that handles 'cond' expressions. Currently
@@ -157,7 +155,7 @@
   "Helper function for parse that handles simple op expressions (e.g. +, -,
   zero?, nil?, etc."
   [op opnd*]
-  (let [OPND* (vec (map parse opnd*))]
+  (let [OPND* (reduce conj-parse [] opnd*)]
     (if (some util/serious? OPND*)
         (SimpleOpSrs. op OPND*)
         (SimpleOpTriv. op OPND*))))
@@ -165,7 +163,7 @@
 (defn- parse-function-application
   "Helper function for parse that handles function application."
   [rator rand*]
-  (App. (parse rator) (vec (map parse rand*))))
+  (App. (parse rator) (reduce conj-parse [] rand*)))
 
 (defn- parse-application
   "Takes a sequence representing a Clojure expression (generally passed from a

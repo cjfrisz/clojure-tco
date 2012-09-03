@@ -4,6 +4,7 @@
 ;; 
 ;; Created  1 Apr 2012
 ;; Last modified 13 Sep 2012
+
 ;; 
 ;; Defines the Cont, AppCont, and AppContAbs record types for
 ;; continuations, continuation application, and continuation
@@ -56,40 +57,48 @@
 (defrecord Cont [arg body]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (Cont. (:arg this) (proto/abstract-k (:body this) app-k)))
+      (proto/walk-expr #(proto/abstract-k % app-k) nil))
+
+  proto/PThunkify
+    (thunkify [this]
+      (proto/walk-expr this proto/thunkify nil))
   
   proto/PUnparse
     (unparse [this]
       `(fn [~(proto/unparse (:arg this))] ~(proto/unparse (:body this))))
 
-  proto/PThunkify
-    (thunkify [this]
-      (Cont. (:arg this) (proto/thunkify (:body this)))))
+  proto/PWalkable
+    (walk-expr [this f _]
+      (Cont. (:arg this) (f (:body this)))))
 
 (defrecord AppContAbs [app-k cont val]
+  proto/PThunkify
+    (thunkify [this]
+      (proto/walk-expr this proto/thunkify nil))
+
   proto/PUnparse
     (unparse [this]
       `(~(proto/unparse (:app-k this))
-          ~(proto/unparse (:cont this))
-          ~(proto/unparse (:val this))))
+        ~(proto/unparse (:cont this))
+        ~(proto/unparse (:val this))))
 
-  proto/PThunkify
-    (thunkify [this]
-      (AppContAbs. (:app-k this)
-        (proto/thunkify (:cont this))
-        (proto/thunkify (:val this)))))
+    proto/PWalkable
+      (walk-expr [this f _]
+        (AppContAbs. (:app-k this) (f (:cont this)) (f (:val this)))))
 
 (defrecord AppCont [cont val]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (AppContAbs. app-k
-          (proto/abstract-k (:cont this) app-k)
-          (proto/abstract-k (:val this) app-k)))
+      (proto/walk-expr this #(proto/abstract-k % app-k) nil))
+
+  proto/PThunkify
+    (thunkify [this]
+      (proto/walk-expr this proto/thunkify nil))
 
   proto/PUnparse
     (unparse [this]
       `(~(proto/unparse (:cont this)) ~(proto/unparse (:val this))))
 
-  proto/PThunkify
-    (thunkify [this]
-      (AppCont. (proto/thunkify (:cont this)) (proto/thunkify (:val this)))))
+    proto/PWalkable
+      (walk-expr [this f _]
+        (AppCont. (f (:cont this)) (f (:val this)))))

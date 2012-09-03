@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified 30 Aug 2012
+;; Last modified  2 Sep 2012
 ;; 
 ;; Defines the Cont, AppCont, and AppContAbs record types for
 ;; continuations, continuation application, and continuation
@@ -55,49 +55,48 @@
 (defrecord Cont [arg body]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (let [BODY (proto/abstract-k (:body this) app-k)]
-        (Cont. (:arg this) BODY)))
+      (proto/walk-expr #(proto/abstract-k % app-k) nil))
+
+  proto/PThunkify
+    (thunkify [this]
+      (proto/walk-expr this proto/thunkify nil))
   
   proto/PUnparse
     (unparse [this]
-      (let [arg (proto/unparse (:arg this))
-            body (proto/unparse (:body this))]
-        `(fn [~arg] ~body)))
+      `(fn [~(proto/unparse (:arg this))] ~(proto/unparse (:body this))))
 
-  proto/PThunkify
-    (thunkify [this]
-      (let [BODY (proto/thunkify (:body this))]
-        (Cont. (:arg this) BODY))))
+  proto/PWalkable
+    (walk-expr [this f _]
+      (Cont. (:arg this) (f (:body this)))))
 
 (defrecord AppContAbs [app-k cont val]
-  proto/PUnparse
-    (unparse [this]
-      (let [app-k (proto/unparse (:app-k this))
-            cont (proto/unparse (:cont this))
-            val (proto/unparse (:val this))]
-        `(~app-k ~cont ~val)))
-
   proto/PThunkify
     (thunkify [this]
-      (let [CONT (proto/thunkify (:cont this))
-            VAL (proto/thunkify (:val this))]
-        (AppContAbs. (:app-k this) CONT VAL))))
+      (proto/walk-expr this proto/thunkify nil))
+
+  proto/PUnparse
+    (unparse [this]
+      `(~(proto/unparse (:app-k this))
+        ~(proto/unparse (:cont this))
+        ~(proto/unparse (:val this))))
+
+    proto/PWalkable
+      (walk-expr [this f _]
+        (AppContAbs. (:app-k this) (f (:cont this)) (f (:val this)))))
 
 (defrecord AppCont [cont val]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (let [CONT (proto/abstract-k (:cont this) app-k)
-            VAL (proto/abstract-k (:val this) app-k)]
-        (AppContAbs. app-k CONT VAL)))
-
-  proto/PUnparse
-    (unparse [this]
-      (let [cont (proto/unparse (:cont this))
-            val (proto/unparse (:val this))]
-        `(~cont ~val)))
+      (proto/walk-expr this #(proto/abstract-k % app-k) nil))
 
   proto/PThunkify
     (thunkify [this]
-      (let [CONT (proto/thunkify (:cont this))
-            VAL (proto/thunkify (:val this))]
-        (AppCont. CONT VAL))))
+      (proto/walk-expr this proto/thunkify nil))
+
+  proto/PUnparse
+    (unparse [this]
+      `(~(proto/unparse (:cont this)) ~(proto/unparse (:val this))))
+
+    proto/PWalkable
+      (walk-expr [this f _]
+        (AppCont. (f (:cont this)) (f (:val this)))))

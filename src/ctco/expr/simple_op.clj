@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 31 Aug 2012
+;; Last modified  2 Sep 2012
 ;; 
 ;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
 ;; for representing operations using simple primitives, i.e.
@@ -78,26 +78,27 @@
 (defrecord SimpleOpCps [op opnd*]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (let [ctor #(SimpleOpCps. %1 %2)]
-        (proto/walk-expr this #(proto/abstract-k % app-k) ctor)))
+      (proto/walk-expr this #(proto/abstract-k % app-k) #(SimpleOpCps. %1 %2)))
+
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr
+        this
+        #(proto/alpha-rename % old new)
+        #(SimpleOpCps. %1 %2)))
 
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(SimpleOpCps. %1 %2)]
-        (proto/walk-expr this proto/thunkify ctor))))
-
-(defrecord SimpleOpTriv [op opnd*]
-  proto/PCpsTriv
-    (cps-triv [this]
-      (let [ctor #(SimpleOpCps. %1 %2)]
-        (proto/walk-expr this proto/cps-triv ctor)))
-
-  proto/PThunkify
-    (thunkify [this]
-      (let [ctor #(SimpleOpTriv. %1 %2)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify #(SimpleOpCps. %1 %2))))
 
 (defrecord SimpleOpSrs [op opnd*]
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr
+        this
+        #(proto/alpha-rename % old new)
+        #(SimpleOpSrs. %1 %2)))
+
   proto/PCpsSrs
     (cps-srs [this k]
       (letfn [(cps-op [pre-opnd* post-opnd* k]
@@ -119,8 +120,23 @@
 
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(SimpleOpSrs. %1 %2)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify #(SimpleOpSrs. %1 %2))))
+
+(defrecord SimpleOpTriv [op opnd*]
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr
+        this
+        #(proto/alpha-rename % old new)
+        #(SimpleOpTriv. %1 %2)))
+
+  proto/PCpsTriv
+    (cps-triv [this]
+      (proto/walk-expr this proto/cps-triv #(SimpleOpCps. %1 %2)))
+
+  proto/PThunkify
+    (thunkify [this]
+      (proto/walk-expr this proto/thunkify #(SimpleOpTriv. %1 %2))))
 
 (def simple-op-unparse
   {:unparse (fn [this]

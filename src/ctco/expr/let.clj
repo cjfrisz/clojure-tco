@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 31 Aug 2012
+;; Last modified  2 Sep 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing serious,
 ;; trivial, and CPSed 'let' expressions, respectively. LetSrs and LetTriv
@@ -103,6 +103,10 @@
             AppCont Cont]))
 
 (defrecord LetCps [bind* body]
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr this #(proto/alpha-rename % old new) #(LetCps. %1 %2)))
+
   proto/PAbstractK
     (abstract-k [this app-k]
       (let [ctor #(LetCps. %1 %2)]
@@ -114,6 +118,10 @@
         (proto/walk-expr this proto/thunkify ctor))))
 
 (defrecord LetSrs [bind* body]
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr this #(proto/alpha-rename % old new) #(LetSrs. %1 %2)))
+
   proto/PCpsSrs
     (cps-srs [this k]
       (letfn [(build-let [bind* body]
@@ -142,6 +150,10 @@
         (cps-let (:bind* this) []))))
 
 (defrecord LetTriv [bind* body]
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr this #(proto/alpha-rename % old new) #(LetTriv. %1 %2)))
+
   proto/PCpsTriv
     (cps-triv [this]
       (let [ctor #(LetCps. %1 %2)]

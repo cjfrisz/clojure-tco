@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified 30 Aug 2012
+;; Last modified  2 Sep 2012
 ;; 
 ;; Defines the Thunk record type for representing thunks (functions of
 ;; zero arguments) in the Clojure TCO compiler. These are used to
@@ -28,10 +28,17 @@
 (defrecord Thunk [body]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (let [BODY (proto/abstract-k (:body this) app-k)]
-        (Thunk. BODY)))
+      (proto/walk-expr this #(proto/abstract-k % app-k) nil))
+
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr this #(proto/alpha-rename % old new) nil))
 
   proto/PUnparse
     (unparse [this]
       (let [BODY (proto/unparse (:body this))]
-        `(with-meta (fn [] ~BODY) {:thunk true}))))
+        `(with-meta (fn [] ~BODY) {:thunk true})))
+
+  proto/PWalkable
+    (walk-expr [this f _]
+      (Thunk. (f (:body this)))))

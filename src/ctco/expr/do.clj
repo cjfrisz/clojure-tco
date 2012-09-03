@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 30 Aug 2012
+;; Last modified  2 Sep 2012
 ;; 
 ;; Defines the Do and DoSync record types and operations for 'do' and
 ;; 'dosync' expressions in the Clojure TCO compiler.
@@ -27,11 +27,9 @@
 (defrecord Do [expr*]
   proto/PUnparse
     (unparse [this]
-      (let [expr* (map proto/unparse (:expr* this))]
-        `(do ~@expr*))))
+      `(do ~@(map proto/unparse (:expr* this)))))
 
 (defrecord DoSync [expr*]
   proto/PUnparse
     (unparse [this]
-      (let [expr* (map proto/unparse (:expr* this))]
-        `(dosync ~@expr*))))
+      `(dosync ~@(map proto/unparse (:expr* this)))))

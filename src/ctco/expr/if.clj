@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 31 Aug 2012
+;; Last modified  2 Sep 2012
 ;; 
 ;; Defines the IfSrs, IfTriv, IfCps record types representing serious,
 ;; trivial, and CPSed 'if' expressions, respectively. IfSrs and IfTriv
@@ -82,6 +82,10 @@
             Cont AppCont]))
 
 (defrecord IfCps [test conseq alt]
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr this #(proto/alpha-rename % old new) #(IfCps. %1 %2 %3)))
+  
   proto/PAbstractK
     (abstract-k [this app-k]
       (let [ctor #(IfCps. %1 %2 %3)]
@@ -93,6 +97,10 @@
         (proto/walk-expr this proto/thunkify ctor))))
 
 (defrecord IfSrs [test conseq alt]
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr this #(proto/alpha-rename % old new) #(IfSrs. %1 %2 %3)))
+
   proto/PCpsSrs
     (cps-srs [this k]
       (letfn [(cps-if [expr]
@@ -117,6 +125,13 @@
         (proto/walk-expr this proto/thunkify ctor))))
 
 (defrecord IfTriv [test conseq alt]
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr
+        this
+        #(proto/alpha-rename % old new)
+        #(IfTriv. %1 %2 %3)))
+
   proto/PCpsTriv
     (cps-triv [this]
       (let [ctor #(IfCps. %1 %2 %3)]
@@ -129,17 +144,13 @@
 
 (def if-unparse
   {:unparse (fn [this]
-              (let [test (proto/unparse (:test this))
-                    conseq (proto/unparse (:conseq this))
-                    alt (proto/unparse (:alt this))]
-                `(if ~test ~conseq ~alt)))})
+              `(if ~(proto/unparse (:test this))
+                   ~(proto/unparse (:conseq this))
+                   ~(proto/unparse (:alt this))))})
 
 (def if-walkable
   {:walk-expr (fn [this f ctor]
-                (let [TEST (f (:test this))
-                      CONSEQ (f (:conseq this))
-                      ALT (f (:alt this))]
-                  (ctor TEST CONSEQ ALT)))})
+                (ctor (f (:test this)) (f (:conseq this)) (f (:alt this))))})
 
 (util/extend-group (IfCps IfSrs IfTriv)
   proto/PUnparse

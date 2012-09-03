@@ -3,31 +3,51 @@
 ;; Written by Chris
 ;; 
 ;; Created 30 Aug 2012
-;; Last modified 31 Aug 2012
+;; Last modified  2 Sep 2012
 ;; 
 ;; Defines the DefSrs, DefTriv, and DefCps record types for representing
 ;; 'def' expression in the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.def
-  (:require [ctco.protocol :as proto]
-            [ctco.util :as util]))
+  (:require [ctco.protocol :as proto])
+  (:use [ctco.util :only (extend-group)]))
 
 (defrecord DefCps [sym init]
   proto/PAbstractK
     (abstract-k [this app-k]
       (proto/walk-expr this #(proto/abstract-k % app-k) #(DefCps. %1 %2)))
   
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr this #(proto/alpha-rename % old new) #(DefCps. %1 %2)))
+  
   proto/PThunkify
     (thunkify [this]
       (proto/walk-expr this proto/thunkify #(DefCps. %1 %2))))
 
 (defrecord DefSrs [sym init]
+  proto/PAbstractK
+    (abstract-k [this app-k]
+      (proto/walk-expr this #(proto/abstract-k % app-k) #(DefSrs. %1 %2)))
+
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr this #(proto/alpha-rename % old new) #(DefSrs. %1 %2)))
+
   proto/PCpsSrs
     (cps-srs [this k]
       (proto/walk-expr this #(proto/cps-srs % k) #(DefCps. %1 %2))))
 
 (defrecord DefTriv [sym init]
+  proto/PAbstractK
+    (abstract-k [this app-k]
+      (proto/walk-expr this #(proto/abstract-k % app-k) #(DefTriv. %1 %2)))
+
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr this #(proto/alpha-rename % old new) #(DefTriv. %1 %2)))
+
   proto/PCpsTriv
     (cps-triv [this]
       (proto/walk-expr this proto/cps-triv #(DefCps. %1 %2))))
@@ -41,7 +61,7 @@
   {:walk-expr (fn [this f ctor]
                 (ctor (:sym this) (f (:init this))))})
 
-(util/extend-group (DefCps DefSrs DefTriv)
+(extend-group (DefCps DefSrs DefTriv)
   proto/PUnparse
     def-unparse
  

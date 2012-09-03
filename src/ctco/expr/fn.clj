@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 30 Aug 2012
+;; Last modified  2 Sep 2012
 ;; 
 ;; Defines the FnBody record type for representing 'fn' expressions in the
 ;; Clojure TCO compiler.
@@ -43,6 +43,12 @@
     (abstract-k [this app-k]
       (proto/walk-expr this #(proto/abstract-k % app-k) nil))
 
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (if (some #{old} (:fml* this))
+          this
+          (proto/walk-expr this #(proto/alpha-rename % old new) nil)))
+
   proto/PUnparse
     (unparse [this]
       `(~(vec (map proto/unparse (:fml* this)))
@@ -72,6 +78,10 @@
    proto/PAbstractK
      (abstract-k [this app-k]
        (proto/walk-expr this #(proto/abstract-k % app-k) nil))
+
+   proto/PAlphaRename
+     (alpha-rename [this old new]
+       (proto/walk-expr this #(proto/alpha-rename % old new) nil))
 
    proto/PCpsTriv
      (cps-triv [this]

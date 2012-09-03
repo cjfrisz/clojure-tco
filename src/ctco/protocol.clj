@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified 30 Aug 2012
+;; Last modified  2 Sep 2012
 ;; 
 ;; Includes the protocols used in the CTCO compiler. These include the
 ;; following:
@@ -11,6 +11,14 @@
 ;; PAbstractK:
 ;;      Implemented by expressions for abstracting over the
 ;;      representation of continuations.
+;;
+;; PAlphaRename:
+;;      Implemented by expressions for changing instances of variable
+;;      names with respect to proper scoping rules for Clojure, i.e. fn
+;;      expressions which bind variables by the old name are untouched
+;;      while other instances are changed. This is used for making the
+;;      CPS versions of function definitions distinct from the
+;;      original versions.
 ;;
 ;; PCpsSrs:
 ;;      Implemented by expressions which can undergo a CPS
@@ -26,14 +34,14 @@
 ;;      etc.) and non-function application expressions that contain
 ;;      no serious subexpressions.
 ;;
-;; PUnparse:
-;;      Implemented by expressions that need to be unparseted as code
-;;      from the intermediate representation used in CTCO.
-;;
 ;; PThunkify:
 ;;      Implemented by expressions for "thunkification," or the
 ;;      process of ensuring a recursive function periodically returns
 ;;      a function of no arguments, the basis for trampolining.
+;;
+;; PUnparse:
+;;      Implemented by expressions that need to be unparseted as code
+;;      from the intermediate representation used in CTCO.
 ;;
 ;; PWalkable:
 ;;      Implemented by expressions for which a new expression needs to
@@ -53,6 +61,13 @@
   (abstract-k [this app-k]
     "Abstracts over continutation application in an expression by converting
     continuation applications to calls to app-k."))
+
+(defprotocol PAlphaRename
+  "Defines the 'alpha-rename' function which performs proper alpha-renaming of
+  Clojure expression."
+  (alpha-rename [this old new]
+    "Performs alpha-renaming on the given expression, renaming instances of old
+    to new."))
 
 (defprotocol PCpsSrs
   "Protocol for applying the CPS transformation to serious expressions (a la

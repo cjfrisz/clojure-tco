@@ -49,17 +49,20 @@
 (ns ctco.expr.cont
   (:require [ctco.expr.thunk]
             [ctco.protocol :as proto])
+  (:use [ctco.util :only (extend-group)])
   (:import [ctco.expr.thunk
             Thunk]))
 
 (defrecord Cont [arg body]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (proto/walk-expr #(proto/abstract-k % app-k) nil))
-
-  proto/PThunkify
-    (thunkify [this]
-      (proto/walk-expr this proto/thunkify nil))
+      (proto/walk-expr this #(proto/abstract-k % app-k) nil))
+  
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (if (= (:arg this) old)
+          this
+          (proto/walk-expr this #(proto/alpha-rename % old new) nil)))
   
   proto/PUnparse
     (unparse [this]
@@ -70,10 +73,6 @@
       (Cont. (:arg this) (f (:body this)))))
 
 (defrecord AppContAbs [app-k cont val]
-  proto/PThunkify
-    (thunkify [this]
-      (proto/walk-expr this proto/thunkify nil))
-
   proto/PUnparse
     (unparse [this]
       `(~(proto/unparse (:app-k this))
@@ -87,12 +86,11 @@
 (defrecord AppCont [cont val]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (proto/walk-expr this #(proto/abstract-k % app-k) nil))
-
-  proto/PThunkify
-    (thunkify [this]
-      (proto/walk-expr this proto/thunkify nil))
-
+      (AppContAbs.
+       app-k
+       (proto/abstract-k (:cont this) app-k)
+       (proto/abstract-k (:val this) app-k)))
+  
   proto/PUnparse
     (unparse [this]
       `(~(proto/unparse (:cont this)) ~(proto/unparse (:val this))))
@@ -100,3 +98,23 @@
     proto/PWalkable
       (walk-expr [this f _]
         (AppCont. (f (:cont this)) (f (:val this)))))
+
+(def cont-abstract-k
+  {:abstract-k (fn [this app-k]
+                 (proto/walk-expr this #(proto/abstract-k % app-k) nil))})
+
+(def cont-alpha-rename
+  {:alpha-rename (fn [this old new]
+                   (proto/walk-expr this #(proto/alpha-rename % old new) nil))})
+
+(def cont-thunkify
+  {:thunkify (fn [this]
+               (proto/walk-expr this proto/thunkify nil))})
+
+(extend-group (AppContAbs AppCont)
+  proto/PAlphaRename
+    cont-alpha-rename)
+
+(extend-group (Cont AppContAbs AppCont)
+  proto/PThunkify
+    cont-thunkify)

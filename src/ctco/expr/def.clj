@@ -3,7 +3,7 @@
 ;; Written by Chris
 ;; 
 ;; Created 30 Aug 2012
-;; Last modified  2 Sep 2012
+;; Last modified  3 Sep 2012
 ;; 
 ;; Defines the DefSrs, DefTriv, and DefCps record types for representing
 ;; 'def' expression in the Clojure TCO compiler.
@@ -59,7 +59,7 @@
 
 (def def-walkable
   {:walk-expr (fn [this f ctor]
-                (ctor (:sym this) (f (:init this))))})
+                (ctor (f (:sym this)) (f (:init this))))})
 
 (extend-group (DefCps DefSrs DefTriv)
   proto/PUnparse

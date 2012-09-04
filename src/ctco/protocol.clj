@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified  2 Sep 2012
+;; Last modified  3 Sep 2012
 ;; 
 ;; Includes the protocols used in the CTCO compiler. These include the
 ;; following:
@@ -67,7 +67,8 @@
   Clojure expression."
   (alpha-rename [this old new]
     "Performs alpha-renaming on the given expression, renaming instances of old
-    to new."))
+    to new. Note that for all implementations of alpha-rename, both 'old' and
+    'new' should use the correct internal representation."))
 
 (defprotocol PCpsSrs
   "Protocol for applying the CPS transformation to serious expressions (a la

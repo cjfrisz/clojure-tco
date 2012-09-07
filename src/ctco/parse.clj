@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 31 Aug 2012
+;; Last modified  6 Sept 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -32,10 +32,11 @@
 
 (declare parse)
 
-(defn- conj-parse
-  "Helper function used in 'reduce' calls throughout parsing."  
-  [base val]
-  (conj base (parse val)))
+(defn- parse-reduce
+  "Helper function for parse that takes a list of expression and returns a 
+  vector of those expressions parsed."
+  [val*]
+  (reduce (fn [acc val] (conj acc (parse val))) [] val*))
 
 (defn- parse-simple
   "Takes a sequence representing a Clojure expression (generally passed from a
@@ -44,13 +45,14 @@
   returns false."
   [expr]
   (and
-   ((some-fn nil?
-             true?
-             false?
-             number?
-             symbol?
-             string?
-             keyword?)
+   ((some-fn 
+      nil?
+      true?
+      false?
+      number?
+      symbol?
+      string?
+      keyword?)
     expr)
    (Simple. expr)))
 
@@ -66,7 +68,7 @@
 
 (defn- parse-fn-body
   [fml* cmap bexpr*]
-  (FnBody. (reduce conj-parse [] fml*) cmap (reduce conj-parse [] bexpr*)))
+  (FnBody. (parse-reduce fml*) cmap (parse-reduce bexpr*)))
 
 (defn- parse-fn
   "Helper function for parse that handles 'fn' expressions."
@@ -94,7 +96,7 @@
 (defn- parse-let
   "Helper function for parse that handles 'let' expressions."
   [bind* body]
-  (let [BIND* (reduce conj-parse [] bind*)
+  (let [BIND* (parse-reduce bind*)
         BODY (parse body)]
     (assert (even? (count BIND*)))
     (if (or (some util/serious? (take-nth 2 (next BIND*)))
@@ -155,7 +157,7 @@
   "Helper function for parse that handles simple op expressions (e.g. +, -,
   zero?, nil?, etc."
   [op opnd*]
-  (let [OPND* (reduce conj-parse [] opnd*)]
+  (let [OPND* (parse-reduce opnd*)]
     (if (some util/serious? OPND*)
         (SimpleOpSrs. op OPND*)
         (SimpleOpTriv. op OPND*))))
@@ -163,7 +165,7 @@
 (defn- parse-function-application
   "Helper function for parse that handles function application."
   [rator rand*]
-  (App. (parse rator) (reduce conj-parse [] rand*)))
+  (App. (parse rator) (parse-reduce rand*)))
 
 (defn- parse-application
   "Takes a sequence representing a Clojure expression (generally passed from a

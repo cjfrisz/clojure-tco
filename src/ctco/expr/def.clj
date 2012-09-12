@@ -3,7 +3,7 @@
 ;; Written by Chris
 ;; 
 ;; Created 30 Aug 2012
-;; Last modified  3 Sep 2012
+;; Last modified  6 Sep 2012
 ;; 
 ;; Defines the DefSrs, DefTriv, and DefCps record types for representing
 ;; 'def' expression in the Clojure TCO compiler.
@@ -52,6 +52,11 @@
     (cps-triv [this]
       (proto/walk-expr this proto/cps-triv #(DefCps. %1 %2))))
 
+(def def-gather-free-vars
+  {:gather-free-vars (fn [this]
+                       (cons (:sym this) 
+                         (proto/gather-free-vars (:init this))))})
+
 (def def-unparse
   {:unparse (fn [this]
               `(def ~(proto/unparse (:sym this))
@@ -62,6 +67,9 @@
                 (ctor (f (:sym this)) (f (:init this))))})
 
 (extend-group (DefCps DefSrs DefTriv)
+  proto/PGatherFreeVars
+    def-gather-free-vars
+
   proto/PUnparse
     def-unparse
  

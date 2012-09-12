@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  2 Sep 2012
+;; Last modified  7 Sep 2012
 ;; 
 ;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
 ;; for representing operations using simple primitives, i.e.
@@ -138,6 +138,14 @@
     (thunkify [this]
       (proto/walk-expr this proto/thunkify #(SimpleOpTriv. %1 %2))))
 
+(def simple-op-gather-free-vars
+  {:gather-free-vars (fn [this]
+                       (reduce
+                        (fn [acc opnd]
+                          (concat acc (proto/gather-free-vars opnd)))
+                        nil
+                        (:opnd* this)))})
+
 (def simple-op-unparse
   {:unparse (fn [this]
               (let [op (:op this)
@@ -150,6 +158,9 @@
                   (ctor (:op this) OPND*)))})
 
 (util/extend-group (SimpleOpCps SimpleOpSrs SimpleOpTriv)
+  proto/PGatherFreeVars
+    simple-op-gather-free-vars
+
   proto/PUnparse
     simple-op-unparse
   

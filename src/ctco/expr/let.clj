@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified  2 Sep 2012
+;; Last modified  7 Sep 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing serious,
 ;; trivial, and CPSed 'let' expressions, respectively. LetSrs and LetTriv
@@ -159,6 +159,18 @@
       (let [ctor #(LetCps. %1 %2)]
         (proto/walk-expr this proto/cps-triv ctor))))
 
+(def let-gather-free-vars
+  {:gather-free-vars (fn [this]
+                       (remove (set (take-nth 2 (:bind* this)))
+                               (set (concat
+                                     (reduce
+                                      (fn [acc init]
+                                        (concat acc
+                                                (proto/gather-free-vars init)))
+                                      nil
+                                      (take-nth 2 (next (:bind* this))))
+                                     (proto/gather-free-vars (:body this))))))})
+
 (def let-unparse
   {:unparse (fn [this]
               (let [bind* (vec (map proto/unparse (:bind* this)))
@@ -181,6 +193,9 @@
                     (ctor BIND* BODY))))})
 
 (util/extend-group (LetCps LetSrs LetTriv)
+  proto/PGatherFreeVars
+    let-gather-free-vars
+
   proto/PUnparse
     let-unparse)
 

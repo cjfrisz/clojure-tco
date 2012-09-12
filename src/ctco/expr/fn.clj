@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  2 Sep 2012
+;; Last modified  7 Sep 2012
 ;; 
 ;; Defines the FnBody record type for representing 'fn' expressions in the
 ;; Clojure TCO compiler.
@@ -45,16 +45,42 @@
 
   proto/PAlphaRename
     (alpha-rename [this old new]
-      (if (some #{old} (:fml* this))
-          this
-          (proto/walk-expr this #(proto/alpha-rename % old new) nil)))
+      (if (some #{old} (:fml* this)) 
+        this
+        (letfn [(alpha-rename-reduce [expr* old new] 
+                  (reduce 
+                    (fn [acc bexpr]
+                      (conj acc (proto/alpha-rename bexpr old new)))
+                    []
+                    expr*))]
+          (alpha-rename-reduce
+            (reduce 
+              (fn [expr var]
+                (let [new-var (util/new-var (gensym (:val var)))]
+                  (FnBody. 
+                    (replace {var new-var} (:fml* this))
+                    (:cmap this)
+                    (alpha-rename-reduce (:bexpr* this) var new-var))))
+                this 
+                (remove (set (:fml* this)) (proto/gather-free-vars (:body this))))
+            old
+            new))))
+
+  proto/PGatherFreeVars
+    (gather-free-vars [this]
+      (remove (set (:fml* this))
+              (reduce
+               (fn [acc bexpr]
+                 (concat acc (proto/gather-free-vars bexpr)))
+               nil
+               (:bexpr* this))))
 
   proto/PUnparse
     (unparse [this]
       `(~(vec (map proto/unparse (:fml* this)))
-        ~@(let [cmap (:cmap this)]
-            (if cmap (list cmap) '()))
-        ~@(map proto/unparse (:bexpr* this))))
+          ~@(let [cmap (:cmap this)]
+              (if cmap (list cmap) '()))
+          ~@(map proto/unparse (:bexpr* this))))
   
   proto/PCpsTriv
     (cps-triv [this]
@@ -75,28 +101,35 @@
       (FnBody. (:fml* this) (:cmap this) (vec (map f (:bexpr* this))))))
 
 (defrecord Fn [name body*]
-   proto/PAbstractK
-     (abstract-k [this app-k]
-       (proto/walk-expr this #(proto/abstract-k % app-k) nil))
+  proto/PAbstractK
+    (abstract-k [this app-k]
+      (proto/walk-expr this #(proto/abstract-k % app-k) nil))
 
-   proto/PAlphaRename
-     (alpha-rename [this old new]
-       (proto/walk-expr this #(proto/alpha-rename % old new) nil))
+  proto/PAlphaRename
+    (alpha-rename [this old new]
+      (proto/walk-expr this #(proto/alpha-rename % old new) nil))
 
-   proto/PCpsTriv
-     (cps-triv [this]
-       (proto/walk-expr this proto/cps-triv nil))
+  proto/PGatherFreeVars
+    (gather-free-vars [this]
+      (reduce
+       (fn [acc fn-body] (concat acc (proto/gather-free-vars fn-body)))
+       nil
+       (:body* this)))
 
-   proto/PUnparse
-     (unparse [this]
-       (let [name (:name this)]
-         `(fn ~@(if name (list (proto/unparse name)) '())
-            ~@(map proto/unparse (:body* this)))))
+  proto/PCpsTriv
+    (cps-triv [this]
+      (proto/walk-expr this proto/cps-triv nil))
 
-   proto/PThunkify
-     (thunkify [this]
-       (proto/walk-expr this proto/thunkify nil))
+  proto/PUnparse
+    (unparse [this]
+      (let [name (:name this)]
+        `(fn ~@(if name (list (proto/unparse name)) '())
+           ~@(map proto/unparse (:body* this)))))
 
-   proto/PWalkable
-     (walk-expr [this f _]
-       (Fn. (:name this) (vec (map f (:body* this))))))
+  proto/PThunkify
+    (thunkify [this]
+      (proto/walk-expr this proto/thunkify nil))
+
+  proto/PWalkable
+    (walk-expr [this f _]
+      (Fn. (:name this) (vec (map f (:body* this))))))

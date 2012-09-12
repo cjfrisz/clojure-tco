@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified  6 Sept 2012
+;; Last modified  7 Sep 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -50,9 +50,12 @@
       true?
       false?
       number?
+      ;; NB: since we're in a macro, a symbol corresponds to a source variable
       symbol?
       string?
-      keyword?)
+      keyword?
+      ;; NB: this is the case for handling source-level quoted expressions
+      #(and (list? %) (= (first %) 'quote)))
     expr)
    (Simple. expr)))
 

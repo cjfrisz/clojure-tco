@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  7 Sep 2012
+;; Last modified  3 Sep 2012
 ;; 
 ;; Defines the Simple record type for simple expressions (e.g.
 ;; numbers, booleans, symbols, etc.) in the CTCO compiler.
@@ -31,12 +31,8 @@
     (abstract-k [this _] this)
 
   proto/PAlphaRename
-    (alpha-rename [this old new]
-      (if (= this old) new this))
-
-  proto/PGatherFreeVars
-    (gather-free-vars [this] (list this))
-       
+  (alpha-rename [this old new]
+    (if (= this old) new this))
     
   proto/PCpsTriv
     (cps-triv [this] this)

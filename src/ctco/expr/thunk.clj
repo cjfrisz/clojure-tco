@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified  6 Sep 2012
+;; Last modified  2 Sep 2012
 ;; 
 ;; Defines the Thunk record type for representing thunks (functions of
 ;; zero arguments) in the Clojure TCO compiler. These are used to
@@ -33,10 +33,6 @@
   proto/PAlphaRename
     (alpha-rename [this old new]
       (proto/walk-expr this #(proto/alpha-rename % old new) nil))
-
-  proto/PGatherFreeVars
-    (gather-free-vars [this]
-      (proto/gather-free-vars (:body this)))
 
   proto/PUnparse
     (unparse [this]

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified  6 Sep 2012
+;; Last modified  3 Sep 2012
 ;; 
 ;; Includes the protocols used in the CTCO compiler. These include the
 ;; following:
@@ -19,10 +19,6 @@
 ;;      while other instances are changed. This is used for making the
 ;;      CPS versions of function definitions distinct from the
 ;;      original versions.
-;;      
-;; PGatherFreeVars:
-;;      Implemented by expressions for returning a list of the free
-;;      variables in the expression.
 ;;
 ;; PCpsSrs:
 ;;      Implemented by expressions which can undergo a CPS
@@ -87,12 +83,6 @@
   (cps-triv [this]
     "Applies the CPS transformation for serious expressions with respect to the
     Olivier-style CPS algorithm."))
-
-(defprotocol PGatherFreeVars
-  "Protocol for gathering the free variables in a CTCO expression."
-  (gather-free-vars [this]
-    "Takes a record representing a CTCO expression and returns a list of the
-    free variables in that expression."))
 
 (defprotocol PUnparse
   "Protocol for TCO expressions that can be represented as a sequence."

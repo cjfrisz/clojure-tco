@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  6 Sep 2012
+;; Last modified  2 Sep 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
@@ -76,13 +76,6 @@
               (let [s (util/new-var 's)
                     cont (Cont. s RAND*)]
                 (proto/PCpsSrs (:rator this) cont))))))
-
-  proto/PGatherFreeVars
-    (gather-free-vars [this] 
-      (distinct
-        (reduce concat 
-          (proto/gather-free-vars (:rator this)) 
-          (map proto/gather-free-vars (:rand* this)))))
     
   proto/PThunkify
     (thunkify [this]

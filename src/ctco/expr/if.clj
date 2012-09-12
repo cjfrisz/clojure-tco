@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  6 Sep 2012
+;; Last modified  2 Sep 2012
 ;; 
 ;; Defines the IfSrs, IfTriv, IfCps record types representing serious,
 ;; trivial, and CPSed 'if' expressions, respectively. IfSrs and IfTriv
@@ -142,12 +142,6 @@
       (let [ctor #(IfTriv. %1 %2 %3)]
         (proto/walk-expr this proto/thunkify ctor))))
 
-(def if-gather-free-vars
-  {:gather-free-vars (fn [this]
-                       (concat (proto/gather-free-vars (:test this))
-                               (proto/gather-free-vars (:conseq this))
-                               (proto/gather-free-vars (:alt this))))})
-
 (def if-unparse
   {:unparse (fn [this]
               `(if ~(proto/unparse (:test this))
@@ -159,9 +153,6 @@
                 (ctor (f (:test this)) (f (:conseq this)) (f (:alt this))))})
 
 (util/extend-group (IfCps IfSrs IfTriv)
-  proto/PGatherFreeVars
-    if-gather-free-vars
- 
   proto/PUnparse
     if-unparse
 

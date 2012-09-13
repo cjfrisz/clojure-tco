@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified  2 Sep 2012
+;; Last modified 11 Sep 2012
 ;; 
 ;; Defines the Cont, AppCont, and AppContAbs record types for
 ;; continuations, continuation application, and continuation
@@ -58,12 +58,6 @@
     (abstract-k [this app-k]
       (proto/walk-expr this #(proto/abstract-k % app-k) nil))
   
-  proto/PAlphaRename
-    (alpha-rename [this old new]
-      (if (= (:arg this) old)
-          this
-          (proto/walk-expr this #(proto/alpha-rename % old new) nil)))
-  
   proto/PUnparse
     (unparse [this]
       `(fn [~(proto/unparse (:arg this))] ~(proto/unparse (:body this))))
@@ -116,5 +110,12 @@
     cont-alpha-rename)
 
 (extend-group (Cont AppContAbs AppCont)
+  ;; NB: One might argue that since we're using functions to represent
+  ;; NB: continuations, we should alpha-rename them as such. Both because this
+  ;; NB: representation is internal and is based on a gensym, we should have to
+  ;; NB: worry with it.
+  proto/PAlphaRename
+    cont-alpha-rename
+  
   proto/PThunkify
     cont-thunkify)

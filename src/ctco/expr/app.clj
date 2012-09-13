@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  2 Sep 2012
+;; Last modified 11 Sep 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
@@ -90,6 +90,5 @@
 
   proto/PWalkable
     (walk-expr [this f _]
-      (let [RATOR (f (:rator this))
-            RAND* (vec (map f (:rand* this)))]
-        (App. RATOR RAND*))))
+      (App. (f (:rator this))
+            (reduce #(conj %1 (f %2)) [] (:rand* this))))

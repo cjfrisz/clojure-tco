@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified 13 Sep 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Includes the protocols used in the CTCO compiler. These include the
 ;; following:
@@ -18,11 +18,6 @@
 ;;      thumb, "serious" expressions are either function application
 ;;      or expressions that include a function application as a
 ;;      subexpression.
-;;
-;; POverload:
-;;      Implemented by expressions for properly overloading 'fn'
-;;      expressions so that they have entrypoints for both CPS and
-;;      non-CPS versions.
 ;;
 ;; PCpsTriv:
 ;;      Implemented by expressions which can undergo a CPS
@@ -65,13 +60,6 @@
   (cps-srs [this k]
     "Applies the CPS transformation for serious expressions with respect to the
     Danvy-style CPS algorithm."))
-
-(defprotocol POverload
-  "Protocol for overloading 'fn' expressions to have CPS and non-CPS
-  entrypoints."
-  (overload [this]
-    "Recursively overloads all 'fn' expressions contained within the
-    expression.")) 
 
 (defprotocol PCpsTriv
   "Protocol for applying the CPS transformations to trivial expressions (a la

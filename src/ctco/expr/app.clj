@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 13 Sep 2012
+;; Last modified 30 Aug 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
@@ -78,14 +78,14 @@
               (let [s (util/new-var 's)
                     cont (Cont. s RAND*)]
                 (proto/PCpsSrs (:rator this) cont))))))
-
-  proto/POverload
-    (overload [this] (proto/walk-expr this proto/overload nil))
     
   proto/PThunkify
     (thunkify [this]
-      (Thunk. (proto/walk-expr this proto/thunkify nil)))
+      (let [THIS (proto/walk-expr this proto/thunkify nil)]
+        (Thunk. THIS)))
 
   proto/PWalkable
     (walk-expr [this f _]
-      (App. (f (:rator this)) (reduce #(conj %1 (f %2)) [] (:rand* this)))))
+      (let [RATOR (f (:rator this))
+            RAND* (vec (map f (:rand* this)))]
+        (App. RATOR RAND*))))

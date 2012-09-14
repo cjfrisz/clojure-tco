@@ -4,7 +4,6 @@
 ;; 
 ;; Created  1 Apr 2012
 ;; Last modified 13 Sep 2012
-
 ;; 
 ;; Defines the Cont, AppCont, and AppContAbs record types for
 ;; continuations, continuation application, and continuation

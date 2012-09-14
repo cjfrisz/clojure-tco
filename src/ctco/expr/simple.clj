@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 30 Aug 2012
+;; Last modified 13 Sep 2012
 ;; 
 ;; Defines the Simple record type for simple expressions (e.g.
 ;; numbers, booleans, symbols, etc.) in the CTCO compiler.
@@ -32,6 +32,9 @@
 
   proto/PCpsTriv
     (cps-triv [this] this)
+
+  proto/POverload
+    (overload [this] this)
 
   proto/PUnparse
     (unparse [this] (:val this))

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 31 Aug 2012
+;; Last modified 13 Sep 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing serious,
 ;; trivial, and CPSed 'let' expressions, respectively. LetSrs and LetTriv
@@ -105,13 +105,15 @@
 (defrecord LetCps [bind* body]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (let [ctor #(LetCps. %1 %2)]
-        (proto/walk-expr this #(proto/abstract-k % app-k) ctor)))
+      (proto/walk-expr this #(proto/abstract-k % app-k) #(LetCps. %1 %2)))
 
+  proto/POverload
+    (overload [this]
+      (proto/walk-expr this proto/overload #(LetCps.%1 %2)))
+      
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(LetCps. %1 %2)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify #(LetCps. %1 %2)))))
 
 (defrecord LetSrs [bind* body]
   proto/PCpsSrs

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 31 Aug 2012
+;; Last modified 13 Sep 2012
 ;; 
 ;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
 ;; for representing operations using simple primitives, i.e.
@@ -78,24 +78,11 @@
 (defrecord SimpleOpCps [op opnd*]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (let [ctor #(SimpleOpCps. %1 %2)]
-        (proto/walk-expr this #(proto/abstract-k % app-k) ctor)))
+      (proto/walk-expr this #(proto/abstract-k % app-k) #(SimpleOpCps. %1 %2)))
 
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(SimpleOpCps. %1 %2)]
-        (proto/walk-expr this proto/thunkify ctor))))
-
-(defrecord SimpleOpTriv [op opnd*]
-  proto/PCpsTriv
-    (cps-triv [this]
-      (let [ctor #(SimpleOpCps. %1 %2)]
-        (proto/walk-expr this proto/cps-triv ctor)))
-
-  proto/PThunkify
-    (thunkify [this]
-      (let [ctor #(SimpleOpTriv. %1 %2)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify #(SimpleOpCps. %1 %2))))
 
 (defrecord SimpleOpSrs [op opnd*]
   proto/PCpsSrs
@@ -115,12 +102,12 @@
                                 RST (cps-op rst POST-OPND* k)
                                 K (Cont. s RST)]
                             (proto/cps-srs fst K))))))]
-        (cps-op (:opnd* this) [] k)))
+        (cps-op (:opnd* this) [] k))))
 
-  proto/PThunkify
-    (thunkify [this]
-      (let [ctor #(SimpleOpSrs. %1 %2)]
-        (proto/walk-expr this proto/thunkify ctor))))
+(defrecord SimpleOpTriv [op opnd*]
+  proto/PCpsTriv
+    (cps-triv [this]
+      (proto/walk-expr this proto/cps-triv #(SimpleOpCps. %1 %2))))
 
 (def simple-op-unparse
   {:unparse (fn [this]

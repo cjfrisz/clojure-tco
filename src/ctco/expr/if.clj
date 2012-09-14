@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 31 Aug 2012
+;; Last modified 13 Sep 2012
 ;; 
 ;; Defines the IfSrs, IfTriv, IfCps record types representing serious,
 ;; trivial, and CPSed 'if' expressions, respectively. IfSrs and IfTriv
@@ -84,13 +84,15 @@
 (defrecord IfCps [test conseq alt]
   proto/PAbstractK
     (abstract-k [this app-k]
-      (let [ctor #(IfCps. %1 %2 %3)]
-        (proto/walk-expr this #(proto/abstract-k % app-k) ctor)))
+      (proto/walk-expr this #(proto/abstract-k % app-k) #(IfCps. %1 %2 %3)))
+
+  proto/POverload
+    (overload [this]
+      (proto/walk-expr this proto/overload #(IfCps. %1 %2 %3)))
   
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(IfCps. %1 %2 %3)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify #(IfCps. %1 %2 %3))))
 
 (defrecord IfSrs [test conseq alt]
   proto/PCpsSrs
@@ -109,23 +111,12 @@
               (let [s (util/new-var 's)
                     K-body (IfCps. s CONSEQ ALT)
                     K (Cont. s K-body)]
-                (proto/cps-srs test K))))))
-
-  proto/PThunkify
-    (thunkify [this]
-      (let [ctor #(IfSrs. %1 %2 %3)]
-        (proto/walk-expr this proto/thunkify ctor))))
+                (proto/cps-srs test K)))))))
 
 (defrecord IfTriv [test conseq alt]
   proto/PCpsTriv
     (cps-triv [this]
-      (let [ctor #(IfCps. %1 %2 %3)]
-        (proto/walk-expr this proto/cps-triv ctor)))
-
-  proto/PThunkify
-    (thunkify [this]
-      (let [ctor #(IfTriv. %1 %2 %3)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/cps-triv #(IfCps. %1 %2 %3))))
 
 (def if-unparse
   {:unparse (fn [this]
@@ -141,11 +132,10 @@
                       ALT (f (:alt this))]
                   (ctor TEST CONSEQ ALT)))})
 
+(util/extend-group (IfCps IfTriv)
+  proto/PWalkable
+    if-walkable)
+
 (util/extend-group (IfCps IfSrs IfTriv)
   proto/PUnparse
-    if-unparse
-
-  proto/PWalkable
-  if-walkable)
-
-
+    if-unparse)

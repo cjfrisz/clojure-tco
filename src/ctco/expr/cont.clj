@@ -54,14 +54,6 @@
             Thunk]))
 
 (defrecord Cont [arg body]
-  proto/PAbstractK
-    (abstract-k [this app-k]
-      (proto/walk-expr #(proto/abstract-k % app-k) nil))
-
-  proto/PThunkify
-    (thunkify [this]
-      (proto/walk-expr this proto/thunkify nil))
-  
   proto/PUnparse
     (unparse [this]
       `(fn [~(proto/unparse (:arg this))] ~(proto/unparse (:body this))))
@@ -71,10 +63,6 @@
       (Cont. (:arg this) (f (:body this)))))
 
 (defrecord AppContAbs [app-k cont val]
-  proto/PThunkify
-    (thunkify [this]
-      (proto/walk-expr this proto/thunkify nil))
-
   proto/PUnparse
     (unparse [this]
       `(~(proto/unparse (:app-k this))
@@ -86,14 +74,6 @@
         (AppContAbs. (:app-k this) (f (:cont this)) (f (:val this)))))
 
 (defrecord AppCont [cont val]
-  proto/PAbstractK
-    (abstract-k [this app-k]
-      (proto/walk-expr this #(proto/abstract-k % app-k) nil))
-
-  proto/PThunkify
-    (thunkify [this]
-      (proto/walk-expr this proto/thunkify nil))
-
   proto/PUnparse
     (unparse [this]
       `(~(proto/unparse (:cont this)) ~(proto/unparse (:val this))))
@@ -101,3 +81,24 @@
     proto/PWalkable
       (walk-expr [this f _]
         (AppCont. (f (:cont this)) (f (:val this)))))
+
+(def cont-abstract-k
+  {:abstract-k (fn [this app-k]
+                 (proto/walk-expr #(proto/abstract-k % app-k) nil))})
+
+(def cont-overload
+  {:overload (fn [this] (proto/walk-expr this proto/overload nil))})
+
+(def cont-thunkify
+  {:thunkify (fn [this] (proto/walk-expr this proto/thunkify nil))})
+
+(util/extend-group (Cont AppCont)
+  proto/PAbstractK
+    cont-abstract-k)
+
+(util/extend-group (Cont AppContAbs AppCont)
+  proto/POverload
+    cont-overload
+                       
+  proto/PThunkify
+    cont-thunkify)

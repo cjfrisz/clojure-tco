@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified 30 Aug 2012
+;; Last modified 30 Sep 2012
 ;; 
 ;; Defines miscellaneous utility functions for use in CTCO. These
 ;; include:
@@ -38,7 +38,8 @@
   (some #{op}
         '(+ - * / mod < <= = >= > and or not
           inc dec zero? true? false? nil?
-          instance? fn? type ref ref-set deref)))
+          instance? fn? type ref ref-set deref
+          cons conj with-meta meta)))
 
 (defn serious?
   "Given a Clojure TCO expression (as a record type), returns whether the

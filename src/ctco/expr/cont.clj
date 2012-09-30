@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified 30 Aug 2012
+;; Last modified 27 Sep 2012
 ;; 
 ;; Defines the Cont, AppCont, and AppContAbs record types for
 ;; continuations, continuation application, and continuation
@@ -62,7 +62,7 @@
     (unparse [this]
       (let [arg (proto/unparse (:arg this))
             body (proto/unparse (:body this))]
-        `(fn [~arg] ~body)))
+        `(with-meta (fn [~arg] ~body) {:kont true})))
 
   proto/PThunkify
     (thunkify [this]

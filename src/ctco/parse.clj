@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 31 Aug 2012
+;; Last modified 29 Sep 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -71,15 +71,18 @@
 (defn- parse-fn
   "Helper function for parse that handles 'fn' expressions."
   [body*]
-  (Fn. nil (reduce
-            (fn [v* b]
-              (conj v* (condp = (count b)
-                        2 (parse-fn-body (first b) nil (next b))
-                        3 (parse-fn-body (first b) (fnext b) (nnext b))
-                        :else (throw (Exception.
-                                      (str "invalid function body" b))))))
-            []
-            body*)))
+  (Fn.
+   nil
+   (reduce
+    (fn [v* b]
+      (conj
+       v*
+       (match [b]
+         [([fml* (cmap :guard map?) & b*] :seq)] (parse-fn-body fml* cmap b*)
+         [([fml* & b*] :seq)] (parse-fn-body fml* nil b*)
+         :else (throw (Exception. (str "invalid function body" b))))))
+    []
+    body*)))
 
 (defn- parse-if
   "Helper function for parse that handles 'if' expressions."
@@ -110,7 +113,7 @@
   (match [expr]
     [(['def sym] :seq)] (parse-def sym nil)
     [(['def sym init] :seq)] (parse-def sym init)
-    [(['fn fml* & bexpr*] :seq)] (parse-fn `((~fml* ~@bexpr*)))
+    [(['fn (fml* :guard vector?) & bexpr*] :seq)] (parse-fn `((~fml* ~@bexpr*)))
     [(['fn & body*] :seq)] (parse-fn body*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)
     [(['let bind* body] :seq)] (parse-let bind* body)

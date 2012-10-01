@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 29 Sep 2012
+;; Last modified  1 Oct 2012
 ;; 
 ;; Defines the FnBody record type for representing 'fn' expressions in the
 ;; Clojure TCO compiler.
@@ -61,15 +61,18 @@
   proto/PCpsTriv
   (cps-triv [this]
     ;; returning a function this way saves us a 'let' binding in the generated
-    ;; code and is easily managed by the fact that passes on a FnBody are only
-    ;; ever invoked from a Fn.
+    ;; code and is easily managed by the fact that operations on a FnBody are
+    ;; only ever invoked from a Fn.
     (fn [k]
       (FnBody. (conj (:fml* this) k)
                (:cmap this)
-               (vec (map #(condp extends? (type %)
-                            proto/PCpsTriv (AppCont. k (proto/cps-triv %))
-                            proto/PCpsSrs (proto/cps-srs % k))
-                         (:bexpr* this))))))
+               (reduce (fn [e* e]
+                         (conj e*
+                               (condp extends? (type e)
+                                 proto/PCpsTriv (AppCont. k (proto/cps-triv e))
+                                 proto/PCpsSrs (proto/cps-srs e k))))
+                       []
+                       (:bexpr* this)))))
 
   proto/PThunkify
   (thunkify [this]
@@ -77,7 +80,9 @@
 
   proto/PWalkable
   (walk-expr [this f _]
-    (FnBody. (:fml* this) (:cmap this) (vec (map f (:bexpr* this))))))
+    (FnBody. (:fml* this)
+             (:cmap this)
+             (reduce (fn [e* e] (conj e* (f e))) [] (:bexpr* this)))))
 
 (defrecord Fn [name body*]
   proto/PAbstractK
@@ -150,4 +155,5 @@
 
   proto/PWalkable
   (walk-expr [this f _]
-    (Fn. (:name this) (vec (map f (:body* this))))))
+    (Fn. (:name this)
+         (reduce (fn [b* b] (conj b* (f b))) [] (:body* this)))))

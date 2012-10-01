@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 31 Aug 2012
+;; Last modified 30 Sep 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing serious,
 ;; trivial, and CPSed 'let' expressions, respectively. LetSrs and LetTriv
@@ -149,9 +149,11 @@
 
 (def let-unparse
   {:unparse (fn [this]
-              (let [bind* (vec (map proto/unparse (:bind* this)))
-                    body (proto/unparse (:body this))]
-                `(let ~bind* ~body)))})
+              `(let ~(reduce (fn [bind* bind]
+                               (conj bind* (proto/unparse bind)))
+                             []
+                             (:bind* this))
+                   ~(proto/unparse (:body this))))})
 
 (def let-walkable
   {:walk-expr (fn [this f ctor]

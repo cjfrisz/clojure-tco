@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 31 Aug 2012
+;; Last modified 30 Sep 2012
 ;; 
 ;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
 ;; for representing operations using simple primitives, i.e.
@@ -130,8 +130,11 @@
 
 (def simple-op-walk
   {:walk-expr (fn [this f ctor]
-                (let [OPND* (vec (map #(f %) (:opnd* this)))]
-                  (ctor (:op this) OPND*)))})
+                (ctor (:op this)
+                      (reduce (fn [opnd* opnd] (conj opnd* (f opnd)))
+                              []
+                              (:opnd* this))))})
+                        
 
 (util/extend-group (SimpleOpCps SimpleOpSrs SimpleOpTriv)
   proto/PUnparse

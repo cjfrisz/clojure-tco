@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 30 Sep 2012
+;; Last modified  3 Oct 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing serious,
 ;; trivial, and CPSed 'let' expressions, respectively. LetSrs and LetTriv
@@ -108,6 +108,10 @@
       (let [ctor #(LetCps. %1 %2)]
         (proto/walk-expr this #(proto/abstract-k % app-k) ctor)))
 
+  proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) #(LetCps. %1 %2)))
+
   proto/PThunkify
     (thunkify [this]
       (let [ctor #(LetCps. %1 %2)]
@@ -139,13 +143,21 @@
                                 K (Cont. var k-body)
                                 let-body (proto/cps-srs init K)]
                             (build-let bind-out* let-body))))))]
-        (cps-let (:bind* this) []))))
+        (cps-let (:bind* this) [])))
+
+  proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) #(LetSrs. %1 %2))))
 
 (defrecord LetTriv [bind* body]
   proto/PCpsTriv
     (cps-triv [this]
       (let [ctor #(LetCps. %1 %2)]
-        (proto/walk-expr this proto/cps-triv ctor))))
+        (proto/walk-expr this proto/cps-triv ctor)))
+
+  proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) #(LetTriv. %1 %2))))
 
 (def let-unparse
   {:unparse (fn [this]

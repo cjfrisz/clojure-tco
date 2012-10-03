@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 30 Sep 2012
+;; Last modified  3 Oct 2012
 ;; 
 ;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
 ;; for representing operations using simple primitives, i.e.
@@ -81,6 +81,10 @@
       (let [ctor #(SimpleOpCps. %1 %2)]
         (proto/walk-expr this #(proto/abstract-k % app-k) ctor)))
 
+  proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpCps. %1 %2)))
+
   proto/PThunkify
     (thunkify [this]
       (let [ctor #(SimpleOpCps. %1 %2)]
@@ -91,6 +95,10 @@
     (cps-triv [this]
       (let [ctor #(SimpleOpCps. %1 %2)]
         (proto/walk-expr this proto/cps-triv ctor)))
+
+  proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpTriv. %1 %2)))
 
   proto/PThunkify
     (thunkify [this]
@@ -116,6 +124,10 @@
                                 K (Cont. s RST)]
                             (proto/cps-srs fst K))))))]
         (cps-op (:opnd* this) [] k)))
+
+  proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpSrs. %1 %2)))
 
   proto/PThunkify
     (thunkify [this]

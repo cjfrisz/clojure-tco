@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 28 Sep 2012
+;; Last modified  3 Oct 2012
 ;; 
 ;; Defines the Do and DoSync record types and operations for 'do' and
 ;; 'dosync' expressions in the Clojure TCO compiler.
@@ -22,6 +22,10 @@
   proto/PAbstractK
     (abstract-k [this app-k]
       (proto/walk-expr this #(proto/abstract-k % app-k) nil))
+
+  proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) nil))
 
   proto/PThunkify
     (thunkify [this]

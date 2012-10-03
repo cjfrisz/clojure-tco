@@ -72,6 +72,10 @@
               (let [s (util/new-var 's)
                     cont (Cont. s RAND*)]
                 (proto/PCpsSrs (:rator this) cont))))))
+
+  proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) nil))
     
   proto/PThunkify
     (thunkify [this]

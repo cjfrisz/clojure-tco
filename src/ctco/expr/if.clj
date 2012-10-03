@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 31 Aug 2012
+;; Last modified  3 Oct 2012
 ;; 
 ;; Defines the IfSrs, IfTriv, IfCps record types representing serious,
 ;; trivial, and CPSed 'if' expressions, respectively. IfSrs and IfTriv
@@ -86,6 +86,10 @@
     (abstract-k [this app-k]
       (let [ctor #(IfCps. %1 %2 %3)]
         (proto/walk-expr this #(proto/abstract-k % app-k) ctor)))
+
+  proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) #(IfCps. %1 %2 %3)))
   
   proto/PThunkify
     (thunkify [this]
@@ -111,6 +115,10 @@
                     K (Cont. s K-body)]
                 (proto/cps-srs test K))))))
 
+  proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) #(IfSrs. %1 %2 %3)))
+
   proto/PThunkify
     (thunkify [this]
       (let [ctor #(IfSrs. %1 %2 %3)]
@@ -121,6 +129,10 @@
     (cps-triv [this]
       (let [ctor #(IfCps. %1 %2 %3)]
         (proto/walk-expr this proto/cps-triv ctor)))
+
+  proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) #(IfTriv. %1 %2 %3)))
 
   proto/PThunkify
     (thunkify [this]

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  2 Oct 2012
+;; Last modified  3 Oct 2012
 ;; 
 ;; Defines the FnBody record type for representing 'fn' expressions in the
 ;; Clojure TCO compiler.
@@ -158,3 +158,11 @@
   (walk-expr [this f _]
     (Fn. (:name this)
          (reduce (fn [b* b] (conj b* (f b))) [] (:body* this)))))
+
+(def fn-load-tramp
+  {:load-tramp (fn [this tramp]
+                 (proto/walk-expr this #(proto/load-tramp % tramp) nil))})
+
+(util/extend-group (FnBody Fn)
+  proto/PLoadTrampoline
+  fn-load-tramp)

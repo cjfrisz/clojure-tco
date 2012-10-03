@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified 27 Sep 2012
+;; Last modified  3 Oct 2012
 ;; 
 ;; Defines the Cont, AppCont, and AppContAbs record types for
 ;; continuations, continuation application, and continuation
@@ -47,10 +47,8 @@
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.cont
-  (:require [ctco.expr.thunk]
-            [ctco.protocol :as proto])
-  (:import [ctco.expr.thunk
-            Thunk]))
+  (:require [ctco.protocol :as proto]
+            [ctco.util :as util]))
 
 (defrecord Cont [arg body]
   proto/PAbstractK
@@ -67,7 +65,11 @@
   proto/PThunkify
     (thunkify [this]
       (let [BODY (proto/thunkify (:body this))]
-        (Cont. (:arg this) BODY))))
+        (Cont. (:arg this) BODY)))
+
+  proto/PWalkable
+    (walk-expr [this f _]
+      (Cont. (:arg this) (f (:body this)))))
 
 (defrecord AppContAbs [app-k cont val]
   proto/PUnparse
@@ -81,7 +83,11 @@
     (thunkify [this]
       (let [CONT (proto/thunkify (:cont this))
             VAL (proto/thunkify (:val this))]
-        (AppContAbs. (:app-k this) CONT VAL))))
+        (AppContAbs. (:app-k this) CONT VAL)))
+
+  proto/PWalkable
+    (walk-expr [this f _]
+      (AppContAbs. (:app-k this) (f (:cont this)) (f (:val this)))))
 
 (defrecord AppCont [cont val]
   proto/PAbstractK
@@ -100,4 +106,16 @@
     (thunkify [this]
       (let [CONT (proto/thunkify (:cont this))
             VAL (proto/thunkify (:val this))]
-        (AppCont. CONT VAL))))
+        (AppCont. CONT VAL)))
+
+  proto/PWalkable
+    (walk-expr [this f _]
+      (AppCont. (f (:cont this)) (f (:val this)))))
+
+(def cont-load-tramp
+  {:load-tramp (fn [this tramp]
+                 (proto/walk-expr this #(proto/load-tramp % tramp) nil))})
+
+(util/extend-group (Cont AppContAbs AppCont)
+  ptoro/PLoadTrampoline
+  cont-load-tramp)

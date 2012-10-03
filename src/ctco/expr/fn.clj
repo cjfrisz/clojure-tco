@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  1 Oct 2012
+;; Last modified  2 Oct 2012
 ;; 
 ;; Defines the FnBody record type for representing 'fn' expressions in the
 ;; Clojure TCO compiler.
@@ -132,7 +132,8 @@
                                                     [last-fml])])
                                        (Do.
                                         (:bexpr* (prev-cps-fn last-fml)))
-                                       (make-cps-app body))]))
+                                       (with-meta (make-cps-app body)
+                                         {:tramp-entry true}))]))
                            (proto/cps-triv body)
                            (conj out prev-cmp))
                           (recur

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  1 Oct 2012
+;; Last modified  2 Oct 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
@@ -48,12 +48,6 @@
   proto/PAbstractK
     (abstract-k [this app-k]
       (proto/walk-expr this #(proto/abstract-k % app-k) nil))
-
-  proto/PUnparse
-    (unparse [this]
-      (let [rator (proto/unparse (:rator this))
-            rand* (map proto/unparse (:rand* this))]
-        `(~rator ~@rand*)))
     
   proto/PCpsSrs
     (cps-srs [this k]
@@ -83,6 +77,12 @@
     (thunkify [this]
       (let [THIS (proto/walk-expr this proto/thunkify nil)]
         (Thunk. THIS)))
+
+  proto/PUnparse
+    (unparse [this]
+      (let [rator (proto/unparse (:rator this))
+            rand* (map proto/unparse (:rand* this))]
+        `(~rator ~@rand*)))
 
   proto/PWalkable
     (walk-expr [this f _]

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified 30 Aug 2012
+;; Last modified  2 Oct 2012
 ;; 
 ;; Includes the protocols used in the CTCO compiler. These include the
 ;; following:
@@ -40,7 +40,7 @@
 ;;      be created by applying a function to each of its
 ;;      subexpressions. This can be thought of as "map" for
 ;;      heterogeneously-shaped expressions. It's also generally only
-;;      used internally for limiting code reuse for expression
+;;      used internally for limiting code copying for expression
 ;;      traversals in CTCO passes.
 ;;----------------------------------------------------------------------
 
@@ -66,7 +66,13 @@
   Danvy)."
   (cps-triv [this]
     "Applies the CPS transformation for serious expressions with respect to the
-    Olivier-style CPS algorithm."))
+    Danvy-style CPS algorithm."))
+
+(defprotocol PLoadTrampoline
+  "Protocol for loading CTCO expressions onto the trampoline appropriately."
+  (load-tramp [this tramp]
+    "Takes a CTCO record expression and a symbol for the name of the trampoline
+    function and loads the proper expressions onto said trampoline."))
 
 (defprotocol PUnparse
   "Protocol for TCO expressions that can be represented as a sequence."

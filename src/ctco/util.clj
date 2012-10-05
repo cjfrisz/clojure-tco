@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified 30 Sep 2012
+;; Last modified  3 Oct 2012
 ;; 
 ;; Defines miscellaneous utility functions for use in CTCO. These
 ;; include:
@@ -15,12 +15,10 @@
 
 (ns ctco.util
   (:require [ctco.expr
-             simple cont]
+             simple]
             [ctco.protocol :as proto])
   (:import  [ctco.expr.simple
-             Simple]
-            [ctco.expr.cont
-             Cont AppCont]))
+             Simple]))
 
 (defn new-var
   "Returns a unique variable for use in the TCO compiler either with a given

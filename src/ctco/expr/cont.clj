@@ -117,5 +117,5 @@
                  (proto/walk-expr this #(proto/load-tramp % tramp) nil))})
 
 (util/extend-group (Cont AppContAbs AppCont)
-  ptoro/PLoadTrampoline
+  proto/PLoadTrampoline
   cont-load-tramp)

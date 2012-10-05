@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  4 Apr 2012
-;; Last modified  3 Oct 2012
+;; Last modified  4 Oct 2012
 ;; 
 ;; Defines the Thunk record type for representing thunks (functions of
 ;; zero arguments) in the Clojure TCO compiler. These are used to

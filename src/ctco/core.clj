@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified  4 Oct 2012
+;; Last modified 30 Sep 2012
 ;; 
 ;; Defines the ctco macro which acts as the driver for the Clojure TCO
 ;; compiler. The macro parses the initial expression, and applies the
@@ -32,19 +32,18 @@
   space, but recursive calls will necessitate more heap memory for the
   closures created to represent continuations."
   [expr]
-  (let [tramp (gensym "tramp")
-        apply-k (gensym "apply-k")]
+  (let [tramp (gensym 'tramp)
+        init-k (gensym 'init-k)
+        apply-k (gensym 'apply-k)]
     (letfn [(apply-cps [expr]
               (condp extends? (type expr)
                 proto/PCpsTriv (proto/cps-triv expr)
-                proto/PCpsSrs  (proto/cps-srs expr (gensym "k"))
+                proto/PCpsSrs  (proto/cps-srs expr init-k)
                 :else (throw (Exception. (str "unexpected expression " expr)))))]
-      (let [new-expr (-> (parse/parse expr)
-                         apply-cps
-                         proto/thunkify
-                         (proto/load-tramp tramp)
-                         (proto/abstract-k (parse/parse apply-k))
-                         proto/unparse)]
-        (-> `(~tramp ~new-expr)
-            (mp/make-apply-k apply-k)
-            (mp/make-trampoline tramp))))))
+      (-> (parse/parse expr)
+          apply-cps
+          (proto/abstract-k (parse/parse apply-k))
+          proto/thunkify
+          proto/unparse
+          (mp/make-apply-k apply-k)
+          (mp/make-trampoline tramp)))))

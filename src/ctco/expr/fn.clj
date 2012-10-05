@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  4 Oct 2012
+;; Last modified  3 Oct 2012
 ;; 
 ;; Defines the FnBody record type for representing 'fn' expressions in the
 ;; Clojure TCO compiler.
@@ -30,7 +30,7 @@
 
 (ns ctco.expr.fn
   (:require [ctco.expr
-             app cont do if simple thunk tramp]
+             app cont do if simple thunk]
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.app
@@ -44,9 +44,7 @@
            [ctco.expr.simple
             Simple]
            [ctco.expr.thunk
-            Thunk]
-           [ctco.expr.tramp
-            Tramp TrampMark]))
+            Thunk]))
 
 (defrecord FnBody [fml* cmap bexpr*]
   proto/PAbstractK
@@ -99,19 +97,16 @@
           (let [body (first body*)
                 name (or (:name this) (util/new-var "fn"))]
             (letfn [(make-cps-app [body]
-                      (with-meta
-                        (TrampMark.
-                         (App. name
-                               (conj (:fml* body)
-                                     (let [x (util/new-var "x")]
-                                       (Cont. x x)))))
-                        {:tramp-entry true}))
-                    (make-entry-body [body]
+                      (App. name
+                            (conj (:fml* body)
+                                  (let [x (util/new-var "x")]
+                                    (Cont. x x)))))
+                    (make-compat-body [body]
                       (FnBody. (:fml* body)
                                (:cmap body)
                                [(make-cps-app body)]))]
               (loop [body* (next body*)
-                     prev-cmp (make-entry-body body)
+                     prev-cmp (make-compat-body body)
                      prev-cps-fn (proto/cps-triv body)
                      out []]
                 (if (nil? (seq body*))
@@ -137,12 +132,13 @@
                                                     [last-fml])])
                                        (Do.
                                         (:bexpr* (prev-cps-fn last-fml)))
-                                       (make-cps-app body))]))
+                                       (with-meta (make-cps-app body)
+                                         {:tramp-entry true}))]))
                            (proto/cps-triv body)
                            (conj out prev-cmp))
                           (recur
                            (next body*)
-                           (make-entry-body body)
+                           (make-compat-body body)
                            (proto/cps-triv body)
                            (conj out
                                  prev-cmp

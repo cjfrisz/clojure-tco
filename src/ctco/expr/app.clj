@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  2 Oct 2012
+;; Last modified  4 Oct 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
@@ -79,8 +79,7 @@
     
   proto/PThunkify
     (thunkify [this]
-      (let [THIS (proto/walk-expr this proto/thunkify nil)]
-        (Thunk. THIS)))
+      (Thunk. (proto/walk-expr this proto/thunkify nil)))
 
   proto/PUnparse
     (unparse [this]

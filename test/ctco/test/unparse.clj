@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 15 Apr 2012
-;; Last modified 31 Aug 2012
+;; Last modified  5 Oct 2012
 ;; 
 ;; Testing for the correctness of unparse
 ;;----------------------------------------------------------------------
@@ -20,7 +20,7 @@
            [ctco.expr.simple
             Simple]
            [ctco.expr.cont
-            Cont AppCont AppContAbs]
+            Cont AppCont]
            [ctco.expr.def
             DefCps DefSrs DefTriv]
            [ctco.expr.fn
@@ -44,9 +44,10 @@
   (is (= '(quote stuff) (proto/unparse (parse '(quote stuff))))))
  
 (deftest cont-test
-  (is (= '(clojure.core/fn [x] x)
+  (is (= '(clojure.core/with-meta (clojure.core/fn [x] x) {:kont true})
          (proto/unparse (Cont. (Simple. 'x) (Simple. 'x)))))
-  (is (= '((clojure.core/fn [x] x) (quote thonk))
+  (is (= '((clojure.core/with-meta (clojure.core/fn [x] x) {:kont true})
+           (quote thonk))
          (proto/unparse (AppCont. (Cont. (Simple. 'x) (Simple. 'x))
                                (Simple. (quote 'thonk)))))))
 

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 31 Aug 2012
+;; Last modified  5 Oct 2012
 ;; 
 ;; Testing for the CPSer in the record+protocol'd version of the TCO
 ;; compiler.
@@ -62,8 +62,8 @@
     (is (= (count (:fml* (first (:body* test-fn-triv)))) 1))
     (let [test-fn-cps (proto/cps-triv test-fn-triv)]
       (is (not (= test-fn-triv test-fn-cps)))
-      (is (= (count (:fml* (first (:body* test-fn-cps)))) 2))
-      (is (instance? AppCont (first (:bexpr* (first (:body* test-fn-cps)))))))))
+      (is (= (count (:fml* (fnext (:body* test-fn-cps)))) 2))
+      (is (instance? AppCont (first (:bexpr* (fnext (:body* test-fn-cps)))))))))
 
 (let [test-if-triv (IfTriv. (Simple. 3) (Simple. 4) (Simple. 5))]
   (deftest if-triv
@@ -85,7 +85,7 @@
     (let [test-defn-cps (proto/cps-triv test-defn)]
       (is (instance?
            AppCont
-           (first (:bexpr* (first (:body* (:init test-defn-cps))))))))))
+           (first (:bexpr* (fnext (:body* (:init test-defn-cps))))))))))
 
 (let [test-op (SimpleOpTriv. '+ [(Simple. 3) (Simple. 4) (Simple. 5)])]
   (deftest simple-op-triv

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 14 Apr 2012
-;; Last modified 31 Aug 2012
+;; Last modified  5 Oct 2012
 ;; 
 ;; Defines the small, one-time code transformations for the TCO
 ;; compiler. These include the following:
@@ -15,45 +15,6 @@
 (ns ctco.mini-passes
   (:use [clojure.core.match
          :only (match)]))
-
-(defn overload
-  "Takes an expression in the TCO compiler (in record representation) and, if it
-  represents a function type (i.e. 'defn'), overloads the expression.
-
-  That is, for a function that takes n arguments, it is overloaded such that it
-  can take n and n+1 arguments. The version that takes n arguments corresponds
-  to the version that outside functions call into. It sets up the computation to
-  be run on the trampoline introduced by the TCO compiler by initializing the
-  empty continuation and calling the version that takes n+1 arguments. The
-  result of the initial call is then loaded onto the trampoline by calling the
-  trampoline function named by the 'tramp' argument, passing an additional nil
-  argument to call the overloaded arity.
-
-  The version of the function that takes n+1 arguments takes a continuation as
-  the (n+1)st argument and does the actual computational heavy lifting.
-
-  If the input expression doesn't represent a function type then the expression
-  is simply returned."
-  [expr tramp]
-  ;; NB: You will notice that this is horrible code that no man in his right
-  ;; NB: mind should have written. First, this is transitional code before
-  ;; NB: getting rid of overloading for defn expressions entirely. Second, why
-  ;; NB: would you say things like that about me?
-  (match [expr]
-    [(['def sym (['clojure.core/fn & func*] :seq)] :seq)]
-      `(def ~sym
-         (fn
-           ~@(reduce
-              (fn [v* v]
-                (let [fml* (first v)
-                      bexpr* (next v)
-                      fml-bl* (vec (butlast fml*))]
-                  (concat v*
-                        `((~fml-bl* (~tramp (~sym ~@fml-bl* nil)))
-                          (~fml* ~@bexpr*)))))
-              '()
-              func*)))
-    :else expr))
 
 (defn make-apply-k
   "Introduces the definition of the continuation application function for expr

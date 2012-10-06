@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified  4 Oct 2012
+;; Last modified  5 Oct 2012
 ;; 
 ;; Defines the ctco macro which acts as the driver for the Clojure TCO
 ;; compiler. The macro parses the initial expression, and applies the
@@ -43,8 +43,6 @@
                          apply-cps
                          proto/thunkify
                          (proto/load-tramp tramp)
-                         (proto/abstract-k (parse/parse apply-k))
                          proto/unparse)]
         (-> `(~tramp ~new-expr)
-            (mp/make-apply-k apply-k)
             (mp/make-trampoline tramp))))))

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified  3 Oct 2012
+;; Last modified  5 Oct 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing serious,
 ;; trivial, and CPSed 'let' expressions, respectively. LetSrs and LetTriv
@@ -13,10 +13,6 @@
 ;; to a 'let' expression that has undergone the CPS transformation.
 ;;
 ;; LetCps implements the following protocols:
-;;
-;;      PAbstractK:
-;;              Maps abstract-k over the init values of each binding and the
-;;              'let' body.
 ;;
 ;;      PUnparse:
 ;;              Unparses (recursively) the syntax for the expression as
@@ -103,11 +99,6 @@
             AppCont Cont]))
 
 (defrecord LetCps [bind* body]
-  proto/PAbstractK
-    (abstract-k [this app-k]
-      (let [ctor #(LetCps. %1 %2)]
-        (proto/walk-expr this #(proto/abstract-k % app-k) ctor)))
-
   proto/PLoadTrampoline
     (load-tramp [this tramp]
       (proto/walk-expr this #(proto/load-tramp % tramp) #(LetCps. %1 %2)))

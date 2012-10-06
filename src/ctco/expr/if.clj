@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  3 Oct 2012
+;; Last modified  5 Oct 2012
 ;; 
 ;; Defines the IfSrs, IfTriv, IfCps record types representing serious,
 ;; trivial, and CPSed 'if' expressions, respectively. IfSrs and IfTriv
@@ -13,10 +13,6 @@
 ;; transformation.
 ;;
 ;; IfCps implements the following protocols:
-;;
-;;      PAbstractK:
-;;              Maps abstract-k over the test, consequent, and
-;;              alternative of the expression.
 ;;
 ;;      PThunkify:
 ;;              Maps thunkify over the test, consequent, and
@@ -82,11 +78,6 @@
             Cont AppCont]))
 
 (defrecord IfCps [test conseq alt]
-  proto/PAbstractK
-    (abstract-k [this app-k]
-      (let [ctor #(IfCps. %1 %2 %3)]
-        (proto/walk-expr this #(proto/abstract-k % app-k) ctor)))
-
   proto/PLoadTrampoline
     (load-tramp [this tramp]
       (proto/walk-expr this #(proto/load-tramp % tramp) #(IfCps. %1 %2 %3)))
@@ -159,5 +150,3 @@
 
   proto/PWalkable
   if-walkable)
-
-

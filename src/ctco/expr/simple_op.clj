@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  3 Oct 2012
+;; Last modified  5 Oct 2012
 ;; 
 ;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
 ;; for representing operations using simple primitives, i.e.
@@ -14,9 +14,6 @@
 ;; primitive operations which have undergone the CPS transformation.
 ;;
 ;; IfCps implements the following protocols:
-;;
-;;      PAbstractK:
-;;              Maps abstract-k over the operands of the expression.
 ;;
 ;;      PThunkify:
 ;;              Maps thunkify over the operands of the expression.
@@ -76,11 +73,6 @@
             Cont AppCont]))
 
 (defrecord SimpleOpCps [op opnd*]
-  proto/PAbstractK
-    (abstract-k [this app-k]
-      (let [ctor #(SimpleOpCps. %1 %2)]
-        (proto/walk-expr this #(proto/abstract-k % app-k) ctor)))
-
   proto/PLoadTrampoline
     (load-tramp [this tramp]
       (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpCps. %1 %2)))

@@ -3,15 +3,12 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  3 Oct 2012
+;; Last modified  5 Oct 2012
 ;; 
 ;; Defines the Simple record type for simple expressions (e.g.
 ;; numbers, booleans, symbols, etc.) in the CTCO compiler.
 ;;
 ;; It implements the following records:
-;;
-;;      PAbstractK:
-;;              Simply returns the Simple.
 ;;
 ;;      PCpsTriv:
 ;;              Simply returns the Simple.
@@ -27,9 +24,6 @@
   (:require [ctco.protocol :as proto]))
 
 (defrecord Simple [val]
-  proto/PAbstractK
-    (abstract-k [this _] this)
-
   proto/PCpsTriv
     (cps-triv [this] this)
 

@@ -3,16 +3,12 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  4 Oct 2012
+;; Last modified  5 Oct 2012
 ;; 
 ;; Defines the FnBody record type for representing 'fn' expressions in the
 ;; Clojure TCO compiler.
 ;;
 ;; It implements the following protocols:
-;;
-;;      PAbstractK:
-;;              Recursively applies abstract-k to the body expression,
-;;              returning a new FnBody record.
 ;;
 ;;      PUnparse:
 ;;              Unparses (recursively) the syntax for the expression as
@@ -49,10 +45,6 @@
             Tramp TrampMark]))
 
 (defrecord FnBody [fml* cmap bexpr*]
-  proto/PAbstractK
-  (abstract-k [this app-k]
-    (proto/walk-expr this #(proto/abstract-k % app-k) nil))
-
   proto/PUnparse
   (unparse [this]
     `(~(reduce #(conj %1 (proto/unparse %2)) [] (:fml* this))
@@ -87,10 +79,6 @@
              (reduce (fn [e* e] (conj e* (f e))) [] (:bexpr* this)))))
 
 (defrecord Fn [name body*]
-  proto/PAbstractK
-  (abstract-k [this app-k]
-    (proto/walk-expr this #(proto/abstract-k % app-k) nil))
-
   proto/PCpsTriv
   (cps-triv [this]
     (let [body* (sort-by (comp count :fml*) (:body* this))]

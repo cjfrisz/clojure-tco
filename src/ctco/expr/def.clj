@@ -3,7 +3,7 @@
 ;; Written by Chris
 ;; 
 ;; Created 30 Aug 2012
-;; Last modified  3 Oct 2012
+;; Last modified  5 Oct 2012
 ;; 
 ;; Defines the DefSrs, DefTriv, and DefCps record types for representing
 ;; 'def' expression in the Clojure TCO compiler.
@@ -14,10 +14,6 @@
             [ctco.util :as util]))
 
 (defrecord DefCps [sym init]
-  proto/PAbstractK
-    (abstract-k [this app-k]
-      (proto/walk-expr this #(proto/abstract-k % app-k) #(DefCps. %1 %2)))
-
   proto/PLoadTrampoline
     (load-tramp [this tramp]
       (proto/walk-expr this #(proto/load-tramp % tramp) #(DefCps. %1 %2)))

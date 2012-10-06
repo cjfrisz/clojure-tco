@@ -3,7 +3,7 @@
 ;; Written by Chris
 ;; 
 ;; Created  4 Oct 2012
-;; Last modified  4 Oct 2012
+;; Last modified  5 Oct 2012
 ;; 
 ;; Defines the TrampEntry record for denoting trampoline entry points in
 ;; CTCO.
@@ -13,11 +13,6 @@
   (:require [ctco.protocol :as proto]))
 
 (defrecord Tramp [tramp expr]
-  ;; NB: can't wait to get rid of this
-  proto/PAbstractK
-  (abstract-k [this apply-k]
-    (proto/walk-expr this #(proto/abstract-k % apply-k) nil))
-
   proto/PUnparse
   (unparse [this]
     `(~tramp ~(proto/unparse expr)))

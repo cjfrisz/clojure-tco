@@ -3,15 +3,12 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  4 Oct 2012
+;; Last modified  5 Oct 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
 ;;
 ;; It implements the following protocols:
-;;      PAbstractK:
-;;              Simply recurs over the rator and rand*
-;;
 ;;      PUnparse:
 ;;              Unparses (recursively) the sytax for the expression as
 ;;              `(~rator ~@rand*)
@@ -44,11 +41,7 @@
            [ctco.expr.thunk
             Thunk]))
 
-(defrecord App [rator rand*]
-  proto/PAbstractK
-    (abstract-k [this app-k]
-      (proto/walk-expr this #(proto/abstract-k % app-k) nil))
-    
+(defrecord App [rator rand*]    
   proto/PCpsSrs
     (cps-srs [this k]
       (letfn [(cps-rand* [rand-in* rand-out*]

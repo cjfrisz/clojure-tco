@@ -3,16 +3,15 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified  5 Oct 2012
+;; Last modified  6 Oct 2012
 ;; 
 ;; Defines the ctco macro which acts as the driver for the Clojure TCO
 ;; compiler. The macro parses the initial expression, and applies the
 ;; main Clojure TCO transformations to the expression, including the CPS
-;; transformation, continuation representation abstraction, and
-;; thunkification. The code is then unparsed and the final mini-passes
-;; (overload, make-apply-k, and make-trampoline) are applied before the
-;; transformed expression is returned.
-;;----------------------------------------------------------------------
+;; transformation, thunkification, and trampolining. Finally, the code
+;; is unparsed and wrapped in a binding for the custom trampoline
+;; function and an initial call to that trampoline function.
+;; ----------------------------------------------------------------------
 
 (ns ctco.core
   (:require [ctco.parse :as parse]

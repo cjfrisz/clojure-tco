@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  5 Oct 2012
+;; Last modified  6 Oct 2012
 ;; 
 ;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
 ;; for representing operations using simple primitives, i.e.
@@ -17,14 +17,6 @@
 ;;
 ;;      PThunkify:
 ;;              Maps thunkify over the operands of the expression.
-;;
-;;      PUnparse:
-;;              Unparses (recursively) the syntax for the expression as
-;;              `(~op ~@opnd*), where opnd* is the vector of operands.
-;;
-;;      PWalkable:
-;;              Maps the given function over the operands of the
-;;              expression. 
 ;;
 ;; IfSrs implements the following protocols:
 ;;
@@ -40,14 +32,6 @@
 ;;      PThunkify:
 ;;              Maps thunkify over the operands of the expression.
 ;;
-;;      PUnparse:
-;;              Unparses (recursively) the syntax for the expression as
-;;              `(~op ~@opnd*)
-;;
-;;      PWalkable:
-;;              Maps the given function over the operands of the
-;;              expression. 
-;;
 ;; IfTriv implements the following protocols:
 ;;
 ;;      PCpsTriv:
@@ -56,13 +40,16 @@
 ;;      PThunkify:
 ;;              Maps thunkify over the operands of the expression.
 ;;
+;; IfCps, IfSrs, and IfTriv use the same implementation for the
+;; following protocols:
+;;
 ;;      PUnparse:
 ;;              Unparses (recursively) the syntax for the expression as
 ;;              `(~op ~@opnd*)
 ;;
 ;;      PWalkable:
 ;;              Maps the given function over the operands of the
-;;              expression. 
+;;              expression.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.simple-op
@@ -79,14 +66,12 @@
 
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(SimpleOpCps. %1 %2)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify #(SimpleOpCps. %1 %2))))
 
 (defrecord SimpleOpTriv [op opnd*]
   proto/PCpsTriv
     (cps-triv [this]
-      (let [ctor #(SimpleOpCps. %1 %2)]
-        (proto/walk-expr this proto/cps-triv ctor)))
+      (proto/walk-expr this proto/cps-triv #(SimpleOpCps. %1 %2)))
 
   proto/PLoadTrampoline
     (load-tramp [this tramp]
@@ -94,28 +79,24 @@
 
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(SimpleOpTriv. %1 %2)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify #(SimpleOpTriv. %1 %2))))
 
 (defrecord SimpleOpSrs [op opnd*]
   proto/PCpsSrs
     (cps-srs [this k]
-      (letfn [(cps-op [pre-opnd* post-opnd* k]
+      (letfn [(cps [pre-opnd* post-opnd* k]
                 (if (nil? (seq pre-opnd*))
                     (let [OP (SimpleOpCps. (:op this) post-opnd*)]
                       (AppCont. k OP))
                     (let [fst (first pre-opnd*)
                           rst (rest pre-opnd*)]
                       (if (extends? proto/PCpsTriv (type fst))
-                          (let [FST (proto/cps-triv fst)
-                                POST-OPND* (conj post-opnd* FST)]
-                            (recur rst POST-OPND* k))
-                          (let [s (util/new-var 's)
-                                POST-OPND* (conj post-opnd* s)
-                                RST (cps-op rst POST-OPND* k)
-                                K (Cont. s RST)]
-                            (proto/cps-srs fst K))))))]
-        (cps-op (:opnd* this) [] k)))
+                          (recur rst (conj post-opnd* (proto/cps-triv fst)) k)
+                          (let [s (util/new-var "s")]
+                            (proto/cps-srs
+                             fst
+                             (Cont. s (cps rst (conj post-opnd* s) k))))))))]
+        (cps (:opnd* this) [] k)))
 
   proto/PLoadTrampoline
     (load-tramp [this tramp]
@@ -123,14 +104,11 @@
 
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(SimpleOpSrs. %1 %2)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify #(SimpleOpSrs. %1 %2))))
 
 (def simple-op-unparse
   {:unparse (fn [this]
-              (let [op (:op this)
-                    opnd* (map proto/unparse (:opnd* this))]
-                `(~op ~@opnd*)))})
+              `(~(:op this) ~@(map proto/unparse (:opnd* this))))})
 
 (def simple-op-walk
   {:walk-expr (fn [this f ctor]

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified  5 Oct 2012
+;; Last modified  6 Oct 2012
 ;; 
 ;; Includes the protocols used in the CTCO compiler. These include the
 ;; following:
@@ -22,14 +22,22 @@
 ;;      etc.) and non-function application expressions that contain
 ;;      no serious subexpressions.
 ;;
-;; PUnparse:
-;;      Implemented by expressions that need to be unparseted as code
-;;      from the intermediate representation used in CTCO.
+;; PLoadTrampoline:
+;;      Compiler pass for loading appropriate expressions onto the
+;;      trampoline. Currently this only includes expressions marked by
+;;      the TrampMark reccord, which indicate the "compatibility" bodies
+;;      for 'fn' expressions. That is, function bodies which are
+;;      produced to allow non-CTCO code to call into functions
+;;      transformed by CTCO.
 ;;
 ;; PThunkify:
 ;;      Implemented by expressions for "thunkification," or the
 ;;      process of ensuring a recursive function periodically returns
 ;;      a function of no arguments, the basis for trampolining.
+;;
+;; PUnparse:
+;;      Implemented by expressions that need to be unparseed as code
+;;      from the intermediate representation used in CTCO.
 ;;
 ;; PWalkable:
 ;;      Implemented by expressions for which a new expression needs to

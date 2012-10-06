@@ -3,10 +3,62 @@
 ;; Written by Chris
 ;; 
 ;; Created 30 Aug 2012
-;; Last modified  5 Oct 2012
+;; Last modified  6 Oct 2012
 ;; 
 ;; Defines the DefSrs, DefTriv, and DefCps record types for representing
 ;; 'def' expression in the Clojure TCO compiler.
+;;
+;; DefCps implements the following protocols:
+;;
+;;      PLoadTrampoline:
+;;              Applies load-tramp to the init expression for the given
+;;              trampoline function name, generating a new DefCps with
+;;              the same symbol name. Uses the walk-expr function
+;;              provided by PWalkable.
+;;
+;;      PThunkify:
+;;              Applies thunkify to the init expression, generating a
+;;              new DefCps with the same symbol name. Uses the walk-expr
+;;              function provided by PWalkable.
+;;
+;; DefSrs implements the following protocols:
+;;
+;;      PCpsSrs:
+;;              Applies cps-srs to the init expression, generating a new
+;;              DefCps with the same symbol name. Uses the walk-expr
+;;              function provided by PWalkable.
+;;
+;;      PLoadTrampoline:
+;;              Applies load-tramp to the init expression for the given
+;;              trampoline function name, generating a new DefSrs with
+;;              the same symbol name. Uses the walk-expr function
+;;              provided by PWalkable.
+;;
+;; DefTriv implements the following protocols:
+;;
+;;      PCpsTriv:
+;;              Applies cps-srs to the init expression, generating a new
+;;              DefCps with the same symbol name. Uses the walk-expr
+;;              function provided by PWalkable.
+;;
+;;      PLoadTrampoline:
+;;              Applies load-tramp to the init expression for the given
+;;              trampoline function name, generating a new DefTriv with
+;;              the same symbol name. Uses the walk-expr function
+;;              provided by PWalkable.
+;;
+;; DefCps, DefSrs, and DefTriv have the same implementations for the
+;; following protocols:
+;;
+;;      PUnparse:
+;;              Returns a sequence representing the expression as an
+;;              s-expression, recursively unparsing the symbol and init
+;;              value. I.e., `(def ~(unparse sym) ~(unparse init))
+;;
+;;      PWalkable:
+;;              Applies the given function to the init expression,
+;;              returning a new DefCps, DefSrs, or DefTriv with the same
+;;              symbol name depending on the given constructor.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.def

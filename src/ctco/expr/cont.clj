@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified  5 Oct 2012
+;; Last modified  6 Oct 2012
 ;; 
 ;; Defines the Cont, AppCont, and AppContAbs record types for
 ;; continuations, continuation application, and continuation
@@ -11,30 +11,36 @@
 ;;
 ;; Cont implements the following protocols:
 ;;
-;;      PAbstractK:
-;;              Applies abstract-k to the body.
-;;
 ;;      PUnparse:
 ;;              Unparses (recursively) the syntax for the expression as
 ;;              `(fn [~arg] ~body). Thus it uses higher-order functions
 ;;              to represent continuations.
 ;;
-;;      PThunkify:
-;;              Simply returns the expression.
+;;      PWalkable:
+;;              Applies the given function to the body of Cont,
+;;              returning a new Cont record.
 ;;
 ;; AppCont implements the following protocols:
-;;
-;;      PAbstractK:
-;;              Recursively applies abstract-k to the continuation and
-;;              val, and returns an AppContAbs record with the given
-;;              app-k as the function for applying continuations.
 ;;
 ;;      PUnparse:
 ;;              Unparses (recursively) the syntax for the expression as
 ;;              `(~cont ~val).
 ;;
+;;      PWalkable:
+;;              Applies the given function to the continuation and value
+;;              of the continuation application, returning a new AppCont
+;;              record with the resulting continuation and value.
+;;
+;; Cont and AppCont have the same implementations for the following
+;; protocols:
+;;
+;;      PLoadTrampoline:
+;;              Applies the load-tramp function to each subexpression.
+;;              Uses the walk-expr function provided by PWalkable.
+;;
 ;;      PThunkify:
-;;              Simply returns the expression.
+;;              Applies the thunkify function to each subexpression.
+;;              Uses the walk-expr function provided by PWalkable.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.cont
@@ -44,14 +50,9 @@
 (defrecord Cont [arg body]  
   proto/PUnparse
     (unparse [this]
-      (let [arg (proto/unparse (:arg this))
-            body (proto/unparse (:body this))]
-        `(with-meta (fn [~arg] ~body) {:kont true})))
-
-  proto/PThunkify
-    (thunkify [this]
-      (let [BODY (proto/thunkify (:body this))]
-        (Cont. (:arg this) BODY)))
+      `(with-meta
+         (fn [~(proto/unparse (:arg this))] ~(proto/unparse (:body this)))
+         {:kont true}))
 
   proto/PWalkable
     (walk-expr [this f _]
@@ -64,20 +65,22 @@
             val (proto/unparse (:val this))]
         `(~cont ~val)))
 
-  proto/PThunkify
-    (thunkify [this]
-      (let [CONT (proto/thunkify (:cont this))
-            VAL (proto/thunkify (:val this))]
-        (AppCont. CONT VAL)))
-
   proto/PWalkable
     (walk-expr [this f _]
       (AppCont. (f (:cont this)) (f (:val this)))))
 
 (def cont-load-tramp
   {:load-tramp (fn [this tramp]
-                 (proto/walk-expr this #(proto/load-tramp % tramp) nil))})
+                 (proto/walk-expr this #(proto/load-tramp % tramp)
+                                  nil))})
+
+(def cont-thunkify
+  {:thunkify (fn [this]
+               (proto/walk-expr this proto/thunkify nil))})
 
 (util/extend-group (Cont AppCont)
   proto/PLoadTrampoline
-  cont-load-tramp)
+  cont-load-tramp
+
+  proto/PThunkify
+  cont-thunkify)

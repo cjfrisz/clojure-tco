@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  5 Oct 2012
+;; Last modified  6 Oct 2012
 ;; 
 ;; Defines the IfSrs, IfTriv, IfCps record types representing serious,
 ;; trivial, and CPSed 'if' expressions, respectively. IfSrs and IfTriv
@@ -17,14 +17,6 @@
 ;;      PThunkify:
 ;;              Maps thunkify over the test, consequent, and
 ;;              alternative of the expression.
-;;
-;;      PUnparse:
-;;              Unparses (recursively) the syntax for the expression as
-;;              `(if ~test ~conseq ~alt)
-;;
-;;      PWalkable:
-;;              Maps the given function over the test, consequent, and
-;;              alternative of the expression. 
 ;;
 ;; IfSrs implements the following protocols:
 ;;
@@ -43,14 +35,6 @@
 ;;              Maps thunkify over the test, consequent, and
 ;;              alternative of the expression.
 ;;
-;;      PUnparse:
-;;              Unparses (recursively) the syntax for the expression as
-;;              `(if ~test ~conseq ~alt)
-;;
-;;      PWalkable:
-;;              Maps the given function over the test, consequent, and
-;;              alternative of the expression. 
-;;
 ;; IfTriv implements the following protocols:
 ;;
 ;;      PCpsTriv:
@@ -60,6 +44,10 @@
 ;;      PThunkify:
 ;;              Maps thunkify over the test, consequent, and
 ;;              alternative of the expression.
+;;
+;;
+;; IfCps, IfSrs, and IfTriv use the same implementations for the
+;; following protocols:
 ;;
 ;;      PUnparse:
 ;;              Unparses (recursively) the syntax for the expression as
@@ -84,20 +72,19 @@
   
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(IfCps. %1 %2 %3)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify #(IfCps. %1 %2 %3))))
 
 (defrecord IfSrs [test conseq alt]
   proto/PCpsSrs
     (cps-srs [this k]
-      (letfn [(cps-if [expr]
+      (letfn [(cps [expr]
                 (condp extends? (type expr)
                   proto/PCpsTriv (let [EXPR (proto/cps-triv expr)]
                                   (AppCont. k EXPR))
                   proto/PCpsSrs (proto/cps-srs expr k)))]
         (let [test (:test this)
-              CONSEQ (cps-if (:conseq this))
-              ALT (cps-if (:alt this))]
+              CONSEQ (cps (:conseq this))
+              ALT (cps (:alt this))]
           (if (extends? proto/PCpsTriv (type test))
               (let [TEST (proto/cps-triv test)]
                 (IfCps. TEST CONSEQ ALT))
@@ -112,14 +99,12 @@
 
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(IfSrs. %1 %2 %3)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify #(IfSrs. %1 %2 %3))))
 
 (defrecord IfTriv [test conseq alt]
   proto/PCpsTriv
     (cps-triv [this]
-      (let [ctor #(IfCps. %1 %2 %3)]
-        (proto/walk-expr this proto/cps-triv ctor)))
+      (proto/walk-expr this proto/cps-triv #(IfCps. %1 %2 %3)))
 
   proto/PLoadTrampoline
     (load-tramp [this tramp]
@@ -127,22 +112,17 @@
 
   proto/PThunkify
     (thunkify [this]
-      (let [ctor #(IfTriv. %1 %2 %3)]
-        (proto/walk-expr this proto/thunkify ctor))))
+      (proto/walk-expr this proto/thunkify #(IfTriv. %1 %2 %3))))
 
 (def if-unparse
   {:unparse (fn [this]
-              (let [test (proto/unparse (:test this))
-                    conseq (proto/unparse (:conseq this))
-                    alt (proto/unparse (:alt this))]
-                `(if ~test ~conseq ~alt)))})
+              `(if ~(proto/unparse (:test this))
+                   ~(proto/unparse (:conseq this))
+                   ~(proto/unparse (:alt this))))})
 
 (def if-walkable
   {:walk-expr (fn [this f ctor]
-                (let [TEST (f (:test this))
-                      CONSEQ (f (:conseq this))
-                      ALT (f (:alt this))]
-                  (ctor TEST CONSEQ ALT)))})
+                (ctor (f (:test this)) (f (:conseq this)) (f (:alt this))))})
 
 (util/extend-group (IfCps IfSrs IfTriv)
   proto/PUnparse

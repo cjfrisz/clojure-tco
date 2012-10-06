@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 29 Sep 2012
+;; Last modified  6 Oct 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -120,7 +120,8 @@
     :else false))
 
 (defn- parse-defn
-  "Helper function for parse that handles 'defn' expressions."
+  "Helper function for parse that handles 'defn' expressions. Currently
+  translates (defn name body*) into (def name (fn body*))"
   [name func*]
   (DefTriv. (parse name) (parse-fn func*)))
 
@@ -128,17 +129,16 @@
   "Helper function for parse that handles 'cond' expressions. Currently
   parses it in terms of 'if' expressions."
   [clause*]
-  (letfn [(parse-rclause* [rclause* rst]
-            (if (nil? (seq rclause*))
-                rst
-                (let [conseq (parse (first rclause*))
-                      test (parse (fnext rclause*))
-                      RST (if (some util/serious? [test conseq rst])
-                              (IfSrs. test conseq rst)
-                              (IfTriv. test conseq rst))
-                      RCLAUSE* (nnext rclause*)]
-                  (recur RCLAUSE* RST))))]
-    (parse-rclause* (reverse clause*) (Simple. nil))))
+  (loop [rclause* (reverse clause*)
+         rst (Simple. nil)]
+    (if (nil? (seq rclause*))
+        rst
+        (let [conseq (parse (first rclause*))
+              test (parse (fnext rclause*))]
+          (recur (nnext rclause*)
+                 (if (some util/serious? [test conseq rst])
+                     (IfSrs. test conseq rst)
+                     (IfTriv. test conseq rst)))))))
 
 (defn- parse-composite
   "Takes a sequence representing a Clojure expression (generally passed from a

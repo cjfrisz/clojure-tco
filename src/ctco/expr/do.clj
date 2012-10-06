@@ -3,16 +3,29 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified  5 Oct 2012
+;; Last modified  6 Oct 2012
 ;; 
-;; Defines the Do and DoSync record types and operations for 'do' and
-;; 'dosync' expressions in the Clojure TCO compiler.
+;; Defines the Do record type and operations for 'do' expressions in the
+;; Clojure TCO compiler.
 ;;
 ;; Do implements the following protocols:
+;;
+;;      PLoadTrampoline:
+;;              Applies load-tramp to each expression using the given
+;;              trampoline function name. Uses the walk-expr function
+;;              provided by PWalkable.
+;;
+;;      PThunkify:
+;;              Applies thunkify to each expression. Uses the walk-expr
+;;              function provided by PWalkable.
 ;;
 ;;      PUnparse:
 ;;              Unparses (recursively) the syntax for the expression as
 ;;              `(do ~@expr*).
+;;
+;;      PWalkable:
+;;              Applies the given function to each expression, creating
+;;              a new Do record with the results.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.do

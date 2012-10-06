@@ -3,10 +3,31 @@
 ;; Written by Chris
 ;; 
 ;; Created  4 Oct 2012
-;; Last modified  5 Oct 2012
+;; Last modified  6 Oct 2012
 ;; 
-;; Defines the TrampEntry record for denoting trampoline entry points in
-;; CTCO.
+;; Defines the TrampMark record type for marking trampoline entry points
+;; and the Tramp record type for marking those entry points with the
+;; name of the trampoline function to used in the generated code.
+;;
+;; Tramp implements the following protocols:
+;;
+;;      PUnparse:
+;;              Unparses (recursively) the expression as `(~tramp ~expr)
+;;
+;; TrampMark implements the following protocols:
+;;
+;;      PLoadTrampoline:
+;;              Returns a Tramp record with the given trampoline
+;;              function name and the same expression.
+;;
+;;      PThunkify:
+;;              Applies thunkify to the enclosed expression and returns
+;;              the result in a new TrampMark record. Uses the walk-expr
+;;              function provided by PWalkable.
+;;
+;;      PWalkable:
+;;              Applies the given function to the enclosed expression,
+;;              returning the result in a new TrampMark record.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.tramp

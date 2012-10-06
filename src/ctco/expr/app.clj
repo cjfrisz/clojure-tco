@@ -3,15 +3,12 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  5 Oct 2012
+;; Last modified  6 Oct 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
 ;;
 ;; It implements the following protocols:
-;;      PUnparse:
-;;              Unparses (recursively) the sytax for the expression as
-;;              `(~rator ~@rand*)
 ;;
 ;;      PCpsSrs:
 ;;              Applies the Danvy-style CPS transformation to the
@@ -22,9 +19,17 @@
 ;;              expression is placed inside a continuation with the
 ;;              subexpression replaced with a variable.
 ;;
+;;      PLoadTrampoline:
+;;              Recursively applies load-tramp to the operator and
+;;              operands of the expression.
+;;
 ;;      PThunkify:
 ;;              Recursively thunkifies the rator and each rand* and
 ;;              puts the result inside of a thunk.
+;;
+;;      PUnparse:
+;;              Unparses (recursively) the sytax for the expression as
+;;              `(~rator ~@rand*)
 ;;
 ;;      PWalkable:
 ;;              Applies the given function to the rator and each rand*
@@ -50,21 +55,15 @@
                     (let [fst (first rand-in*)
                           nxt (next rand-in*)]
                       (if (util/trivial? fst)
-                          (let [FST (proto/cps-triv fst)
-                                RAND-OUT* (conj rand-out* FST)]
-                            (recur nxt RAND-OUT*))
-                          (let [s (util/new-var 's)
-                                RAND-OUT* (conj rand-out* s)
-                                NXT (cps-rand* nxt RAND-OUT*)
-                                K (Cont. s NXT)]
-                            (proto/cps-srs fst K))))))]
+                          (recur nxt (conj rand-out* (proto/cps-triv fst)))
+                          (let [s (util/new-var 's)]
+                            (proto/cps-srs
+                             fst
+                             (Cont. s (cps-rand* nxt (conj rand-out* s)))))))))]
         (let [RAND* (cps-rand* (:rand* this) [])]
           (if (util/trivial? (:rator this))
-              (let [RATOR (proto/cps-triv (:rator this))]
-                (App. RATOR RAND*))
-              (let [s (util/new-var 's)
-                    cont (Cont. s RAND*)]
-                (proto/PCpsSrs (:rator this) cont))))))
+              (App. (proto/cps-triv (:rator this)) RAND*)
+              (proto/PCpsSrs (:rator this) (Cont. (util/new-var 's) RAND*))))))
 
   proto/PLoadTrampoline
     (load-tramp [this tramp]
@@ -76,9 +75,7 @@
 
   proto/PUnparse
     (unparse [this]
-      (let [rator (proto/unparse (:rator this))
-            rand* (map proto/unparse (:rand* this))]
-        `(~rator ~@rand*)))
+      `(~(proto/unparse (:rator this)) ~@(map proto/unparse (:rand* this))))
 
   proto/PWalkable
     (walk-expr [this f _]

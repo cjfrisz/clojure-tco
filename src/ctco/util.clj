@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified  3 Oct 2012
+;; Last modified  6 Oct 2012
 ;; 
 ;; Defines miscellaneous utility functions for use in CTCO. These
 ;; include:
@@ -11,6 +11,7 @@
 ;;      simple-op?
 ;;      serious?
 ;;      trivial?
+;;      extend-group
 ;;----------------------------------------------------------------------
 
 (ns ctco.util
@@ -27,7 +28,7 @@
      (let [new-var (gensym base)]
        (Simple. new-var)))
   ([]
-     (let [base 'x]
+     (let [base "x"]
        (new-var base))))
 
 (defn simple-op?
@@ -41,13 +42,15 @@
 
 (defn serious?
   "Given a Clojure TCO expression (as a record type), returns whether the
-  expression is serious with respect to the Danvy FOOP CPS transformation."
+  expression is serious with respect to the Danvy first-order one-pass CPS
+  transformation."
   [expr]
   (extends? proto/PCpsSrs (type expr)))
 
 (defn trivial?
   "Given a Clojure TCO expression (as a record type), returns whether the
-  expression is trivial with respect to the Danvy FOOP CPS transformation."
+  expression is trivial with respect to the Danvy first-order one-pass CPS
+  transformation."
   [expr]
   (extends? proto/PCpsTriv (type expr)))
 

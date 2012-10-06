@@ -114,11 +114,11 @@ simply wrapping it in a call to `ctco`:
 
 ```clojure
 (ctco
-  (defn fact
-    [n]
-    (if (zero? n)
-        1
-        (* n (fact (dec n))))))
+ (defn fact
+   [n a]
+   (if (zero? n)
+       a
+       (fact (dec n) (* n a)))))
 ```
 
 This will define `fact` in terms of the code transformations used by

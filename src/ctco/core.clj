@@ -32,8 +32,7 @@
   space, but recursive calls will necessitate more heap memory for the
   closures created to represent continuations."
   [expr]
-  (let [tramp (gensym "tramp")
-        apply-k (gensym "apply-k")]
+  (let [tramp (gensym "tramp")]
     (letfn [(apply-cps [expr]
               (condp extends? (type expr)
                 proto/PCpsTriv (proto/cps-triv expr)
@@ -44,5 +43,9 @@
                          proto/thunkify
                          (proto/load-tramp tramp)
                          proto/unparse)]
-        (-> `(~tramp ~new-expr)
-            (mp/make-trampoline tramp))))))
+        (let [thunk (gensym "thunk")]
+          `(letfn [(~tramp [~thunk]
+                     (if (:thunk (meta ~thunk))
+                         (recur (~thunk))
+                         ~thunk))]
+             (~tramp ~new-expr)))))))

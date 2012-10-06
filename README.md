@@ -60,13 +60,16 @@ is as follows:
             |       Var  
             |       String
             |       Keyword
-            |       (fn [Var*] Expr)  
-            |       (defn Name [Var*] Expr)  
-            |       (defn Name ([Var*] Expr)+)  
+            |       (def Var Expr)
+            |       (fn [Var*] Expr*)  
+            |       (fn ([Var*] Expr*)*)
+            |       (defn Name [Var*] Expr*)  
+            |       (defn Name ([Var*] Expr*)*)  
             |       (if Expr Expr Expr)  
             |       (cond Expr*)
-            |       (let [Var Expr ...] Expr)
-            |       (Prim Expr*)  
+            |       (let [Var Expr ...] Expr*)
+            |       (Prim Expr*)
+            |       (Expr Expr*)
 
 Where:
 
@@ -78,7 +81,7 @@ Where:
 * Keyword is a Clojure keyword
 * Prim is a primitive operator/predicate in the set   
    (+ - * / mod < <= = >= > and or not inc dec zero? true? false? nil?
-   instance? fn? type ref ref-set deref)
+   instance? fn? type ref ref-set deref cons conj with-meta meta)
 
 ## Usage
 
@@ -95,15 +98,15 @@ change), but avoids using a single-segment namespace as before.
 Then simply wrap any piece of code that you want transformed with
 `(ctco ...)`. 
 
-For example, consider the following (non-tail recursive) definition of
+For example, consider the following (tail recursive) definition of
 factorial:
 
 ```clojure
 (defn fact
-  [n]
+  [n a]
   (if (zero? n)
-      1
-      (* n (fact (dec n)))))
+      a
+      (fact (dec n) (* n a))))
 ```
 
 This can be compiled to use constant stack space recursive calls by
@@ -125,26 +128,24 @@ transformations, and the rest is done for you. For reference, the
 following code:
 
 ```clojure
-(let [tramp (fn [thunk]
-              (if (get (meta thunk) :thunk)
-                (recur (thunk))
-                thunk))]
-  (let [apply-k (fn [k a]
-                  (if (fn? k)
-                    (k a)
-                    a)))]
-  (defn fact
-    ([n] (tramp (fact n nil)))
-    ([n k]
-       (if (zero? n)
-         (fn [] (with-meta (apply-k k 1) {:thunk true}))
-         (with-meta
-           (fn []
-             (fact (dec n)
-                   (fn [s]
-                     (fn []
-                       (apply-k k (* n s))))))
-           {:thunk true})))))
+(letfn [(tramp4580 [thunk4584]
+          (if (:thunk (meta thunk4584))
+              (recur (thunk4584))
+              thunk4584))]
+  (tramp4580
+   (def fact
+     (fn fn4581
+       ([n a]
+          (tramp4580
+           (with-meta
+             #(fn4581 n a (with-meta (fn [x4582] x4582) {:kont true}))
+             {:thunk true})))
+       ([n a k4583]
+          (if (zero? n)
+              (k4583 a)
+              (with-meta
+                (fn [] (fact (dec n) (* n a) k4583))
+                {:thunk true})))))))
 ```
 
 

@@ -33,17 +33,17 @@
 
 (defrecord Do [expr*]
   proto/PLoadTrampoline
-    (load-tramp [this tramp]
-      (proto/walk-expr this #(proto/load-tramp % tramp) nil))
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) nil))
 
   proto/PThunkify
-    (thunkify [this]
-      (proto/walk-expr this proto/thunkify nil))
+  (thunkify [this]
+    (proto/walk-expr this proto/thunkify nil))
   
   proto/PUnparse
-    (unparse [this]
-      `(do ~@(map proto/unparse (:expr* this))))
+  (unparse [this]
+    `(do ~@(map proto/unparse (:expr* this))))
 
   proto/PWalkable
-    (walk-expr [this f _]
-      (Do. (reduce #(conj %1 (f %2)) [] (:expr* this)))))
+  (walk-expr [this f _]
+    (Do. (reduce #(conj %1 (f %2)) [] (:expr* this)))))

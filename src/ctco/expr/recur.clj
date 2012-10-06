@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 30 Aug 2012
+;; Last modified  6 Oct 2012
 ;; 
 ;; Defines the Recur record type and operations for representing
 ;; 'recur' expressions in the Clojure TCO compiler.
@@ -22,6 +22,6 @@
 
 (defrecord Recur [arg*]
   proto/PUnparse
-    (unparse [this]
-      (let [arg* (map proto/unparse (:arg* this))]
-        `(recur ~@arg*))))
+  (unparse [this]
+    (let [arg* (map proto/unparse (:arg* this))]
+      `(recur ~@arg*))))

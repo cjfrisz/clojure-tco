@@ -28,13 +28,13 @@
 
 (defrecord Simple [val]
   proto/PCpsTriv
-    (cps-triv [this] this)
+  (cps-triv [this] this)
 
   proto/PLoadTrampoline
-    (load-tramp [this tramp] this)
+  (load-tramp [this tramp] this)
 
   proto/PThunkify
-    (thunkify [this] this)
+  (thunkify [this] this)
 
   proto/PUnparse
-    (unparse [this] (:val this)))
+  (unparse [this] (:val this)))

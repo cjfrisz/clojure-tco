@@ -115,53 +115,53 @@
 
 (defrecord LetCps [bind* body]
   proto/PLoadTrampoline
-    (load-tramp [this tramp]
-      (proto/walk-expr this #(proto/load-tramp % tramp) #(LetCps. %1 %2)))
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(LetCps. %1 %2)))
 
   proto/PThunkify
-    (thunkify [this]
-      (proto/walk-expr this proto/thunkify #(LetCps. %1 %2))))
+  (thunkify [this]
+    (proto/walk-expr this proto/thunkify #(LetCps. %1 %2))))
 
 (defrecord LetSrs [bind* body]
   proto/PCpsSrs
-    (cps-srs [this k]
-      (letfn [(build-let [bind* body]
-                (if (not (nil? (seq bind*)))
-                    (LetCps. bind* body)
-                    body))
-              (cps-let [bind-in* bind-out*]
-                (if (nil? (seq bind-in*))
-                    (let [body (:body this)
-                          BODY (if (util/trivial? body)
-                                   (let [arg (proto/cps-triv body)]
-                                     (AppCont. k arg))
-                                   (proto/cps-srs body k))]
-                      (build-let bind-out* BODY))
-                    (let [var (first bind-in*)
-                          init (fnext bind-in*)
-                          BIND-IN* (nnext bind-in*)]
-                      (if (util/trivial? init)
-                          (let [INIT (proto/cps-triv init)
-                                BIND-OUT* (conj bind-out* var INIT)]
-                            (recur BIND-IN* BIND-OUT*))
-                          (let [k-body (cps-let BIND-IN* [])
-                                K (Cont. var k-body)
-                                let-body (proto/cps-srs init K)]
-                            (build-let bind-out* let-body))))))]
-        (cps-let (:bind* this) [])))
+  (cps-srs [this k]
+    (letfn [(build-let [bind* body]
+              (if (not (nil? (seq bind*)))
+                  (LetCps. bind* body)
+                  body))
+            (cps-let [bind-in* bind-out*]
+              (if (nil? (seq bind-in*))
+                  (let [body (:body this)
+                        BODY (if (util/trivial? body)
+                                 (let [arg (proto/cps-triv body)]
+                                   (AppCont. k arg))
+                                 (proto/cps-srs body k))]
+                    (build-let bind-out* BODY))
+                  (let [var (first bind-in*)
+                        init (fnext bind-in*)
+                        BIND-IN* (nnext bind-in*)]
+                    (if (util/trivial? init)
+                        (let [INIT (proto/cps-triv init)
+                              BIND-OUT* (conj bind-out* var INIT)]
+                          (recur BIND-IN* BIND-OUT*))
+                        (let [k-body (cps-let BIND-IN* [])
+                              K (Cont. var k-body)
+                              let-body (proto/cps-srs init K)]
+                          (build-let bind-out* let-body))))))]
+      (cps-let (:bind* this) [])))
 
   proto/PLoadTrampoline
-    (load-tramp [this tramp]
-      (proto/walk-expr this #(proto/load-tramp % tramp) #(LetSrs. %1 %2))))
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(LetSrs. %1 %2))))
 
 (defrecord LetTriv [bind* body]
   proto/PCpsTriv
-    (cps-triv [this]
-      (proto/walk-expr this proto/cps-triv #(LetCps. %1 %2)))
+  (cps-triv [this]
+    (proto/walk-expr this proto/cps-triv #(LetCps. %1 %2)))
 
   proto/PLoadTrampoline
-    (load-tramp [this tramp]
-      (proto/walk-expr this #(proto/load-tramp % tramp) #(LetTriv. %1 %2))))
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(LetTriv. %1 %2))))
 
 (def let-unparse
   {:unparse (fn [this]
@@ -185,8 +185,8 @@
 
 (util/extend-group (LetCps LetSrs LetTriv)
   proto/PUnparse
-    let-unparse)
+  let-unparse)
 
 (util/extend-group (LetCps LetTriv)
   proto/PWalkable
-    let-walkable)
+  let-walkable)

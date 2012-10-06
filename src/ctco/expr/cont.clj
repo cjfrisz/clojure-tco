@@ -49,25 +49,25 @@
 
 (defrecord Cont [arg body]  
   proto/PUnparse
-    (unparse [this]
-      `(with-meta
-         (fn [~(proto/unparse (:arg this))] ~(proto/unparse (:body this)))
-         {:kont true}))
+  (unparse [this]
+    `(with-meta
+       (fn [~(proto/unparse (:arg this))] ~(proto/unparse (:body this)))
+       {:kont true}))
 
   proto/PWalkable
-    (walk-expr [this f _]
-      (Cont. (:arg this) (f (:body this)))))
+  (walk-expr [this f _]
+    (Cont. (:arg this) (f (:body this)))))
 
 (defrecord AppCont [cont val]
   proto/PUnparse
-    (unparse [this]
-      (let [cont (proto/unparse (:cont this))
-            val (proto/unparse (:val this))]
-        `(~cont ~val)))
+  (unparse [this]
+    (let [cont (proto/unparse (:cont this))
+          val (proto/unparse (:val this))]
+      `(~cont ~val)))
 
   proto/PWalkable
-    (walk-expr [this f _]
-      (AppCont. (f (:cont this)) (f (:val this)))))
+  (walk-expr [this f _]
+    (AppCont. (f (:cont this)) (f (:val this)))))
 
 (def cont-load-tramp
   {:load-tramp (fn [this tramp]

@@ -67,52 +67,52 @@
 
 (defrecord IfCps [test conseq alt]
   proto/PLoadTrampoline
-    (load-tramp [this tramp]
-      (proto/walk-expr this #(proto/load-tramp % tramp) #(IfCps. %1 %2 %3)))
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(IfCps. %1 %2 %3)))
   
   proto/PThunkify
-    (thunkify [this]
-      (proto/walk-expr this proto/thunkify #(IfCps. %1 %2 %3))))
+  (thunkify [this]
+    (proto/walk-expr this proto/thunkify #(IfCps. %1 %2 %3))))
 
 (defrecord IfSrs [test conseq alt]
   proto/PCpsSrs
-    (cps-srs [this k]
-      (letfn [(cps [expr]
-                (condp extends? (type expr)
-                  proto/PCpsTriv (let [EXPR (proto/cps-triv expr)]
-                                  (AppCont. k EXPR))
-                  proto/PCpsSrs (proto/cps-srs expr k)))]
-        (let [test (:test this)
-              CONSEQ (cps (:conseq this))
-              ALT (cps (:alt this))]
-          (if (extends? proto/PCpsTriv (type test))
-              (let [TEST (proto/cps-triv test)]
-                (IfCps. TEST CONSEQ ALT))
-              (let [s (util/new-var 's)
-                    K-body (IfCps. s CONSEQ ALT)
-                    K (Cont. s K-body)]
-                (proto/cps-srs test K))))))
+  (cps-srs [this k]
+    (letfn [(cps [expr]
+              (condp extends? (type expr)
+                proto/PCpsTriv (let [EXPR (proto/cps-triv expr)]
+                                 (AppCont. k EXPR))
+                proto/PCpsSrs (proto/cps-srs expr k)))]
+      (let [test (:test this)
+            CONSEQ (cps (:conseq this))
+            ALT (cps (:alt this))]
+        (if (extends? proto/PCpsTriv (type test))
+            (let [TEST (proto/cps-triv test)]
+              (IfCps. TEST CONSEQ ALT))
+            (let [s (util/new-var 's)
+                  K-body (IfCps. s CONSEQ ALT)
+                  K (Cont. s K-body)]
+              (proto/cps-srs test K))))))
 
   proto/PLoadTrampoline
-    (load-tramp [this tramp]
-      (proto/walk-expr this #(proto/load-tramp % tramp) #(IfSrs. %1 %2 %3)))
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(IfSrs. %1 %2 %3)))
 
   proto/PThunkify
-    (thunkify [this]
-      (proto/walk-expr this proto/thunkify #(IfSrs. %1 %2 %3))))
+  (thunkify [this]
+    (proto/walk-expr this proto/thunkify #(IfSrs. %1 %2 %3))))
 
 (defrecord IfTriv [test conseq alt]
   proto/PCpsTriv
-    (cps-triv [this]
-      (proto/walk-expr this proto/cps-triv #(IfCps. %1 %2 %3)))
+  (cps-triv [this]
+    (proto/walk-expr this proto/cps-triv #(IfCps. %1 %2 %3)))
 
   proto/PLoadTrampoline
-    (load-tramp [this tramp]
-      (proto/walk-expr this #(proto/load-tramp % tramp) #(IfTriv. %1 %2 %3)))
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(IfTriv. %1 %2 %3)))
 
   proto/PThunkify
-    (thunkify [this]
-      (proto/walk-expr this proto/thunkify #(IfTriv. %1 %2 %3))))
+  (thunkify [this]
+    (proto/walk-expr this proto/thunkify #(IfTriv. %1 %2 %3))))
 
 (def if-unparse
   {:unparse (fn [this]
@@ -126,7 +126,7 @@
 
 (util/extend-group (IfCps IfSrs IfTriv)
   proto/PUnparse
-    if-unparse
+  if-unparse
 
   proto/PWalkable
   if-walkable)

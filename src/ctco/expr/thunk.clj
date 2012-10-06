@@ -36,14 +36,14 @@
 
 (defrecord Thunk [body]
   proto/PLoadTrampoline
-    (load-tramp [this tramp]
-      (proto/walk-expr this #(proto/load-tramp % tramp) #(Thunk. %)))
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(Thunk. %)))
 
   proto/PUnparse
-    (unparse [this]
-      (let [BODY (proto/unparse (:body this))]
-        `(with-meta (fn [] ~BODY) {:thunk true})))
+  (unparse [this]
+    (let [BODY (proto/unparse (:body this))]
+      `(with-meta (fn [] ~BODY) {:thunk true})))
 
   proto/PWalkable
-    (walk-expr [this f _]
-      (Thunk. (f (:body this)))))
+  (walk-expr [this f _]
+    (Thunk. (f (:body this)))))

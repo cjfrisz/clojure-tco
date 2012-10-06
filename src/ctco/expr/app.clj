@@ -48,36 +48,36 @@
 
 (defrecord App [rator rand*]    
   proto/PCpsSrs
-    (cps-srs [this k]
-      (letfn [(cps-rand* [rand-in* rand-out*]
-                (if (nil? (seq rand-in*))
-                    (conj rand-out* k)
-                    (let [fst (first rand-in*)
-                          nxt (next rand-in*)]
-                      (if (util/trivial? fst)
-                          (recur nxt (conj rand-out* (proto/cps-triv fst)))
-                          (let [s (util/new-var 's)]
-                            (proto/cps-srs
-                             fst
-                             (Cont. s (cps-rand* nxt (conj rand-out* s)))))))))]
-        (let [RAND* (cps-rand* (:rand* this) [])]
-          (if (util/trivial? (:rator this))
-              (App. (proto/cps-triv (:rator this)) RAND*)
-              (proto/PCpsSrs (:rator this) (Cont. (util/new-var 's) RAND*))))))
+  (cps-srs [this k]
+    (letfn [(cps-rand* [rand-in* rand-out*]
+              (if (nil? (seq rand-in*))
+                  (conj rand-out* k)
+                  (let [fst (first rand-in*)
+                        nxt (next rand-in*)]
+                    (if (util/trivial? fst)
+                        (recur nxt (conj rand-out* (proto/cps-triv fst)))
+                        (let [s (util/new-var 's)]
+                          (proto/cps-srs
+                           fst
+                           (Cont. s (cps-rand* nxt (conj rand-out* s)))))))))]
+      (let [RAND* (cps-rand* (:rand* this) [])]
+        (if (util/trivial? (:rator this))
+            (App. (proto/cps-triv (:rator this)) RAND*)
+            (proto/PCpsSrs (:rator this) (Cont. (util/new-var 's) RAND*))))))
 
   proto/PLoadTrampoline
-    (load-tramp [this tramp]
-      (proto/walk-expr this #(proto/load-tramp % tramp) nil))
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) nil))
     
   proto/PThunkify
-    (thunkify [this]
-      (Thunk. (proto/walk-expr this proto/thunkify nil)))
+  (thunkify [this]
+    (Thunk. (proto/walk-expr this proto/thunkify nil)))
 
   proto/PUnparse
-    (unparse [this]
-      `(~(proto/unparse (:rator this)) ~@(map proto/unparse (:rand* this))))
+  (unparse [this]
+    `(~(proto/unparse (:rator this)) ~@(map proto/unparse (:rand* this))))
 
   proto/PWalkable
-    (walk-expr [this f _]
-      (App. (f (:rator this))
-            (reduce (fn [r* r] (conj r* (f r))) [] (:rand* this)))))
+  (walk-expr [this f _]
+    (App. (f (:rator this))
+          (reduce (fn [r* r] (conj r* (f r))) [] (:rand* this)))))

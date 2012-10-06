@@ -144,7 +144,7 @@ following code:
           (if (zero? n)
               (k4583 a)
               (with-meta
-                (fn [] (fact (dec n) (* n a) k4583))
+                #(fact (dec n) (* n a) k4583)
                 {:thunk true})))))))
 ```
 

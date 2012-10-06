@@ -15,8 +15,7 @@
 ;;----------------------------------------------------------------------
 
 (ns ctco.core
-  (:require [ctco.mini-passes :as mp]
-            [ctco.parse :as parse]
+  (:require [ctco.parse :as parse]
             [ctco.protocol :as proto]
             [ctco.util :as util]))
 

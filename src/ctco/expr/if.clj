@@ -114,19 +114,13 @@
   (thunkify [this]
     (proto/walk-expr this proto/thunkify #(IfTriv. %1 %2 %3))))
 
-(def if-unparse
-  {:unparse (fn [this]
-              `(if ~(proto/unparse (:test this))
-                   ~(proto/unparse (:conseq this))
-                   ~(proto/unparse (:alt this))))})
-
-(def if-walkable
-  {:walk-expr (fn [this f ctor]
-                (ctor (f (:test this)) (f (:conseq this)) (f (:alt this))))})
-
-(util/extend-group (IfCps IfSrs IfTriv)
+(util/extend-multi (IfCps IfSrs IfTriv)
   proto/PUnparse
-  if-unparse
+  (unparse [this]
+    `(if ~(proto/unparse (:test this))
+         ~(proto/unparse (:conseq this))
+         ~(proto/unparse (:alt this))))
 
   proto/PWalkable
-  if-walkable)
+  (walk-expr [this f ctor]
+    (ctor (f (:test this)) (f (:conseq this)) (f (:alt this)))))

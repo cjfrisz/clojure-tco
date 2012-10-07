@@ -214,16 +214,10 @@
   (walk-expr [this f _]
     (Fn. (:name this) (mapv f (:body* this)))))
 
-(def fn-load-tramp
-  {:load-tramp (fn [this tramp]
-                 (proto/walk-expr this #(proto/load-tramp % tramp) nil))})
-
-(def fn-thunkify
-  {:thunkify (fn [this] (proto/walk-expr this proto/thunkify nil))})
-
-(util/extend-group (FnBody Fn)
+(util/extend-multi (FnBody Fn)
   proto/PLoadTrampoline
-  fn-load-tramp
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) nil))
 
   proto/PThunkify
-  fn-thunkify)
+  (thunkify [this] (proto/walk-expr this proto/thunkify nil)))

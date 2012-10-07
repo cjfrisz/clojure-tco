@@ -69,18 +69,11 @@
   (walk-expr [this f _]
     (AppCont. (f (:cont this)) (f (:val this)))))
 
-(def cont-load-tramp
-  {:load-tramp (fn [this tramp]
-                 (proto/walk-expr this #(proto/load-tramp % tramp)
-                                  nil))})
-
-(def cont-thunkify
-  {:thunkify (fn [this]
-               (proto/walk-expr this proto/thunkify nil))})
-
-(util/extend-group (Cont AppCont)
+(util/extend-multi (Cont AppCont)
   proto/PLoadTrampoline
-  cont-load-tramp
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) nil))
 
   proto/PThunkify
-  cont-thunkify)
+  (thunkify [this]
+    (proto/walk-expr this proto/thunkify nil)))

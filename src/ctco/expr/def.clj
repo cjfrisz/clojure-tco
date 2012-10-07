@@ -92,18 +92,12 @@
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) #(DefTriv. %1 %2))))
 
-(def def-unparse
-  {:unparse (fn [this]
-              `(def ~(proto/unparse (:sym this))
-                 ~(proto/unparse (:init this))))})
-
-(def def-walkable
-  {:walk-expr (fn [this f ctor]
-                (ctor (:sym this) (f (:init this))))})
-
-(util/extend-group (DefCps DefSrs DefTriv)
+(util/extend-multi (DefCps DefSrs DefTriv)
   proto/PUnparse
-  def-unparse
+  (unparse [this]
+    `(def ~(proto/unparse (:sym this))
+       ~(proto/unparse (:init this))))
  
   proto/PWalkable
-  def-walkable)
+  (walk-expr [this f ctor]
+    (ctor (:sym this) (f (:init this)))))

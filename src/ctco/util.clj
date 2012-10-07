@@ -54,8 +54,26 @@
   [expr]
   (extends? proto/PCpsTriv (type expr)))
 
-(defmacro extend-group
+(defmacro extend-multi
   "Like extend, but takes a set of types/classes which will all be extended with
-  the given protocol and method map pairs."
+  the given protocol and method map pairs using the same syntax as defrecord for
+  protocol function implementations."
   [atype* & proto+mmap*]
-  `(do ~@(map (fn [a] `(extend ~a ~@proto+mmap*)) atype*)))
+  (loop [proto+mmap* proto+mmap*
+         fn-map* []
+         ext-body []]
+    (if (nil? (seq proto+mmap*))
+        `(let ~fn-map* ~@(map (fn [a] `(extend ~a ~@ext-body)) atype*))
+        (let [fst (first proto+mmap*)
+              nxt (next proto+mmap*)]
+          (if (list? fst)
+              (let [map-var (gensym "fn-map")]
+                (recur nxt
+                       (conj fn-map*
+                             map-var
+                             {(keyword (first fst))
+                              (cons 'fn (next fst))})
+                       (conj ext-body map-var)))
+              (recur nxt
+                     fn-map*
+                     (conj ext-body fst)))))))

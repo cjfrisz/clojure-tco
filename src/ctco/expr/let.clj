@@ -163,27 +163,21 @@
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) #(LetTriv. %1 %2))))
 
-(def let-unparse
-  {:unparse (fn [this]
-              `(let ~(mapv proto/unparse (:bind* this))
-                 ~(proto/unparse (:body this))))})
-
-(def let-walkable
-  {:walk-expr (fn [this f ctor]
-                (let [BODY (f (:body this))]
-                  (loop [bind-in* (:bind* this)
-                         bind-out* []]
-                    (if (nil? (seq bind-in*))
-                        (ctor bind-out* BODY)
-                        (recur (nnext bind-in*)
-                               (conj bind-out*
-                                     (first bind-in*)
-                                     (f (fnext bind-in*))))))))})
-
-(util/extend-group (LetCps LetSrs LetTriv)
+(util/extend-multi (LetCps LetSrs LetTriv)
   proto/PUnparse
-  let-unparse)
+  (unparse [this]
+    `(let ~(mapv proto/unparse (:bind* this))
+       ~(proto/unparse (:body this)))))
 
-(util/extend-group (LetCps LetTriv)
+(util/extend-multi (LetCps LetTriv)
   proto/PWalkable
-  let-walkable)
+  (walk-expr [this f ctor]
+    (let [BODY (f (:body this))]
+      (loop [bind-in* (:bind* this)
+             bind-out* []]
+        (if (nil? (seq bind-in*))
+            (ctor bind-out* BODY)
+            (recur (nnext bind-in*)
+                   (conj bind-out*
+                         (first bind-in*)
+                         (f (fnext bind-in*)))))))))

@@ -104,18 +104,12 @@
 
   proto/PThunkify
   (thunkify [this]
-    (proto/walk-expr this proto/thunkify #(SimpleOpSrs. %1 %2))))
+    (proto/walk-expr this proto/thunkify #(SimpleOpSrs. %1 %2))))                        
 
-(def simple-op-unparse
-  {:unparse (fn [this] `(~(:op this) ~@(map proto/unparse (:opnd* this))))})
-
-(def simple-op-walk
-  {:walk-expr (fn [this f ctor] (ctor (:op this) (mapv f (:opnd* this))))})
-                        
-
-(util/extend-group (SimpleOpCps SimpleOpSrs SimpleOpTriv)
+(util/extend-multi (SimpleOpCps SimpleOpSrs SimpleOpTriv)
   proto/PUnparse
-  simple-op-unparse
+  (unparse [this] `(~(:op this) ~@(map proto/unparse (:opnd* this))))
   
   proto/PWalkable
-  simple-op-walk)
+  (walk-expr [this f ctor] (ctor (:op this) (mapv f (:opnd* this)))))
+

@@ -79,5 +79,4 @@
 
   proto/PWalkable
   (walk-expr [this f _]
-    (App. (f (:rator this))
-          (reduce (fn [r* r] (conj r* (f r))) [] (:rand* this)))))
+    (App. (f (:rator this)) (mapv f (:rand* this)))))

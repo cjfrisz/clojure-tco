@@ -107,15 +107,10 @@
     (proto/walk-expr this proto/thunkify #(SimpleOpSrs. %1 %2))))
 
 (def simple-op-unparse
-  {:unparse (fn [this]
-              `(~(:op this) ~@(map proto/unparse (:opnd* this))))})
+  {:unparse (fn [this] `(~(:op this) ~@(map proto/unparse (:opnd* this))))})
 
 (def simple-op-walk
-  {:walk-expr (fn [this f ctor]
-                (ctor (:op this)
-                      (reduce (fn [opnd* opnd] (conj opnd* (f opnd)))
-                              []
-                              (:opnd* this))))})
+  {:walk-expr (fn [this f ctor] (ctor (:op this) (mapv f (:opnd* this))))})
                         
 
 (util/extend-group (SimpleOpCps SimpleOpSrs SimpleOpTriv)

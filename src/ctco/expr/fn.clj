@@ -129,26 +129,22 @@
     (fn [k]
       (FnBody. (conj (:fml* this) k)
                (:cmap this)
-               (reduce (fn [e* e]
-                         (conj e*
-                               (if (util/trivial? e)
-                                   (AppCont. k (proto/cps-triv e))
-                                   (proto/cps-srs e k))))
-                       []
-                       (:bexpr* this)))))
+               (mapv
+                #(if (util/trivial? %)
+                     (AppCont. k (proto/cps-triv %))
+                     (proto/cps-srs % k))
+                (:bexpr* this)))))
 
   proto/PUnparse
   (unparse [this]
-    `(~(reduce #(conj %1 (proto/unparse %2)) [] (:fml* this))
+    `(~(mapv proto/unparse (:fml* this))
       ~@(let [cmap (:cmap this)]
           (if cmap (list cmap) '()))
       ~@(map proto/unparse (:bexpr* this))))
 
   proto/PWalkable
   (walk-expr [this f _]
-    (FnBody. (:fml* this)
-             (:cmap this)
-             (reduce (fn [e* e] (conj e* (f e))) [] (:bexpr* this)))))
+    (FnBody. (:fml* this) (:cmap this) (mapv f (:bexpr* this)))))
 
 (defrecord Fn [name body*]
   proto/PCpsTriv
@@ -216,8 +212,7 @@
 
   proto/PWalkable
   (walk-expr [this f _]
-    (Fn. (:name this)
-         (reduce (fn [b* b] (conj b* (f b))) [] (:body* this)))))
+    (Fn. (:name this) (mapv f (:body* this)))))
 
 (def fn-load-tramp
   {:load-tramp (fn [this tramp]

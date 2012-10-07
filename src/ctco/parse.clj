@@ -32,11 +32,6 @@
 
 (declare parse)
 
-(defn- conj-parse
-  "Helper function used in 'reduce' calls throughout parsing."  
-  [base val]
-  (conj base (parse val)))
-
 (defn- parse-simple
   "Takes a sequence representing a Clojure expression (generally passed from a
   macro) and returns the parsed representation of the expression if it is a
@@ -66,22 +61,18 @@
 
 (defn- parse-fn-body
   [fml* cmap bexpr*]
-  (FnBody. (reduce conj-parse [] fml*) cmap (reduce conj-parse [] bexpr*)))
+  (FnBody. (mapv parse fml*) cmap (mapv parse bexpr*)))
 
 (defn- parse-fn
   "Helper function for parse that handles 'fn' expressions."
   [body*]
   (Fn.
    nil
-   (reduce
-    (fn [v* b]
-      (conj
-       v*
-       (match [b]
-         [([fml* (cmap :guard map?) & b*] :seq)] (parse-fn-body fml* cmap b*)
-         [([fml* & b*] :seq)] (parse-fn-body fml* nil b*)
-         :else (throw (Exception. (str "invalid function body" b))))))
-    []
+   (mapv
+    #(match [%]
+       [([fml* (cmap :guard map?) & b*] :seq)] (parse-fn-body fml* cmap b*)
+       [([fml* & b*] :seq)] (parse-fn-body fml* nil b*)
+       :else (throw (Exception. (str "invalid function body" %))))
     body*)))
 
 (defn- parse-if
@@ -97,7 +88,7 @@
 (defn- parse-let
   "Helper function for parse that handles 'let' expressions."
   [bind* body]
-  (let [BIND* (reduce conj-parse [] bind*)
+  (let [BIND* (mapv parse bind*)
         BODY (parse body)]
     (assert (even? (count BIND*)))
     (if (or (some util/serious? (take-nth 2 (next BIND*)))
@@ -158,7 +149,7 @@
   "Helper function for parse that handles simple op expressions (e.g. +, -,
   zero?, nil?, etc."
   [op opnd*]
-  (let [OPND* (reduce conj-parse [] opnd*)]
+  (let [OPND* (mapv parse opnd*)]
     (if (some util/serious? OPND*)
         (SimpleOpSrs. op OPND*)
         (SimpleOpTriv. op OPND*))))
@@ -166,7 +157,7 @@
 (defn- parse-function-application
   "Helper function for parse that handles function application."
   [rator rand*]
-  (App. (parse rator) (reduce conj-parse [] rand*)))
+  (App. (parse rator) (mapv parse rand*)))
 
 (defn- parse-application
   "Takes a sequence representing a Clojure expression (generally passed from a

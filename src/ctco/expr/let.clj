@@ -165,11 +165,8 @@
 
 (def let-unparse
   {:unparse (fn [this]
-              `(let ~(reduce (fn [bind* bind]
-                               (conj bind* (proto/unparse bind)))
-                             []
-                             (:bind* this))
-                   ~(proto/unparse (:body this))))})
+              `(let ~(mapv proto/unparse (:bind* this))
+                 ~(proto/unparse (:body this))))})
 
 (def let-walkable
   {:walk-expr (fn [this f ctor]

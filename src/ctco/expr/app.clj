@@ -56,14 +56,14 @@
                         nxt (next rand-in*)]
                     (if (util/trivial? fst)
                         (recur nxt (conj rand-out* (proto/cps-triv fst)))
-                        (let [s (util/new-var 's)]
+                        (let [s (util/new-var "s")]
                           (proto/cps-srs
                            fst
                            (Cont. s (cps-rand* nxt (conj rand-out* s)))))))))]
       (let [RAND* (cps-rand* (:rand* this) [])]
         (if (util/trivial? (:rator this))
             (App. (proto/cps-triv (:rator this)) RAND*)
-            (proto/PCpsSrs (:rator this) (Cont. (util/new-var 's) RAND*))))))
+            (proto/PCpsSrs (:rator this) (Cont. (util/new-var "s") RAND*))))))
 
   proto/PLoadTrampoline
   (load-tramp [this tramp]

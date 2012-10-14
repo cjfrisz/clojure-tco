@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified  6 Oct 2012
+;; Last modified 14 Oct 2012
 ;; 
 ;; Includes the protocols used in the CTCO compiler. These include the
 ;; following:
@@ -38,6 +38,11 @@
 ;; PUnparse:
 ;;      Implemented by expressions that need to be unparseed as code
 ;;      from the intermediate representation used in CTCO.
+;;
+;; PUnRecurify:
+;;      Removes uses of 'recur' to make CTCO transformations (e.g. CPS)
+;;      safe. Replaces calls to 'recur' with direct calls to the
+;;      function in which they reside.
 ;;
 ;; PWalkable:
 ;;      Implemented by expressions for which a new expression needs to
@@ -75,6 +80,11 @@
   (unparse [this]
     "Unparses a sequence representing the Clojure syntax for the TCO 
     expression."))
+
+(defprotocol PUnRecurify
+  "Protocol for replacing 'recur' forms with direct calls."
+  (unrecurify [this name]
+    "Replaces 'recur' forms with calls to the function given by 'name.'"))
 
 (defprotocol PThunkify
   "Protocol for expressions that can be thunkified in the TCO compiler."

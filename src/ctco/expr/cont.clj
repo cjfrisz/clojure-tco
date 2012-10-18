@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified  6 Oct 2012
+;; Last modified 13 Oct 2012
 ;; 
 ;; Defines the Cont, AppCont, and AppContAbs record types for
 ;; continuations, continuation application, and continuation
@@ -61,9 +61,7 @@
 (defrecord AppCont [cont val]
   proto/PUnparse
   (unparse [this]
-    (let [cont (proto/unparse (:cont this))
-          val (proto/unparse (:val this))]
-      `(~cont ~val)))
+    `(~(proto/unparse (:cont this)) ~(proto/unparse (:val this))))
 
   proto/PWalkable
   (walk-expr [this f _]

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified  6 Oct 2012
+;; Last modified 13 Oct 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing
 ;; serious, trivial, and CPSed 'let' expressions, respectively. LetSrs
@@ -125,29 +125,27 @@
 (defrecord LetSrs [bind* body]
   proto/PCpsSrs
   (cps-srs [this k]
-    (letfn [(build-let [bind* body]
-              (if (not (nil? (seq bind*)))
-                  (LetCps. bind* body)
-                  body))
+    (letfn [(let-out [bind* body]
+              (if (nil? (seq bind*))
+                  body
+                  (LetCps. bind* body)))
             (cps-let [bind-in* bind-out*]
               (if (nil? (seq bind-in*))
-                  (let [body (:body this)
-                        BODY (if (util/trivial? body)
-                                 (let [arg (proto/cps-triv body)]
-                                   (AppCont. k arg))
-                                 (proto/cps-srs body k))]
-                    (build-let bind-out* BODY))
+                  (let [body (:body this)]
+                    (let-out bind-out*
+                             (if (util/trivial? body)
+                                 (AppCont. k (proto/cps-triv body))
+                                 (proto/cps-srs body k))))
                   (let [var (first bind-in*)
                         init (fnext bind-in*)
                         BIND-IN* (nnext bind-in*)]
                     (if (util/trivial? init)
-                        (let [INIT (proto/cps-triv init)
-                              BIND-OUT* (conj bind-out* var INIT)]
-                          (recur BIND-IN* BIND-OUT*))
-                        (let [k-body (cps-let BIND-IN* [])
-                              K (Cont. var k-body)
-                              let-body (proto/cps-srs init K)]
-                          (build-let bind-out* let-body))))))]
+                        (recur BIND-IN*
+                               (conj bind-out* var (proto/cps-triv init)))
+                        (let-out bind-out*
+                                 (proto/cps-srs
+                                  init
+                                  (Cont. var (cps-let BIND-IN* []))))))))]
       (cps-let (:bind* this) [])))
 
   proto/PLoadTrampoline

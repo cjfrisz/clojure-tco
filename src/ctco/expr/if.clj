@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  6 Oct 2012
+;; Last modified 18 Oct 2012
 ;; 
 ;; Defines the IfSrs, IfTriv, IfCps record types representing serious,
 ;; trivial, and CPSed 'if' expressions, respectively. IfSrs and IfTriv
@@ -33,7 +33,13 @@
 ;;
 ;;      PThunkify:
 ;;              Maps thunkify over the test, consequent, and
-;;              alternative of the expression.
+;;              alternative of the expression. Uses the walk-expr
+;;              function provided by PWalkable.
+;;
+;;      PUnRecurify:
+;;              Maps unrecurify over the test, consequent, and
+;;              alternative of the expression. Uses the walk-expr
+;;              function provided by PWalkable.
 ;;
 ;; IfTriv implements the following protocols:
 ;;
@@ -99,7 +105,11 @@
 
   proto/PThunkify
   (thunkify [this]
-    (proto/walk-expr this proto/thunkify #(IfSrs. %1 %2 %3))))
+    (proto/walk-expr this proto/thunkify #(IfSrs. %1 %2 %3)))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) #(IfSrs. %1 %2 %3))))
 
 (defrecord IfTriv [test conseq alt]
   proto/PCpsTriv
@@ -112,7 +122,11 @@
 
   proto/PThunkify
   (thunkify [this]
-    (proto/walk-expr this proto/thunkify #(IfTriv. %1 %2 %3))))
+    (proto/walk-expr this proto/thunkify #(IfTriv. %1 %2 %3)))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) #(IfTriv. %1 %2 %3))))
 
 (util/extend-multi (IfCps IfSrs IfTriv)
   proto/PUnparse

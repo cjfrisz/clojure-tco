@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  6 Oct 2012
+;; Last modified 18 Oct 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
@@ -30,6 +30,11 @@
 ;;      PUnparse:
 ;;              Unparses (recursively) the sytax for the expression as
 ;;              `(~rator ~@rand*)
+;;
+;;      PUnRecurify
+;;              Maps the unrecurify transformation over the rator and
+;;              rand* of the application. Uses the walk-expr function
+;;              provided by PWalkable.
 ;;
 ;;      PWalkable:
 ;;              Applies the given function to the rator and each rand*
@@ -76,6 +81,10 @@
   proto/PUnparse
   (unparse [this]
     `(~(proto/unparse (:rator this)) ~@(map proto/unparse (:rand* this))))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) nil))
 
   proto/PWalkable
   (walk-expr [this f _]

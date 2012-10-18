@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  6 Oct 2012
+;; Last modified 18 Oct 2012
 ;; 
 ;; Defines the Fn and FnBody record types for representing 'fn'
 ;; expressions in the Clojure TCO compiler. The Fn record stores the
@@ -36,6 +36,10 @@
 ;;      PUnparse:
 ;;              Unparses (recursively) the syntax for the expression as
 ;;              `(~fml* ~cmap? ~bexpr*).
+;;
+;;      PUnRecurify:
+;;              Applies unrecurify to each subexpression. Uses the
+;;              walk-expr function provided by PWalkable.
 ;;
 ;;      PWalkable:
 ;;              Applies the given function to each body expression,
@@ -84,6 +88,11 @@
 ;;      PUnparse:
 ;;              Unparses (recursively) the expression as
 ;;              `(fn ~name? ~bexpr*)
+;;
+;;      PUnRecurify:
+;;              Applies unrecurify to each subexpression, using the name
+;;              field of the Fn record if available. Uses the walk-expr
+;;              function provided by PWalkable.
 ;;
 ;;      PWalkable:
 ;;              Applies the given function to each FnBody, returning a
@@ -141,6 +150,10 @@
       ~@(let [cmap (:cmap this)]
           (if cmap (list cmap) '()))
       ~@(map proto/unparse (:bexpr* this))))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) nil))
 
   proto/PWalkable
   (walk-expr [this f _]
@@ -209,6 +222,11 @@
     (let [name (:name this)]
       `(fn ~@(if name (list (proto/unparse name)) '())
          ~@(map proto/unparse (:body* this)))))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (let [NAME (or (:name this) name)]
+      (proto/walk-expr this #(proto/unrecurify % name) nil)))
 
   proto/PWalkable
   (walk-expr [this f _]

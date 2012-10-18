@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  6 Oct 2012
+;; Last modified 18 Oct 2012
 ;; 
 ;; Defines the Simple record type for simple expressions (e.g.
 ;; numbers, booleans, symbols, etc.) in the CTCO compiler.
@@ -21,6 +21,9 @@
 ;;
 ;;      PUnparse:
 ;;              Returns the syntax for the Simple.
+;;
+;;      PUnRecurify:
+;;              Simply returns the Simple.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.simple
@@ -37,4 +40,7 @@
   (thunkify [this] this)
 
   proto/PUnparse
-  (unparse [this] (:val this)))
+  (unparse [this] (:val this))
+
+  proto/PUnRecurify
+  (unrecurify [this name] this))

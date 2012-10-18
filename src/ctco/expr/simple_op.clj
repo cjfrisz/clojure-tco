@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  6 Oct 2012
+;; Last modified 18 Oct 2012
 ;; 
 ;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
 ;; for representing operations using simple primitives, i.e.
@@ -16,7 +16,8 @@
 ;; IfCps implements the following protocols:
 ;;
 ;;      PThunkify:
-;;              Maps thunkify over the operands of the expression.
+;;              Maps thunkify over the operands of the expression. Uses
+;;              the walk-expr function provided by PWalkable.
 ;;
 ;; IfSrs implements the following protocols:
 ;;
@@ -30,15 +31,28 @@
 ;;              subexpression replaced with a variable.
 ;;
 ;;      PThunkify:
-;;              Maps thunkify over the operands of the expression.
+;;              Maps thunkify over the operands of the expression. Uses
+;;              the walk-expr function provided by PWalkable.
+;;
+;;      PUnRecurify:
+;;              Maps unrecurify over the operands of the
+;;              expression. Uses the walk-expr function provided by
+;;              PWalkable. 
 ;;
 ;; IfTriv implements the following protocols:
 ;;
 ;;      PCpsTriv:
-;;              Maps cps-triv over the operands of the expression.
+;;              Maps cps-triv over the operands of the expression. Uses
+;;              the walk-expr function provided by PWalkable.
 ;;
 ;;      PThunkify:
-;;              Maps thunkify over the operands of the expression.
+;;              Maps thunkify over the operands of the expression. Uses
+;;              the walk-expr function provided by PWalkable.
+;;
+;;      PUnRecurify:
+;;              Maps unrecurify over the operands of the
+;;              expression. Uses the walk-expr function provided by
+;;              PWalkable. 
 ;;
 ;; IfCps, IfSrs, and IfTriv use the same implementation for the
 ;; following protocols:
@@ -49,7 +63,8 @@
 ;;
 ;;      PWalkable:
 ;;              Maps the given function over the operands of the
-;;              expression.
+;;              expression. Uses the walk-expr function provided by
+;;              PWalkable. 
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.simple-op
@@ -79,7 +94,11 @@
 
   proto/PThunkify
   (thunkify [this]
-    (proto/walk-expr this proto/thunkify #(SimpleOpTriv. %1 %2))))
+    (proto/walk-expr this proto/thunkify #(SimpleOpTriv. %1 %2)))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) #(SimpleOpTriv. %1 %2))))
 
 (defrecord SimpleOpSrs [op opnd*]
   proto/PCpsSrs
@@ -104,7 +123,11 @@
 
   proto/PThunkify
   (thunkify [this]
-    (proto/walk-expr this proto/thunkify #(SimpleOpSrs. %1 %2))))                        
+    (proto/walk-expr this proto/thunkify #(SimpleOpSrs. %1 %2)))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) #(SimpleOpSrs. %1 %2))))                        
 
 (util/extend-multi (SimpleOpCps SimpleOpSrs SimpleOpTriv)
   proto/PUnparse

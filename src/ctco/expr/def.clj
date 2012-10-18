@@ -3,7 +3,7 @@
 ;; Written by Chris
 ;; 
 ;; Created 30 Aug 2012
-;; Last modified  6 Oct 2012
+;; Last modified 18 Oct 2012
 ;; 
 ;; Defines the DefSrs, DefTriv, and DefCps record types for representing
 ;; 'def' expression in the Clojure TCO compiler.
@@ -79,6 +79,10 @@
   (cps-srs [this k]
     (proto/walk-expr this #(proto/cps-srs % k) #(DefCps. %1 %2)))
 
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) #(DefSrs. %1 %2)))
+
   proto/PLoadTrampoline
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) #(DefSrs. %1 %2))))
@@ -87,6 +91,10 @@
   proto/PCpsTriv
   (cps-triv [this]
     (proto/walk-expr this proto/cps-triv #(DefCps. %1 %2)))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) #(DefTriv. %1 %2)))
 
   proto/PLoadTrampoline
   (load-tramp [this tramp]

@@ -168,13 +168,11 @@
           (let [body (first body*)
                 name (or (:name this) (util/new-var "fn"))]
             (letfn [(make-cps-app [body]
-                      (with-meta
-                        (TrampMark.
-                         (App. name
-                               (conj (:fml* body)
-                                     (let [x (util/new-var "x")]
-                                       (Cont. x x)))))
-                        {:tramp-entry true}))
+                      (TrampMark.
+                       (App. name
+                             (conj (:fml* body)
+                                   (let [x (util/new-var "x")]
+                                     (Cont. x x))))))
                     (make-entry-body [body]
                       (FnBody. (:fml* body)
                                (:cmap body)

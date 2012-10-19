@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified  6 Oct 2012
+;; Last modified 19 Oct 2012
 ;; 
 ;; Defines the ctco macro which acts as the driver for the Clojure TCO
 ;; compiler. The macro parses the initial expression, and applies the
@@ -11,7 +11,7 @@
 ;; transformation, thunkification, and trampolining. Finally, the code
 ;; is unparsed and wrapped in a binding for the custom trampoline
 ;; function and an initial call to that trampoline function.
-;; ----------------------------------------------------------------------
+;;----------------------------------------------------------------------
 
 (ns ctco.core
   (:require [ctco.parse :as parse]

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified  6 Oct 2012
+;; Last modified 19 Oct 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -65,9 +65,9 @@
 
 (defn- parse-fn
   "Helper function for parse that handles 'fn' expressions."
-  [body*]
+  [name body*]
   (Fn.
-   nil
+   (parse (or name (gensym "fn")))
    (mapv
     #(match [%]
        [([fml* (cmap :guard map?) & b*] :seq)] (parse-fn-body fml* cmap b*)
@@ -104,8 +104,11 @@
   (match [expr]
     [(['def sym] :seq)] (parse-def sym nil)
     [(['def sym init] :seq)] (parse-def sym init)
-    [(['fn (fml* :guard vector?) & bexpr*] :seq)] (parse-fn `((~fml* ~@bexpr*)))
-    [(['fn & body*] :seq)] (parse-fn body*)
+    [(['fn (fml* :guard vector?) & bexpr*] :seq)] (parse-fn nil `((~fml* ~@bexpr*)))
+    [(['fn (name :guard symbol?)
+       (fml* :guard vector?) & bexpr*] :seq)] (parse-fn name `((~fml* ~@bexpr*)))
+    [(['fn & body*] :seq)] (parse-fn nil body*)
+    [(['fn (name :guard symbol?) & body*] :seq)] (parse-fn name body*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)
     [(['let bind* body] :seq)] (parse-let bind* body)
     :else false))
@@ -114,7 +117,7 @@
   "Helper function for parse that handles 'defn' expressions. Currently
   translates (defn name body*) into (def name (fn body*))"
   [name func*]
-  (DefTriv. (parse name) (parse-fn func*)))
+  (DefTriv. (parse name) (parse-fn name func*)))
 
 (defn- parse-cond
   "Helper function for parse that handles 'cond' expressions. Currently

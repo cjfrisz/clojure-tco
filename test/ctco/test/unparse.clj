@@ -3,9 +3,12 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 15 Apr 2012
-;; Last modified  5 Oct 2012
+;; Last modified 19 Oct 2012
 ;; 
-;; Testing for the correctness of unparse
+;; Testing for the correctness of unparse.
+;;
+;; Note that tests the involve 'fn' expressions will only succeed for
+;; fresh runs of the test from the command line, a la "lein test."
 ;;----------------------------------------------------------------------
 
 (ns ctco.test.unparse
@@ -34,8 +37,9 @@
 
 (deftest app-test
   (is (= '(x y z) (proto/unparse (parse '(x y z)))))
-  (is (= '((clojure.core/fn ([x] x)) 5) (proto/unparse (parse '((fn [x] x) 5)))))
-  (is (= '((clojure.core/fn ([x y z] (* x 3))) 7 3 12)
+  (is (= '((clojure.core/fn fn3258 ([x] x)) 5)
+         (proto/unparse (parse '((fn [x] x) 5)))))
+  (is (= '((clojure.core/fn fn3259 ([x y z] (* x 3))) 7 3 12)
          (proto/unparse (parse '((fn [x y z] (* x 3)) 7 3 12))))))
 
 (deftest simple-test
@@ -52,15 +56,15 @@
                                (Simple. (quote 'thonk)))))))
 
 (deftest defn-test
-  (is (= '(def id (clojure.core/fn ([x] x)))
+  (is (= '(def id (clojure.core/fn id ([x] x)))
          (proto/unparse (parse '(defn id [x] x)))))
-  (is (= '(def id (clojure.core/fn ([x] x) ([x y] x)))
+  (is (= '(def id (clojure.core/fn id ([x] x) ([x y] x)))
          (proto/unparse (parse '(defn id ([x] x) ([x y] x)))))))
 
 
 (deftest if-test
   (is (= '(if 3 4 5) (proto/unparse (parse '(if 3 4 5)))))
-  (is (= '(if ((clojure.core/fn ([x] x)) 3) 4 5)
+  (is (= '(if ((clojure.core/fn fn3260 ([x] x)) 3) 4 5)
          (proto/unparse (parse '(if ((fn [x] x) 3) 4 5))))))
 
 (deftest thunk-test

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 18 Oct 2012
+;; Last modified 19 Oct 2012
 ;; 
 ;; Defines the Fn and FnBody record types for representing 'fn'
 ;; expressions in the Clojure TCO compiler. The Fn record stores the
@@ -60,10 +60,7 @@
 ;;              expression. That is, a body which will initiate the
 ;;              trampoline computation with the empty continuation so
 ;;              that code that is not transformed via CTCO can make
-;;              procedure calls to functions that are transformed. If
-;;              the source-level expression did not include a name for
-;;              the 'fn' expression, a unique name is inserted to allow
-;;              for the recursive call.
+;;              procedure calls to functions that are transformed.
 ;;
 ;;              In the case of a FnBody whose CPS arity is unique, the
 ;;              function returned from cps-triv receives a unique
@@ -166,7 +163,7 @@
       (if (nil? (seq body*))
           this
           (let [body (first body*)
-                name (or (:name this) (util/new-var "fn"))]
+                name (:name this)]
             (letfn [(make-cps-app [body]
                       (TrampMark.
                        (App. name

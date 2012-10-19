@@ -37,9 +37,9 @@
 
 (deftest app-test
   (is (= '(x y z) (proto/unparse (parse '(x y z)))))
-  (is (= '((clojure.core/fn fn3258 ([x] x)) 5)
+  (is (= '((clojure.core/fn fn3286 ([x] x)) 5)
          (proto/unparse (parse '((fn [x] x) 5)))))
-  (is (= '((clojure.core/fn fn3259 ([x y z] (* x 3))) 7 3 12)
+  (is (= '((clojure.core/fn fn3287 ([x y z] (* x 3))) 7 3 12)
          (proto/unparse (parse '((fn [x y z] (* x 3)) 7 3 12))))))
 
 (deftest simple-test
@@ -64,7 +64,7 @@
 
 (deftest if-test
   (is (= '(if 3 4 5) (proto/unparse (parse '(if 3 4 5)))))
-  (is (= '(if ((clojure.core/fn fn3260 ([x] x)) 3) 4 5)
+  (is (= '(if ((clojure.core/fn fn3288 ([x] x)) 3) 4 5)
          (proto/unparse (parse '(if ((fn [x] x) 3) 4 5))))))
 
 (deftest thunk-test

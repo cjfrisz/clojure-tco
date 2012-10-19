@@ -37,6 +37,7 @@
                 proto/PCpsSrs  (proto/cps-srs expr (gensym "k"))
                 :else (throw (Exception. (str "unexpected expression " expr)))))]
       (let [new-expr (-> (parse/parse expr)
+                         (proto/unrecurify nil)
                          apply-cps
                          proto/thunkify
                          (proto/load-tramp tramp)

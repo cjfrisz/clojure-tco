@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 14 Oct 2012
+;; Last modified 19 Oct 2012
 ;; 
 ;; Defines the Recur record type and operations for representing
 ;; 'recur' expressions in the Clojure TCO compiler.
@@ -28,12 +28,15 @@
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.recur
-  (:require [ctco.protocol :as proto]))
+  (:require [ctco.expr.app]
+            [ctco.protocol :as proto])
+  (:import [ctco.expr.app
+            App]))
 
 (defrecord Recur [arg*]
   proto/PLoadTrampoline
   (load-tramp [this tramp]
-    (proto/walk-expr this f nil))
+    (proto/walk-expr this #(proto/load-tramp % tramp) nil))
 
   proto/PUnparse
   (unparse [this]

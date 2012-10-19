@@ -12,13 +12,11 @@
   (:use [clojure.core.match
          :only (match)])
   (:require [ctco.expr
-             app simple def fn if let simple-op]
+             app def fn if let recur simple simple-op]
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.app
             App]
-           [ctco.expr.simple
-            Simple]
            [ctco.expr.def
             DefSrs DefTriv]
            [ctco.expr.fn
@@ -27,6 +25,10 @@
             IfCps IfSrs IfTriv]
            [ctco.expr.let
             LetCps LetSrs LetTriv]
+           [ctco.expr.recur
+            Recur]
+           [ctco.expr.simple
+            Simple]
            [ctco.expr.simple_op
             SimpleOpCps SimpleOpSrs SimpleOpTriv]))
 
@@ -96,6 +98,11 @@
         (LetSrs. BIND* BODY)
         (LetTriv. BIND* BODY))))
 
+(defn- parse-recur
+  "Helper function for parse that handles 'recur' expressions."
+  [expr*]
+  (Recur. (mapv parse expr*)))
+
 (defn- parse-core
   "Takes a sequence representing a Clojure expression (generally passed from a
   macro) and returns the parsed representation of the expression if it is a core
@@ -111,6 +118,7 @@
     [(['fn (name :guard symbol?) & body*] :seq)] (parse-fn name body*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)
     [(['let bind* body] :seq)] (parse-let bind* body)
+    [(['recur & expr*] :seq)] (parse-recur expr*)
     :else false))
 
 (defn- parse-defn

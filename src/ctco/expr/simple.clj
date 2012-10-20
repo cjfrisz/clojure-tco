@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 18 Oct 2012
+;; Last modified 20 Oct 2012
 ;; 
 ;; Defines the Simple record type for simple expressions (e.g.
 ;; numbers, booleans, symbols, etc.) in the CTCO compiler.
@@ -35,6 +35,9 @@
 
   proto/PLoadTrampoline
   (load-tramp [this tramp] this)
+
+  proto/PRecurify
+  (recurify [this name tail?] this)
 
   proto/PThunkify
   (thunkify [this] this)

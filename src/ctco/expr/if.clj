@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 18 Oct 2012
+;; Last modified 20 Oct 2012
 ;; 
 ;; Defines the IfSrs, IfTriv, IfCps record types representing serious,
 ;; trivial, and CPSed 'if' expressions, respectively. IfSrs and IfTriv
@@ -75,6 +75,12 @@
   proto/PLoadTrampoline
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) #(IfCps. %1 %2 %3)))
+
+  proto/PRecurify
+  (recurify [this name tail?]
+    (IfCps. (:test this)
+            (proto/recurify (:conseq this) name tail?)
+            (proto/recurify (:alt this) name tail?)))
   
   proto/PThunkify
   (thunkify [this]
@@ -103,6 +109,12 @@
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) #(IfSrs. %1 %2 %3)))
 
+  proto/PRecurify
+  (recurify [this name tail?]
+    (IfSrs. (:test this)
+            (proto/recurify (:conseq this) name tail?)
+            (proto/recurify (:alt this) name tail?)))
+
   proto/PThunkify
   (thunkify [this]
     (proto/walk-expr this proto/thunkify #(IfSrs. %1 %2 %3)))
@@ -119,6 +131,12 @@
   proto/PLoadTrampoline
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) #(IfTriv. %1 %2 %3)))
+
+  proto/PRecurify
+  (recurify [this name tail?]
+    (IfTriv. (:test this)
+            (proto/recurify (:conseq this) name tail?)
+            (proto/recurify (:alt this) name tail?)))
 
   proto/PThunkify
   (thunkify [this]

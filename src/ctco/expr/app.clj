@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 18 Oct 2012
+;; Last modified 20 Oct 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
@@ -22,6 +22,17 @@
 ;;      PLoadTrampoline:
 ;;              Recursively applies load-tramp to the operator and
 ;;              operands of the expression.
+;;
+;;      PRecurify:
+;;              If the name argument matches the rator and the value of
+;;              tail? is true, replaces the application with the recur
+;;              form. If not, returns a new application with recurify
+;;              applied to the rator with nil and false for the values
+;;              of name and tail?, respectively, since the rator cannot
+;;              be a tail call. Regardless of whether the application is
+;;              a self-recursive tail call, recurify is applied to the
+;;              arguments with values nil and false for name and tail?,
+;;              respectively.
 ;;
 ;;      PThunkify:
 ;;              Recursively thunkifies the rator and each rand* and
@@ -43,11 +54,13 @@
 
 (ns ctco.expr.app
   (:require [ctco.expr
-             cont thunk]
+             cont recur thunk]
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.cont
             Cont AppCont]
+           [ctco.expr.recur
+            Recur]
            [ctco.expr.thunk
             Thunk]))
 
@@ -73,6 +86,13 @@
   proto/PLoadTrampoline
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) nil))
+
+  proto/PRecurify
+  (recurify [this name tail?]
+    (let [RAND* (mapv #(proto/recurify % nil false) (:rand* this))]
+      (if (= (:rator this) name)
+          (Recur. RAND*)
+          (App. (proto/recurify (:rator this) nil false) RAND*))))
     
   proto/PThunkify
   (thunkify [this]

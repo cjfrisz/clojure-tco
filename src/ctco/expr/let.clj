@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 18 Oct 2012
+;; Last modified 20 Oct 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing
 ;; serious, trivial, and CPSed 'let' expressions, respectively. LetSrs
@@ -126,9 +126,10 @@
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) #(LetCps. %1 %2)))
 
-  proto/PThunkify
-  (thunkify [this]
-    (proto/walk-expr this proto/thunkify #(LetCps. %1 %2))))
+  proto/PRecurify
+  (recurify [this name tail?]
+    (LetCps. (mapv #(proto/recurify % nil false) (:bind* this))
+             (proto/recurify (:body this) name tail?)))
 
 (defrecord LetSrs [bind* body]
   proto/PCpsSrs
@@ -160,6 +161,11 @@
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) #(LetSrs. %1 %2)))
 
+  proto/PRecurify
+  (recurify [this name tail?]
+    (LetSrs. (mapv #(proto/recurify % nil false) (:bind* this))
+             (proto/recurify (:body this) name tail?)))
+
   proto/PUnRecurify
   (unrecurify [this name]
     (proto/walk-expr this #(proto/unrecurify % name) #(LetSrs. %1 %2))))
@@ -172,6 +178,11 @@
   proto/PLoadTrampoline
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) #(LetTriv. %1 %2)))
+
+  proto/PRecurify
+  (recurify [this name tail?]
+    (LetTriv. (mapv #(proto/recurify % nil false) (:bind* this))
+             (proto/recurify (:body this) name tail?)))
 
   proto/PUnRecurify
   (unrecurify [this name]

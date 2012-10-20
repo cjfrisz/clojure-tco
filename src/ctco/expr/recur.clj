@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 19 Oct 2012
+;; Last modified 20 Oct 2012
 ;; 
 ;; Defines the Recur record type and operations for representing
 ;; 'recur' expressions in the Clojure TCO compiler.
@@ -37,6 +37,10 @@
   proto/PLoadTrampoline
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) nil))
+
+  proto/PRecurify
+  (recurify [this name tail?]
+    (proto/walk-expr this #(proto/recurify % nil false) nil))
 
   proto/PUnparse
   (unparse [this]

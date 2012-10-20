@@ -3,7 +3,7 @@
 ;; Written by Chris
 ;; 
 ;; Created 30 Aug 2012
-;; Last modified 18 Oct 2012
+;; Last modified 20 Oct 2012
 ;; 
 ;; Defines the DefSrs, DefTriv, and DefCps record types for representing
 ;; 'def' expression in the Clojure TCO compiler.
@@ -15,6 +15,14 @@
 ;;              trampoline function name, generating a new DefCps with
 ;;              the same symbol name. Uses the walk-expr function
 ;;              provided by PWalkable.
+;;
+;;      PRecurify:
+;;              Applies recurify to the init expression, generating a
+;;              new DefCps with the same symbol name. Since a 'def'
+;;              expression is not considered a tail call, uses 'false'
+;;              for the 'tail?' value in the recursive calls and 'nil'
+;;              for name. Uses the walk-expr function provided by
+;;              PWalkable.
 ;;
 ;;      PThunkify:
 ;;              Applies thunkify to the init expression, generating a
@@ -28,6 +36,14 @@
 ;;              DefCps with the same symbol name. Uses the walk-expr
 ;;              function provided by PWalkable.
 ;;
+;;      PRecurify:
+;;              Applies recurify to the init expression, generating a
+;;              new DefSrs with the same symbol name. Since a 'def'
+;;              expression is not considered a tail call, uses 'false'
+;;              for the 'tail?' value in the recursive calls and 'nil'
+;;              for name. Uses the walk-expr function provided by
+;;              PWalkable.
+;;
 ;;      PLoadTrampoline:
 ;;              Applies load-tramp to the init expression for the given
 ;;              trampoline function name, generating a new DefSrs with
@@ -40,6 +56,14 @@
 ;;              Applies cps-srs to the init expression, generating a new
 ;;              DefCps with the same symbol name. Uses the walk-expr
 ;;              function provided by PWalkable.
+;;
+;;      PRecurify:
+;;              Applies recurify to the init expression, generating a
+;;              new DefTriv with the same symbol name. Since a 'def'
+;;              expression is not considered a tail call, uses 'false'
+;;              for the 'tail?' value in the recursive calls and 'nil'
+;;              for name. Uses the walk-expr function provided by
+;;              PWalkable.
 ;;
 ;;      PLoadTrampoline:
 ;;              Applies load-tramp to the init expression for the given
@@ -65,40 +89,55 @@
   (:require [ctco.protocol :as proto]
             [ctco.util :as util]))
 
-(defrecord DefCps [sym init]
-  proto/PLoadTrampoline
-  (load-tramp [this tramp]
-    (proto/walk-expr this #(proto/load-tramp % tramp) #(DefCps. %1 %2)))
+(let [ctor #(DefCps. %1 %2)]
+  (defrecord DefCps [sym init]
+    proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) ctor))
+
+    proto/PRecurify
+    (recurify [this name tail?]
+      (proto/walk-expr this #(proto/recurify % nil false) ctor))
   
-  proto/PThunkify
-  (thunkify [this]
-    (proto/walk-expr this proto/thunkify #(DefCps. %1 %2))))
+    proto/PThunkify
+    (thunkify [this]
+      (proto/walk-expr this proto/thunkify ctor))))
 
-(defrecord DefSrs [sym init]
-  proto/PCpsSrs
-  (cps-srs [this k]
-    (proto/walk-expr this #(proto/cps-srs % k) #(DefCps. %1 %2)))
+(let [ctor #(DefSrs. %1 %2)]
+  (defrecord DefSrs [sym init]
+    proto/PCpsSrs
+    (cps-srs [this k]
+      (proto/walk-expr this #(proto/cps-srs % k) #(DefCps. %1 %2)))
 
-  proto/PUnRecurify
-  (unrecurify [this name]
-    (proto/walk-expr this #(proto/unrecurify % name) #(DefSrs. %1 %2)))
+    proto/PRecurify
+    (recurify [this name tail?]
+      (proto/walk-expr this #(proto/recurify % nil false) ctor))
 
-  proto/PLoadTrampoline
-  (load-tramp [this tramp]
-    (proto/walk-expr this #(proto/load-tramp % tramp) #(DefSrs. %1 %2))))
+    proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) ctor))
 
-(defrecord DefTriv [sym init]
-  proto/PCpsTriv
-  (cps-triv [this]
-    (proto/walk-expr this proto/cps-triv #(DefCps. %1 %2)))
+    proto/PUnRecurify
+    (unrecurify [this name]
+      (proto/walk-expr this #(proto/unrecurify % name) ctor))))
 
-  proto/PUnRecurify
-  (unrecurify [this name]
-    (proto/walk-expr this #(proto/unrecurify % name) #(DefTriv. %1 %2)))
+(let [ctor #(DefTriv. %1 %2)]
+  (defrecord DefTriv [sym init]
+    proto/PCpsTriv
+    (cps-triv [this]
+      (proto/walk-expr this proto/cps-triv #(DefCps. %1 %2)))
 
-  proto/PLoadTrampoline
-  (load-tramp [this tramp]
-    (proto/walk-expr this #(proto/load-tramp % tramp) #(DefTriv. %1 %2))))
+    proto/PRecurify
+    (recurify [this name tail?]
+      (proto/walk-expr this #(proto/recurify % nil false) ctor))
+
+    proto/PLoadTrampoline
+    (load-tramp [this tramp]
+      (proto/walk-expr this #(proto/load-tramp % tramp) ctor))
+
+    proto/PUnRecurify
+    (unrecurify [this name]
+      (proto/walk-expr this #(proto/unrecurify % name) ctor))))
 
 (util/extend-multi (DefCps DefSrs DefTriv)
   proto/PUnparse

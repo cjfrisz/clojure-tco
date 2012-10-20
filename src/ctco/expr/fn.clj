@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 19 Oct 2012
+;; Last modified 20 Oct 2012
 ;; 
 ;; Defines the Fn and FnBody record types for representing 'fn'
 ;; expressions in the Clojure TCO compiler. The Fn record stores the
@@ -141,6 +141,14 @@
                      (proto/cps-srs % k))
                 (:bexpr* this)))))
 
+  proto/Recurify
+  (recurify [this name tail?]
+    (let [bexpr* (:bexpr* this)]
+      (FnBody. (:fml* this)
+               (:cmap this)
+               (conj (mapv #(proto/recurify % nil false) (butlast bexpr*))
+                     (proto/recurify (last bexpr*) name tail?))) 
+
   proto/PUnparse
   (unparse [this]
     `(~(mapv proto/unparse (:fml* this))
@@ -211,6 +219,10 @@
                            (conj out
                                  prev-cmp
                                  (prev-cps-fn (util/new-var "k")))))))))))))
+
+  proto/PRecurify
+  (recurify [this name tail?]
+    (proto/walk-expr this #(proto/recurify % (:name this) true) nil))
 
   proto/PUnparse
   (unparse [this]

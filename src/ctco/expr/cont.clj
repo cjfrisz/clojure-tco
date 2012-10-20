@@ -82,7 +82,7 @@
 
   proto/PRecurify
   (recurify [this name tail?]
-    (proto/walk-expr this #(proto/recurify % nil false) nil))
+    (proto/walk-expr this #(proto/recurify % nil nil false) nil))
   
   proto/PThunkify
   (thunkify [this]

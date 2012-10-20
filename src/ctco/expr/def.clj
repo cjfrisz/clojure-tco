@@ -89,55 +89,52 @@
   (:require [ctco.protocol :as proto]
             [ctco.util :as util]))
 
-(let [ctor #(DefCps. %1 %2)]
-  (defrecord DefCps [sym init]
-    proto/PLoadTrampoline
-    (load-tramp [this tramp]
-      (proto/walk-expr this #(proto/load-tramp % tramp) ctor))
+(defrecord DefCps [sym init]
+  proto/PLoadTrampoline
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(DefCps. %1 %2)))
 
-    proto/PRecurify
-    (recurify [this name tail?]
-      (proto/walk-expr this #(proto/recurify % nil false) ctor))
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % nil nil false) #(DefCps. %1 %2)))
   
-    proto/PThunkify
-    (thunkify [this]
-      (proto/walk-expr this proto/thunkify ctor))))
+  proto/PThunkify
+  (thunkify [this]
+    (proto/walk-expr this proto/thunkify #(DefCps. %1 %2))))
 
-(let [ctor #(DefSrs. %1 %2)]
-  (defrecord DefSrs [sym init]
-    proto/PCpsSrs
-    (cps-srs [this k]
-      (proto/walk-expr this #(proto/cps-srs % k) #(DefCps. %1 %2)))
+(defrecord DefSrs [sym init]
+  proto/PCpsSrs
+  (cps-srs [this k]
+    (proto/walk-expr this #(proto/cps-srs % k) #(DefCps. %1 %2)))
 
-    proto/PRecurify
-    (recurify [this name tail?]
-      (proto/walk-expr this #(proto/recurify % nil false) ctor))
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % nil nil false) #(DefSrs. %1 %2)))
 
-    proto/PLoadTrampoline
-    (load-tramp [this tramp]
-      (proto/walk-expr this #(proto/load-tramp % tramp) ctor))
+  proto/PLoadTrampoline
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(DefSrs. %1 %2)))
 
-    proto/PUnRecurify
-    (unrecurify [this name]
-      (proto/walk-expr this #(proto/unrecurify % name) ctor))))
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) #(DefSrs. %1 %2))))
 
-(let [ctor #(DefTriv. %1 %2)]
-  (defrecord DefTriv [sym init]
-    proto/PCpsTriv
-    (cps-triv [this]
-      (proto/walk-expr this proto/cps-triv #(DefCps. %1 %2)))
+(defrecord DefTriv [sym init]
+  proto/PCpsTriv
+  (cps-triv [this]
+    (proto/walk-expr this proto/cps-triv #(DefCps. %1 %2)))
 
-    proto/PRecurify
-    (recurify [this name tail?]
-      (proto/walk-expr this #(proto/recurify % nil false) ctor))
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % nil nil false) #(DefTriv. %1 %2)))
 
-    proto/PLoadTrampoline
-    (load-tramp [this tramp]
-      (proto/walk-expr this #(proto/load-tramp % tramp) ctor))
+  proto/PLoadTrampoline
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(DefTriv. %1 %2)))
 
-    proto/PUnRecurify
-    (unrecurify [this name]
-      (proto/walk-expr this #(proto/unrecurify % name) ctor))))
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) #(DefTriv. %1 %2))))
 
 (util/extend-multi (DefCps DefSrs DefTriv)
   proto/PUnparse

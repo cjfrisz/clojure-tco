@@ -88,11 +88,14 @@
     (proto/walk-expr this #(proto/load-tramp % tramp) nil))
 
   proto/PRecurify
-  (recurify [this name tail?]
-    (let [RAND* (mapv #(proto/recurify % nil false) (:rand* this))]
-      (if (= (:rator this) name)
-          (Recur. RAND*)
-          (App. (proto/recurify (:rator this) nil false) RAND*))))
+  (recurify [this name arity tail?]
+    (let [rator (:rator this)
+          rand* (:rand* this)
+          RAND* (mapv #(proto/recurify % nil nil false) rand*)]
+      (if (and (= rator name) (= (count rand*) arity))
+          ;; NB: still yuck
+          (make-recur RAND*)
+          (App. (proto/recurify rator nil nil false) RAND*))))
     
   proto/PThunkify
   (thunkify [this]

@@ -34,10 +34,10 @@
   (cps-triv [this] this)
 
   proto/PLoadTrampoline
-  (load-tramp [this tramp] this)
+  (load-tramp [this _] this)
 
   proto/PRecurify
-  (recurify [this name tail?] this)
+  (recurify [this _ _ _] this)
 
   proto/PThunkify
   (thunkify [this] this)
@@ -46,4 +46,4 @@
   (unparse [this] (:val this))
 
   proto/PUnRecurify
-  (unrecurify [this name] this))
+  (unrecurify [this _] this))

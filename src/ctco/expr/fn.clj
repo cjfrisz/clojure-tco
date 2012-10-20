@@ -141,13 +141,14 @@
                      (proto/cps-srs % k))
                 (:bexpr* this)))))
 
-  proto/Recurify
-  (recurify [this name tail?]
-    (let [bexpr* (:bexpr* this)]
-      (FnBody. (:fml* this)
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (let [fml* (:fml* this)
+          bexpr* (:bexpr* this)]
+      (FnBody. fml*
                (:cmap this)
-               (conj (mapv #(proto/recurify % nil false) (butlast bexpr*))
-                     (proto/recurify (last bexpr*) name tail?))) 
+               (conj (mapv #(proto/recurify % nil nil false) (butlast bexpr*))
+                     (proto/recurify (last bexpr*) name (count fml*) tail?)))))
 
   proto/PUnparse
   (unparse [this]
@@ -221,8 +222,8 @@
                                  (prev-cps-fn (util/new-var "k")))))))))))))
 
   proto/PRecurify
-  (recurify [this name tail?]
-    (proto/walk-expr this #(proto/recurify % (:name this) true) nil))
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % (:name this) nil true) nil))
 
   proto/PUnparse
   (unparse [this]

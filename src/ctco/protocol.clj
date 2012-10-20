@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 26 Apr 2012
-;; Last modified 19 Oct 2012
+;; Last modified 20 Oct 2012
 ;; 
 ;; Includes the protocols used in the CTCO compiler. These include the
 ;; following:
@@ -87,7 +87,7 @@
 (defprotocol PRecurify
   "Protocol for replacing self-recursive, tail-position function applications
   with the 'recur' form."
-  (recurify [this name tail?]
+  (recurify [this name arity tail?]
     "Takes a CTCO record expression, the name of the current function, and a
     boolean indicating whether the current expression is in tail position and
     converts self-recursive tail calls into uses of the 'recur' form."))

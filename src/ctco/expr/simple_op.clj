@@ -80,8 +80,9 @@
     (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpCps. %1 %2)))    
 
   proto/PRecurify
-  (recurify [this name tail?]
-    (proto/walk-expr this #(proto/recurify % nil false) #(SimpleOpCps. %1 %2)))
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % nil nil false)
+                     #(SimpleOpCps. %1 %2)))
      
   proto/PThunkify
   (thunkify [this]
@@ -109,8 +110,9 @@
     (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpSrs. %1 %2)))    
 
   proto/PRecurify
-  (recurify [this name tail?]
-    (proto/walk-expr this #(proto/recurify % nil false) #(SimpleOpSrs. %1 %2)))
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % nil nil false)
+                     #(SimpleOpSrs. %1 %2)))
 
   proto/PThunkify
   (thunkify [this]
@@ -130,8 +132,9 @@
     (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpTriv. %1 %2)))    
 
   proto/PRecurify
-  (recurify [this name tail?]
-    (proto/walk-expr this #(proto/recurify % nil false) #(SimpleOpTriv. %1 %2)))
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % nil nil false)
+                     #(SimpleOpTriv. %1 %2)))
 
   proto/PThunkify
   (thunkify [this]

@@ -48,8 +48,8 @@
     (Tramp. tramp expr))
 
   proto/PRecurify
-  (recurify [this name tail?]
-    (proto/walk-expr this #(proto/recurify % name tail?) nil))
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % name arity tail?) nil))
   
   proto/PThunkify
   (thunkify [this]

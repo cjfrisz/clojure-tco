@@ -39,8 +39,8 @@
     (proto/walk-expr this #(proto/load-tramp % tramp) nil))
 
   proto/PRecurify
-  (recurify [this name tail?]
-    (proto/walk-expr this #(proto/recurify % nil false) nil))
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % nil nil false) nil))
 
   proto/PUnparse
   (unparse [this]

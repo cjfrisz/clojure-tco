@@ -77,10 +77,10 @@
     (proto/walk-expr this #(proto/load-tramp % tramp) #(IfCps. %1 %2 %3)))
 
   proto/PRecurify
-  (recurify [this name tail?]
+  (recurify [this name arity tail?]
     (IfCps. (:test this)
-            (proto/recurify (:conseq this) name tail?)
-            (proto/recurify (:alt this) name tail?)))
+            (proto/recurify (:conseq this) name arity tail?)
+            (proto/recurify (:alt this) name arity tail?)))
   
   proto/PThunkify
   (thunkify [this]
@@ -110,10 +110,10 @@
     (proto/walk-expr this #(proto/load-tramp % tramp) #(IfSrs. %1 %2 %3)))
 
   proto/PRecurify
-  (recurify [this name tail?]
+  (recurify [this name arity tail?]
     (IfSrs. (:test this)
-            (proto/recurify (:conseq this) name tail?)
-            (proto/recurify (:alt this) name tail?)))
+            (proto/recurify (:conseq this) name arity tail?)
+            (proto/recurify (:alt this) name arity tail?)))
 
   proto/PThunkify
   (thunkify [this]
@@ -133,10 +133,10 @@
     (proto/walk-expr this #(proto/load-tramp % tramp) #(IfTriv. %1 %2 %3)))
 
   proto/PRecurify
-  (recurify [this name tail?]
+  (recurify [this name arity tail?]
     (IfTriv. (:test this)
-            (proto/recurify (:conseq this) name tail?)
-            (proto/recurify (:alt this) name tail?)))
+            (proto/recurify (:conseq this) name arity tail?)
+            (proto/recurify (:alt this) name arity tail?)))
 
   proto/PThunkify
   (thunkify [this]

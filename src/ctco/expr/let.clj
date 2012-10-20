@@ -127,9 +127,9 @@
     (proto/walk-expr this #(proto/load-tramp % tramp) #(LetCps. %1 %2)))
 
   proto/PRecurify
-  (recurify [this name tail?]
-    (LetCps. (mapv #(proto/recurify % nil false) (:bind* this))
-             (proto/recurify (:body this) name tail?)))
+  (recurify [this name arity tail?]
+    (LetCps. (mapv #(proto/recurify % nil nil false) (:bind* this))
+             (proto/recurify (:body this) name arity tail?))))
 
 (defrecord LetSrs [bind* body]
   proto/PCpsSrs
@@ -162,9 +162,9 @@
     (proto/walk-expr this #(proto/load-tramp % tramp) #(LetSrs. %1 %2)))
 
   proto/PRecurify
-  (recurify [this name tail?]
-    (LetSrs. (mapv #(proto/recurify % nil false) (:bind* this))
-             (proto/recurify (:body this) name tail?)))
+  (recurify [this name arity tail?]
+    (LetSrs. (mapv #(proto/recurify % nil nil false) (:bind* this))
+             (proto/recurify (:body this) name arity tail?)))
 
   proto/PUnRecurify
   (unrecurify [this name]
@@ -180,9 +180,9 @@
     (proto/walk-expr this #(proto/load-tramp % tramp) #(LetTriv. %1 %2)))
 
   proto/PRecurify
-  (recurify [this name tail?]
-    (LetTriv. (mapv #(proto/recurify % nil false) (:bind* this))
-             (proto/recurify (:body this) name tail?)))
+  (recurify [this name arity tail?]
+    (LetTriv. (mapv #(proto/recurify % nil nil false) (:bind* this))
+             (proto/recurify (:body this) name arity tail?)))
 
   proto/PUnRecurify
   (unrecurify [this name]

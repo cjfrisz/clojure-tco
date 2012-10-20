@@ -6,7 +6,8 @@
 ;; Last modified 20 Oct 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
-;; TCO compiler.
+;; TCO compiler. Also defines the Recur record type and operations for
+;; representing 'recur' expressions in the Clojure TCO compiler.
 ;;
 ;; It implements the following protocols:
 ;;
@@ -50,19 +51,37 @@
 ;;      PWalkable:
 ;;              Applies the given function to the rator and each rand*
 ;;              and returns a new App record.
+;;
+;; Recur implements the following protocols:
+;;
+;;      PLoadTrampoline:
+;;              Maps load-tramp over the arguments to the 'recur' form.
+;;
+;;      PUnparse:
+;;              Unparses (recursively) the syntax for the expression as
+;;              `(loop ~bind* ~body), where bind* is the vector of
+;;              variables and bindings, and body is the body
+;;              expression of the 'loop.'
+;;
+;;      PUnRecurify:
+;;              Replaces the 'recur' call with a function application.
+;;
+;;      PWalkable:
+;;              Maps a function over the arguments to the 'recur' form,
+;;              generating a new Recur record.
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.app
   (:require [ctco.expr
-             cont recur thunk]
+             cont thunk]
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.cont
             Cont AppCont]
-           [ctco.expr.recur
-            Recur]
            [ctco.expr.thunk
             Thunk]))
+
+(declare make-recur)
 
 (defrecord App [rator rand*]    
   proto/PCpsSrs
@@ -93,7 +112,6 @@
           rand* (:rand* this)
           RAND* (mapv #(proto/recurify % nil nil false) rand*)]
       (if (and (= rator name) (= (count rand*) arity))
-          ;; NB: still yuck
           (make-recur RAND*)
           (App. (proto/recurify rator nil nil false) RAND*))))
     
@@ -112,3 +130,27 @@
   proto/PWalkable
   (walk-expr [this f _]
     (App. (f (:rator this)) (mapv f (:rand* this)))))
+
+(defrecord Recur [arg*]
+  proto/PLoadTrampoline
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) nil))
+
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % nil nil false) nil))
+
+  proto/PUnparse
+  (unparse [this]
+    (let [arg* (map proto/unparse (:arg* this))]
+      `(recur ~@arg*)))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (App. name (:arg* this)))
+
+  proto/PWalkable
+  (walk-expr [this f _]
+    (Recur. (mapv f (:arg* this)))))
+
+(defn- make-recur [rand*] (Recur. rand*))

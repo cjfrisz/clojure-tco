@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 10 Apr 2012
-;; Last modified 19 Oct 2012
+;; Last modified 20 Oct 2012
 ;; 
 ;; Defines the parser for the Clojure TCO compiler.
 ;;----------------------------------------------------------------------
@@ -12,11 +12,11 @@
   (:use [clojure.core.match
          :only (match)])
   (:require [ctco.expr
-             app def fn if let recur simple simple-op]
+             app def fn if let simple simple-op]
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.app
-            App]
+            App Recur]
            [ctco.expr.def
             DefSrs DefTriv]
            [ctco.expr.fn
@@ -25,8 +25,6 @@
             IfCps IfSrs IfTriv]
            [ctco.expr.let
             LetCps LetSrs LetTriv]
-           [ctco.expr.recur
-            Recur]
            [ctco.expr.simple
             Simple]
            [ctco.expr.simple_op

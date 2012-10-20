@@ -69,10 +69,11 @@
   (Fn.
    (parse (or name (gensym "fn")))
    (mapv
-    #(match [%]
-       [([fml* (cmap :guard map?) & b*] :seq)] (parse-fn-body fml* cmap b*)
-       [([fml* & b*] :seq)] (parse-fn-body fml* nil b*)
-       :else (throw (Exception. (str "invalid function body" %))))
+    (fn [b]
+      (match [b]
+        [([fml* (cmap :guard map?) & be*] :seq)] (parse-fn-body fml* cmap be*)
+        [([fml* & be*] :seq)] (parse-fn-body fml* nil be*)
+        :else (throw (Exception. (str "invalid function body" b)))))
     body*)))
 
 (defn- parse-if

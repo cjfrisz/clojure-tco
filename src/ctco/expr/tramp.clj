@@ -55,6 +55,10 @@
   (thunkify [this]
     (proto/walk-expr this proto/thunkify nil))
 
+  ;; Not used in practice, but useful for debugging
+  proto/PUnparse
+  (unparse [this] (proto/unparse (:expr this)))
+
   proto/PWalkable
   (walk-expr [this f _]
     (TrampMark. (f (:expr this)))))

@@ -16,7 +16,7 @@
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.app
-            App Recur]
+            App]
            [ctco.expr.def
             DefSrs DefTriv]
            [ctco.expr.fn
@@ -97,11 +97,6 @@
         (LetSrs. BIND* BODY)
         (LetTriv. BIND* BODY))))
 
-(defn- parse-recur
-  "Helper function for parse that handles 'recur' expressions."
-  [expr*]
-  (Recur. (mapv parse expr*)))
-
 (defn- parse-core
   "Takes a sequence representing a Clojure expression (generally passed from a
   macro) and returns the parsed representation of the expression if it is a core
@@ -117,7 +112,6 @@
     [(['fn (name :guard symbol?) & body*] :seq)] (parse-fn name body*)
     [(['if test conseq alt] :seq)] (parse-if test conseq alt)
     [(['let bind* body] :seq)] (parse-let bind* body)
-    [(['recur & expr*] :seq)] (parse-recur expr*)
     :else false))
 
 (defn- parse-defn

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  6 Oct 2012
+;; Last modified 20 Oct 2012
 ;; 
 ;; Defines the App record type for function application in the Clojure
 ;; TCO compiler.
@@ -23,6 +23,17 @@
 ;;              Recursively applies load-tramp to the operator and
 ;;              operands of the expression.
 ;;
+;;      PRecurify:
+;;              If the name argument matches the rator and the value of
+;;              tail? is true, replaces the application with the recur
+;;              form. If not, returns a new application with recurify
+;;              applied to the rator with nil and false for the values
+;;              of name and tail?, respectively, since the rator cannot
+;;              be a tail call. Regardless of whether the application is
+;;              a self-recursive tail call, recurify is applied to the
+;;              arguments with values nil and false for name and tail?,
+;;              respectively.
+;;
 ;;      PThunkify:
 ;;              Recursively thunkifies the rator and each rand* and
 ;;              puts the result inside of a thunk.
@@ -31,6 +42,11 @@
 ;;              Unparses (recursively) the sytax for the expression as
 ;;              `(~rator ~@rand*)
 ;;
+;;      PUnRecurify
+;;              Maps the unrecurify transformation over the rator and
+;;              rand* of the application. Uses the walk-expr function
+;;              provided by PWalkable.
+;;
 ;;      PWalkable:
 ;;              Applies the given function to the rator and each rand*
 ;;              and returns a new App record.
@@ -38,11 +54,13 @@
 
 (ns ctco.expr.app
   (:require [ctco.expr
-             cont thunk]
+             cont simple thunk]
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.cont
             Cont AppCont]
+           [ctco.expr.simple
+            Simple]
            [ctco.expr.thunk
             Thunk]))
 
@@ -68,14 +86,40 @@
   proto/PLoadTrampoline
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) nil))
+
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (let [rator (:rator this)
+          rand* (:rand* this)
+          RAND* (mapv #(proto/recurify % nil nil false) rand*)]
+      (if (and (= rator name) (= (count rand*) arity))
+;; NB: seems like a manifest constant
+;; NB: maybe fix this with the globals file
+          (App. (Simple. 'recur) RAND*)
+          (App. (proto/recurify rator nil nil false) RAND*))))
     
   proto/PThunkify
   (thunkify [this]
-    (Thunk. (proto/walk-expr this proto/thunkify nil)))
+;; NB: seems like a manifest constant
+;; NB: maybe fix this with the globals file
+    (let [APP (proto/walk-expr this proto/thunkify nil)]
+      (if (= (:rator this) (Simple. 'recur))
+          APP
+          (Thunk. APP))))
 
   proto/PUnparse
   (unparse [this]
     `(~(proto/unparse (:rator this)) ~@(map proto/unparse (:rand* this))))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+;; NB: seems like a manifest constant
+;; NB: maybe fix this with the globals file
+    (let [recur-rec (Simple. 'recur)
+          unrecurify #(proto/unrecurify % name)]
+      (if (= (:rator this) recur-rec)
+          (App. recur-rec (mapv unrecurify (:rand* this)))
+          (proto/walk-expr this unrecurify nil))))
 
   proto/PWalkable
   (walk-expr [this f _]

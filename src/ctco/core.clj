@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified  6 Oct 2012
+;; Last modified  5 Nov 2012
 ;; 
 ;; Defines the ctco macro which acts as the driver for the Clojure TCO
 ;; compiler. The macro parses the initial expression, and applies the
@@ -11,7 +11,7 @@
 ;; transformation, thunkification, and trampolining. Finally, the code
 ;; is unparsed and wrapped in a binding for the custom trampoline
 ;; function and an initial call to that trampoline function.
-;; ----------------------------------------------------------------------
+;;----------------------------------------------------------------------
 
 (ns ctco.core
   (:require [ctco.parse :as parse]
@@ -37,7 +37,9 @@
                 proto/PCpsSrs  (proto/cps-srs expr (gensym "k"))
                 :else (throw (Exception. (str "unexpected expression " expr)))))]
       (let [new-expr (-> (parse/parse expr)
+                         (proto/unrecurify nil)
                          apply-cps
+                         (proto/recurify nil nil false)
                          proto/thunkify
                          (proto/load-tramp tramp)
                          proto/unparse)]
@@ -47,3 +49,12 @@
                          (recur (~thunk))
                          ~thunk))]
              (~tramp ~new-expr)))))))
+
+(defmacro recurify
+  [expr]
+  "A macro which replaces self-recursive function calls explicitly using the
+  function's name with uses of the 'recur' form for using constant stack space
+  for self-recursive function calls."
+  (-> (parse/parse expr)
+      (proto/recurify nil nil false)
+      proto/unparse))

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified  6 Oct 2012
+;; Last modified  5 Nov 2012
 ;; 
 ;; Defines the Fn and FnBody record types for representing 'fn'
 ;; expressions in the Clojure TCO compiler. The Fn record stores the
@@ -37,6 +37,10 @@
 ;;              Unparses (recursively) the syntax for the expression as
 ;;              `(~fml* ~cmap? ~bexpr*).
 ;;
+;;      PUnRecurify:
+;;              Applies unrecurify to each subexpression. Uses the
+;;              walk-expr function provided by PWalkable.
+;;
 ;;      PWalkable:
 ;;              Applies the given function to each body expression,
 ;;              returning a new FnBody record with the results, along
@@ -56,10 +60,7 @@
 ;;              expression. That is, a body which will initiate the
 ;;              trampoline computation with the empty continuation so
 ;;              that code that is not transformed via CTCO can make
-;;              procedure calls to functions that are transformed. If
-;;              the source-level expression did not include a name for
-;;              the 'fn' expression, a unique name is inserted to allow
-;;              for the recursive call.
+;;              procedure calls to functions that are transformed.
 ;;
 ;;              In the case of a FnBody whose CPS arity is unique, the
 ;;              function returned from cps-triv receives a unique
@@ -85,6 +86,11 @@
 ;;              Unparses (recursively) the expression as
 ;;              `(fn ~name? ~bexpr*)
 ;;
+;;      PUnRecurify:
+;;              Applies unrecurify to each subexpression, using the name
+;;              field of the Fn record if available. Uses the walk-expr
+;;              function provided by PWalkable.
+;;
 ;;      PWalkable:
 ;;              Applies the given function to each FnBody, returning a
 ;;              new Fn with the results and the same name.
@@ -105,7 +111,7 @@
 
 (ns ctco.expr.fn
   (:require [ctco.expr
-             app cont do if simple thunk tramp]
+             app cont do if simple simple-op thunk tramp]
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.app
@@ -118,6 +124,8 @@
             IfCps]
            [ctco.expr.simple
             Simple]
+           [ctco.expr.simple_op
+            SimpleOpCps]
            [ctco.expr.thunk
             Thunk]
            [ctco.expr.tramp
@@ -135,12 +143,25 @@
                      (proto/cps-srs % k))
                 (:bexpr* this)))))
 
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (let [fml* (:fml* this)
+          bexpr* (:bexpr* this)]
+      (FnBody. fml*
+               (:cmap this)
+               (conj (mapv #(proto/recurify % nil nil false) (butlast bexpr*))
+                     (proto/recurify (last bexpr*) name (count fml*) tail?)))))
+
   proto/PUnparse
   (unparse [this]
     `(~(mapv proto/unparse (:fml* this))
       ~@(let [cmap (:cmap this)]
           (if cmap (list cmap) '()))
       ~@(map proto/unparse (:bexpr* this))))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) nil))
 
   proto/PWalkable
   (walk-expr [this f _]
@@ -153,15 +174,13 @@
       (if (nil? (seq body*))
           this
           (let [body (first body*)
-                name (or (:name this) (util/new-var "fn"))]
+                name (:name this)]
             (letfn [(make-cps-app [body]
-                      (with-meta
-                        (TrampMark.
-                         (App. name
-                               (conj (:fml* body)
-                                     (let [x (util/new-var "x")]
-                                       (Cont. x x)))))
-                        {:tramp-entry true}))
+                      (TrampMark.
+                       (App. name
+                             (conj (:fml* body)
+                                   (let [x (util/new-var "x")]
+                                     (Cont. x x))))))
                     (make-entry-body [body]
                       (FnBody. (:fml* body)
                                (:cmap body)
@@ -188,9 +207,9 @@
                               ;; NB: references to the variable we're
                               ;; NB: co-opting for the continuation.
                               (:cmap body)
-                              [(IfCps. (App. (Simple. ':kont)
-                                             [(App. (Simple. 'meta)
-                                                    [last-fml])])
+                              [(IfCps. (SimpleOpCps. ':kont
+                                                     [(SimpleOpCps. 'meta
+                                                       [last-fml])])
                                        (Do.
                                         (:bexpr* (prev-cps-fn last-fml)))
                                        (make-cps-app body))]))
@@ -204,11 +223,20 @@
                                  prev-cmp
                                  (prev-cps-fn (util/new-var "k")))))))))))))
 
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % (:name this) nil true) nil))
+
   proto/PUnparse
   (unparse [this]
     (let [name (:name this)]
       `(fn ~@(if name (list (proto/unparse name)) '())
          ~@(map proto/unparse (:body* this)))))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (let [NAME (or (:name this) name)]
+      (proto/walk-expr this #(proto/unrecurify % name) nil)))
 
   proto/PWalkable
   (walk-expr [this f _]

@@ -3,7 +3,7 @@
 ;; Written by Chris
 ;; 
 ;; Created  4 Oct 2012
-;; Last modified  6 Oct 2012
+;; Last modified 20 Oct 2012
 ;; 
 ;; Defines the TrampMark record type for marking trampoline entry points
 ;; and the Tramp record type for marking those entry points with the
@@ -46,10 +46,18 @@
   proto/PLoadTrampoline
   (load-tramp [this tramp]
     (Tramp. tramp expr))
+
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % name arity tail?) nil))
   
   proto/PThunkify
   (thunkify [this]
     (proto/walk-expr this proto/thunkify nil))
+
+  ;; Not used in practice, but useful for debugging
+  proto/PUnparse
+  (unparse [this] (proto/unparse (:expr this)))
 
   proto/PWalkable
   (walk-expr [this f _]

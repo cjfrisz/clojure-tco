@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified 13 Oct 2012
+;; Last modified  5 Nov 2012
 ;; 
 ;; Defines the Cont, AppCont, and AppContAbs record types for
 ;; continuations, continuation application, and continuation
@@ -37,6 +37,14 @@
 ;;      PLoadTrampoline:
 ;;              Applies the load-tramp function to each subexpression.
 ;;              Uses the walk-expr function provided by PWalkable.
+;;
+;;      PRecurify:
+;;              Applies the recurify function to each
+;;              subexpression. Since neither a continuation nor a
+;;              continuation application is a tail call, 'false' is
+;;              passed for the 'tail?' value and 'nil' for the name in
+;;              the recursive calls.  Uses the walk-exp function
+;;              provided by PWalkable.
 ;;
 ;;      PThunkify:
 ;;              Applies the thunkify function to each subexpression.
@@ -72,6 +80,10 @@
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) nil))
 
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % nil nil false) nil))
+  
   proto/PThunkify
   (thunkify [this]
     (proto/walk-expr this proto/thunkify nil)))

@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified  6 Oct 2012
+;; Last modified  5 Nov 2012
 ;; 
 ;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
 ;; for representing operations using simple primitives, i.e.
@@ -13,12 +13,13 @@
 ;; algorithm, respectively. The SimpleOpCps record type corresponds to
 ;; primitive operations which have undergone the CPS transformation.
 ;;
-;; IfCps implements the following protocols:
+;; SimpleOpCps implements the following protocols:
 ;;
 ;;      PThunkify:
-;;              Maps thunkify over the operands of the expression.
+;;              Maps thunkify over the operands of the expression. Uses
+;;              the walk-expr function provided by PWalkable.
 ;;
-;; IfSrs implements the following protocols:
+;; SimpleOpSrs implements the following protocols:
 ;;
 ;;      PCpsSrs:
 ;;              Applies the Danvy-style CPS transformation to the
@@ -30,18 +31,31 @@
 ;;              subexpression replaced with a variable.
 ;;
 ;;      PThunkify:
-;;              Maps thunkify over the operands of the expression.
+;;              Maps thunkify over the operands of the expression. Uses
+;;              the walk-expr function provided by PWalkable.
 ;;
-;; IfTriv implements the following protocols:
+;;      PUnRecurify:
+;;              Maps unrecurify over the operands of the
+;;              expression. Uses the walk-expr function provided by
+;;              PWalkable. 
+;;
+;; SimpleOpTriv implements the following protocols:
 ;;
 ;;      PCpsTriv:
-;;              Maps cps-triv over the operands of the expression.
+;;              Maps cps-triv over the operands of the expression. Uses
+;;              the walk-expr function provided by PWalkable.
 ;;
 ;;      PThunkify:
-;;              Maps thunkify over the operands of the expression.
+;;              Maps thunkify over the operands of the expression. Uses
+;;              the walk-expr function provided by PWalkable.
 ;;
-;; IfCps, IfSrs, and IfTriv use the same implementation for the
-;; following protocols:
+;;      PUnRecurify:
+;;              Maps unrecurify over the operands of the
+;;              expression. Uses the walk-expr function provided by
+;;              PWalkable. 
+;;
+;; SimpleOpCps, SimpleOpSrs, and SimpleOpTriv use the same
+;; implementation for the following protocols:
 ;;
 ;;      PUnparse:
 ;;              Unparses (recursively) the syntax for the expression as
@@ -49,7 +63,8 @@
 ;;
 ;;      PWalkable:
 ;;              Maps the given function over the operands of the
-;;              expression.
+;;              expression. Uses the walk-expr function provided by
+;;              PWalkable. 
 ;;----------------------------------------------------------------------
 
 (ns ctco.expr.simple-op
@@ -62,24 +77,16 @@
 (defrecord SimpleOpCps [op opnd*]
   proto/PLoadTrampoline
   (load-tramp [this tramp]
-    (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpCps. %1 %2)))
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpCps. %1 %2)))    
 
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % nil nil false)
+                     #(SimpleOpCps. %1 %2)))
+     
   proto/PThunkify
   (thunkify [this]
     (proto/walk-expr this proto/thunkify #(SimpleOpCps. %1 %2))))
-
-(defrecord SimpleOpTriv [op opnd*]
-  proto/PCpsTriv
-  (cps-triv [this]
-    (proto/walk-expr this proto/cps-triv #(SimpleOpCps. %1 %2)))
-
-  proto/PLoadTrampoline
-  (load-tramp [this tramp]
-    (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpTriv. %1 %2)))
-
-  proto/PThunkify
-  (thunkify [this]
-    (proto/walk-expr this proto/thunkify #(SimpleOpTriv. %1 %2))))
 
 (defrecord SimpleOpSrs [op opnd*]
   proto/PCpsSrs
@@ -100,11 +107,42 @@
 
   proto/PLoadTrampoline
   (load-tramp [this tramp]
-    (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpSrs. %1 %2)))
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpSrs. %1 %2)))    
+
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % nil nil false)
+                     #(SimpleOpSrs. %1 %2)))
 
   proto/PThunkify
   (thunkify [this]
-    (proto/walk-expr this proto/thunkify #(SimpleOpSrs. %1 %2))))                        
+    (proto/walk-expr this proto/thunkify #(SimpleOpSrs. %1 %2)))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) #(SimpleOpSrs. %1 %2))))
+
+(defrecord SimpleOpTriv [op opnd*]
+  proto/PCpsTriv
+  (cps-triv [this]
+    (proto/walk-expr this proto/cps-triv #(SimpleOpCps. %1 %2)))
+
+  proto/PLoadTrampoline
+  (load-tramp [this tramp]
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(SimpleOpTriv. %1 %2)))    
+
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (proto/walk-expr this #(proto/recurify % nil nil false)
+                     #(SimpleOpTriv. %1 %2)))
+
+  proto/PThunkify
+  (thunkify [this]
+    (proto/walk-expr this proto/thunkify #(SimpleOpTriv. %1 %2)))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) #(SimpleOpTriv. %1 %2))))                        
 
 (util/extend-multi (SimpleOpCps SimpleOpSrs SimpleOpTriv)
   proto/PUnparse

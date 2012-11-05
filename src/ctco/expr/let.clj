@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 13 Oct 2012
+;; Last modified 20 Oct 2012
 ;; 
 ;; Defines the LetSrs, LetTriv, and LetCps record types representing
 ;; serious, trivial, and CPSed 'let' expressions, respectively. LetSrs
@@ -76,11 +76,13 @@
 ;;      PLoadTrampoline:
 ;;              Maps load-tramp (with the trampoline function name) over
 ;;              the init values of each binding and the 'let' body,
-;;              generating a new LetSrs expression.
+;;              generating a new LetSrs expression. Uses the map-expr
+;;              function provided by PWalkable. 
 ;;
-;;      PUnparse:
-;;              Unparses (recursively) the syntax for the expression as
-;;              `(let ~bind* ~body)
+;;      PUnRecurify:
+;;              Maps unrecurify over the init values of each binding and
+;;              the 'let' body, generating a new LetSrs expression. Uses
+;;              the map-expr function provided by PWalkable.
 ;;
 ;; LetTriv implements the following protocols:
 ;;
@@ -92,6 +94,12 @@
 ;;              Maps load-tramp (with the trampoline function name) over
 ;;              the init values of each binding and the 'let' body,
 ;;              generating a new LetTriv expression.
+;;
+;;      PUnRecurify:
+;;              Maps unrecurify over the init values of each binding and
+;;              the 'let' body, generating a new LetTriv
+;;              expression. Uses the map-expr function provided by
+;;              PWalkable. 
 ;;
 ;; LetCps, LetSrs, and LetTriv use the same implementation for the
 ;; following protocols:
@@ -118,9 +126,10 @@
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) #(LetCps. %1 %2)))
 
-  proto/PThunkify
-  (thunkify [this]
-    (proto/walk-expr this proto/thunkify #(LetCps. %1 %2))))
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (LetCps. (mapv #(proto/recurify % nil nil false) (:bind* this))
+             (proto/recurify (:body this) name arity tail?))))
 
 (defrecord LetSrs [bind* body]
   proto/PCpsSrs
@@ -150,7 +159,16 @@
 
   proto/PLoadTrampoline
   (load-tramp [this tramp]
-    (proto/walk-expr this #(proto/load-tramp % tramp) #(LetSrs. %1 %2))))
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(LetSrs. %1 %2)))
+
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (LetSrs. (mapv #(proto/recurify % nil nil false) (:bind* this))
+             (proto/recurify (:body this) name arity tail?)))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) #(LetSrs. %1 %2))))
 
 (defrecord LetTriv [bind* body]
   proto/PCpsTriv
@@ -159,7 +177,16 @@
 
   proto/PLoadTrampoline
   (load-tramp [this tramp]
-    (proto/walk-expr this #(proto/load-tramp % tramp) #(LetTriv. %1 %2))))
+    (proto/walk-expr this #(proto/load-tramp % tramp) #(LetTriv. %1 %2)))
+
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (LetTriv. (mapv #(proto/recurify % nil nil false) (:bind* this))
+             (proto/recurify (:body this) name arity tail?)))
+
+  proto/PUnRecurify
+  (unrecurify [this name]
+    (proto/walk-expr this #(proto/unrecurify % name) #(LetTriv. %1 %2))))
 
 (util/extend-multi (LetCps LetSrs LetTriv)
   proto/PUnparse

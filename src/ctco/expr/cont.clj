@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  1 Apr 2012
-;; Last modified 20 Oct 2012
+;; Last modified  5 Nov 2012
 ;; 
 ;; Defines the Cont, AppCont, and AppContAbs record types for
 ;; continuations, continuation application, and continuation
@@ -81,7 +81,7 @@
     (proto/walk-expr this #(proto/load-tramp % tramp) nil))
 
   proto/PRecurify
-  (recurify [this name tail?]
+  (recurify [this name arity tail?]
     (proto/walk-expr this #(proto/recurify % nil nil false) nil))
   
   proto/PThunkify

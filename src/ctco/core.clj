@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 11 Apr 2012
-;; Last modified 20 Oct 2012
+;; Last modified  5 Nov 2012
 ;; 
 ;; Defines the ctco macro which acts as the driver for the Clojure TCO
 ;; compiler. The macro parses the initial expression, and applies the
@@ -49,3 +49,12 @@
                          (recur (~thunk))
                          ~thunk))]
              (~tramp ~new-expr)))))))
+
+(defmacro recurify
+  [expr]
+  "A macro which replaces self-recursive function calls explicitly using the
+  function's name with uses of the 'recur' form for using constant stack space
+  for self-recursive function calls."
+  (-> (parse/parse expr)
+      (proto/recurify nil nil false)
+      proto/unparse))

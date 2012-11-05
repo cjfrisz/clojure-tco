@@ -143,11 +143,37 @@ following code:
        ([n a k4583]
           (if (zero? n)
               (k4583 a)
-              (with-meta
-                #(fact (dec n) (* n a) k4583)
-                {:thunk true})))))))
+              (recur (dec n) (* n a) k4583)))))))
 ```
 
+## Bonus: 'recurify' macro
+
+CTCO also provides a `recurify` macro which takes any expression
+accepted by the CTCO grammar and replaces all self-recursive tail
+calls that explicitly use a function name to instead use the `recur`
+form. It simply leverages the mechanism for doing the same
+transformation within the full CTCO transformation.
+
+For example:
+
+```clojure
+(recurify
+ (defn fact
+   [n a]
+   (if (zero? n)
+       a
+       (fact (dec n) (* n a)))))
+```
+
+This will expand to the following:
+
+```clojure
+(defn fact
+  [n a]
+  (if (zero? n)
+      a
+      (recur (dec n) (* n a))))
+```
 
 ## Contributing
 

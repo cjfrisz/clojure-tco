@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 30 Mar 2012
-;; Last modified 20 Oct 2012
+;; Last modified  5 Nov 2012
 ;; 
 ;; Defines the Fn and FnBody record types for representing 'fn'
 ;; expressions in the Clojure TCO compiler. The Fn record stores the
@@ -111,7 +111,7 @@
 
 (ns ctco.expr.fn
   (:require [ctco.expr
-             app cont do if simple thunk tramp]
+             app cont do if simple simple-op thunk tramp]
             [ctco.protocol :as proto]
             [ctco.util :as util])
   (:import [ctco.expr.app
@@ -124,6 +124,8 @@
             IfCps]
            [ctco.expr.simple
             Simple]
+           [ctco.expr.simple_op
+            SimpleOpCps]
            [ctco.expr.thunk
             Thunk]
            [ctco.expr.tramp
@@ -205,9 +207,9 @@
                               ;; NB: references to the variable we're
                               ;; NB: co-opting for the continuation.
                               (:cmap body)
-                              [(IfCps. (App. (Simple. ':kont)
-                                             [(App. (Simple. 'meta)
-                                                    [last-fml])])
+                              [(IfCps. (SimpleOpCps. ':kont
+                                                     [(SimpleOpCps. 'meta
+                                                       [last-fml])])
                                        (Do.
                                         (:bexpr* (prev-cps-fn last-fml)))
                                        (make-cps-app body))]))

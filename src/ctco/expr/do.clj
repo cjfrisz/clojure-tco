@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created 16 Apr 2012
-;; Last modified 18 Oct 2012
+;; Last modified  5 Nov 2012
 ;; 
 ;; Defines the Do record type and operations for 'do' expressions in the
 ;; Clojure TCO compiler.
@@ -39,6 +39,12 @@
   proto/PLoadTrampoline
   (load-tramp [this tramp]
     (proto/walk-expr this #(proto/load-tramp % tramp) nil))
+
+  proto/PRecurify
+  (recurify [this name arity tail?]
+    (let [expr* (:expr* this)]
+      (Do. (conj (mapv #(proto/recurify % nil nil false) (butlast expr*))
+                 (proto/recurify (last expr*) name arity tail?)))))
 
   proto/PThunkify
   (thunkify [this] (proto/walk-expr this proto/thunkify nil))

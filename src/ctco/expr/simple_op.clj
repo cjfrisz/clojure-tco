@@ -3,7 +3,7 @@
 ;; Written by Chris Frisz
 ;; 
 ;; Created  2 Apr 2012
-;; Last modified 20 Oct 2012
+;; Last modified  5 Nov 2012
 ;; 
 ;; Defines the SimpleOpSrs, SimpleOpTriv, and SimpleOpCps record types
 ;; for representing operations using simple primitives, i.e.
@@ -13,13 +13,13 @@
 ;; algorithm, respectively. The SimpleOpCps record type corresponds to
 ;; primitive operations which have undergone the CPS transformation.
 ;;
-;; IfCps implements the following protocols:
+;; SimpleOpCps implements the following protocols:
 ;;
 ;;      PThunkify:
 ;;              Maps thunkify over the operands of the expression. Uses
 ;;              the walk-expr function provided by PWalkable.
 ;;
-;; IfSrs implements the following protocols:
+;; SimpleOpSrs implements the following protocols:
 ;;
 ;;      PCpsSrs:
 ;;              Applies the Danvy-style CPS transformation to the
@@ -39,7 +39,7 @@
 ;;              expression. Uses the walk-expr function provided by
 ;;              PWalkable. 
 ;;
-;; IfTriv implements the following protocols:
+;; SimpleOpTriv implements the following protocols:
 ;;
 ;;      PCpsTriv:
 ;;              Maps cps-triv over the operands of the expression. Uses
@@ -54,8 +54,8 @@
 ;;              expression. Uses the walk-expr function provided by
 ;;              PWalkable. 
 ;;
-;; IfCps, IfSrs, and IfTriv use the same implementation for the
-;; following protocols:
+;; SimpleOpCps, SimpleOpSrs, and SimpleOpTriv use the same
+;; implementation for the following protocols:
 ;;
 ;;      PUnparse:
 ;;              Unparses (recursively) the syntax for the expression as
